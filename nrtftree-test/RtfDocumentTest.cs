@@ -26,138 +26,130 @@
  * Description:	Proyecto de Test para NRtfTree
  * ******************************************************************************/
 
-using System;
-using Net.Sgoliver.NRtfTree.Core;
 using Net.Sgoliver.NRtfTree.Util;
-using System.IO;
-using NUnit.Framework;
 using System.Drawing;
 using System.Globalization;
+using System.Text;
 
-namespace Net.Sgoliver.NRtfTree.Test
+namespace Net.Sgoliver.NRtfTree.Test;
+
+public class RtfDocumentTest
 {
-    [TestFixture]
-    public class RtfDocumentTest
+
+    [SetUp]
+    public void InitTest()
     {
-        [TestFixtureSetUp]
-        public void InitTestFixture()
-        {
-            ;
-        }
+#if NETCORE || NET
+        // Add a reference to the NuGet package System.Text.Encoding.CodePages for .Net core only
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif
+    }
 
-        [SetUp]
-        public void InitTest()
-        {
-            ;
-        }
+    [Test]
+    public void CreateSimpleDocument()
+    {
+        var doc = new RtfDocument(Encoding.GetEncoding(1252)); // Encoding.Default has changed to UTF8 in newer .NETs
 
-        [Test]
-        public void CreateSimpleDocument()
-        {
-            RtfDocument doc = new RtfDocument();
+        var charFormat = new RtfCharFormat();
+        charFormat.Color = Color.DarkBlue;
+        charFormat.Underline = true;
+        charFormat.Bold = true;
+        doc.UpdateCharFormat(charFormat);
 
-            RtfCharFormat charFormat = new RtfCharFormat();
-            charFormat.Color = Color.DarkBlue;
-            charFormat.Underline = true;
-            charFormat.Bold = true;
-            doc.UpdateCharFormat(charFormat);
+        var parFormat = new RtfParFormat();
+        parFormat.Alignment = TextAlignment.Justified;
+        doc.UpdateParFormat(parFormat);
 
-            RtfParFormat parFormat = new RtfParFormat();
-            parFormat.Alignment = TextAlignment.Justified;
-            doc.UpdateParFormat(parFormat);
+        doc.AddText("First Paragraph");
+        doc.AddNewParagraph(2);
 
-            doc.AddText("First Paragraph");
-            doc.AddNewParagraph(2);
+        doc.SetFormatBold(false);
+        doc.SetFormatUnderline(false);
+        doc.SetFormatColor(Color.Red);
 
-            doc.SetFormatBold(false);
-            doc.SetFormatUnderline(false);
-            doc.SetFormatColor(Color.Red);
+        doc.AddText("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer quis eros at tortor pharetra laoreet. Donec tortor diam, imperdiet ut porta quis, congue eu justo.");
+        doc.AddText("Quisque viverra tellus id mauris tincidunt luctus. Fusce in interdum ipsum. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
+        doc.AddText("Donec ac leo justo, vitae rutrum elit. Nulla tellus elit, imperdiet luctus porta vel, consectetur quis turpis. Nam purus odio, dictum vitae sollicitudin nec, tempor eget mi.");
+        doc.AddText("Etiam vitae porttitor enim. Aenean molestie facilisis magna, quis tincidunt leo placerat in. Maecenas malesuada eleifend nunc vitae cursus.");
+        doc.AddNewParagraph(2);
+        
+        doc.Save(@"..\..\..\testdocs\rtfdocument1.rtf");
 
-            doc.AddText("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer quis eros at tortor pharetra laoreet. Donec tortor diam, imperdiet ut porta quis, congue eu justo.");
-            doc.AddText("Quisque viverra tellus id mauris tincidunt luctus. Fusce in interdum ipsum. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
-            doc.AddText("Donec ac leo justo, vitae rutrum elit. Nulla tellus elit, imperdiet luctus porta vel, consectetur quis turpis. Nam purus odio, dictum vitae sollicitudin nec, tempor eget mi.");
-            doc.AddText("Etiam vitae porttitor enim. Aenean molestie facilisis magna, quis tincidunt leo placerat in. Maecenas malesuada eleifend nunc vitae cursus.");
-            doc.AddNewParagraph(2);
+        var text1 = doc.Text;
+        var rtfcode1 = doc.Rtf;
 
-            doc.Save("..\\..\\testdocs\\rtfdocument1.rtf");
+        doc.AddText("Second Paragraph", charFormat);
+        doc.AddNewParagraph(2);
 
-            string text1 = doc.Text;
-            string rtfcode1 = doc.Rtf;
+        charFormat.Font = "Courier New";
+        charFormat.Color = Color.Green;
+        charFormat.Bold = false;
+        charFormat.Underline = false;
+        doc.UpdateCharFormat(charFormat);
 
-            doc.AddText("Second Paragraph", charFormat);
-            doc.AddNewParagraph(2);
+        doc.SetAlignment(TextAlignment.Left);
+        doc.SetLeftIndentation(2);
+        doc.SetRightIndentation(2);
 
-            charFormat.Font = "Courier New";
-            charFormat.Color = Color.Green;
-            charFormat.Bold = false;
-            charFormat.Underline = false;
-            doc.UpdateCharFormat(charFormat);
+        doc.AddText("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer quis eros at tortor pharetra laoreet. Donec tortor diam, imperdiet ut porta quis, congue eu justo.");
+        doc.AddText("Quisque viverra tellus id mauris tincidunt luctus. Fusce in interdum ipsum. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
+        doc.AddText("Donec ac leo justo, vitae rutrum elit. Nulla tellus elit, imperdiet luctus porta vel, consectetur quis turpis. Nam purus odio, dictum vitae sollicitudin nec, tempor eget mi.");
+        doc.AddText("Etiam vitae porttitor enim. Aenean molestie facilisis magna, quis tincidunt leo placerat in. Maecenas malesuada eleifend nunc vitae cursus.");
+        doc.AddNewParagraph(2);
 
-            doc.SetAlignment(TextAlignment.Left);
-            doc.SetLeftIndentation(2);
-            doc.SetRightIndentation(2);
+        doc.UpdateCharFormat(charFormat);
+        doc.SetFormatUnderline(false);
+        doc.SetFormatItalic(true);
+        doc.SetFormatColor(Color.DarkBlue);
 
-            doc.AddText("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer quis eros at tortor pharetra laoreet. Donec tortor diam, imperdiet ut porta quis, congue eu justo.");
-            doc.AddText("Quisque viverra tellus id mauris tincidunt luctus. Fusce in interdum ipsum. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
-            doc.AddText("Donec ac leo justo, vitae rutrum elit. Nulla tellus elit, imperdiet luctus porta vel, consectetur quis turpis. Nam purus odio, dictum vitae sollicitudin nec, tempor eget mi.");
-            doc.AddText("Etiam vitae porttitor enim. Aenean molestie facilisis magna, quis tincidunt leo placerat in. Maecenas malesuada eleifend nunc vitae cursus.");
-            doc.AddNewParagraph(2);
+        doc.SetLeftIndentation(0);
 
-            doc.UpdateCharFormat(charFormat);
-            doc.SetFormatUnderline(false);
-            doc.SetFormatItalic(true);
-            doc.SetFormatColor(Color.DarkBlue);
+        doc.AddText("Test Doc. Петяв ñáéíó\n");
+        doc.AddNewLine(1);
+        doc.AddText("\tStop.");
 
-            doc.SetLeftIndentation(0);
+        var text2 = doc.Text;
+        var rtfcode2 = doc.Rtf;
 
-            doc.AddText("Test Doc. Петяв ñáéíó\n");
-            doc.AddNewLine(1);
-            doc.AddText("\tStop.");
+        doc.Save(@"..\..\..\testdocs\rtfdocument2.rtf");
 
-            string text2 = doc.Text;
-            string rtfcode2 = doc.Rtf;
+        var sr = new StreamReader(@"..\..\..\testdocs\rtfdocument1.rtf");
+        var rtf1 = sr.ReadToEnd();
+        sr.Close();
 
-            doc.Save("..\\..\\testdocs\\rtfdocument2.rtf");
+        sr = null;
+        sr = new StreamReader(@"..\..\..\testdocs\rtfdocument2.rtf");
+        var rtf2 = sr.ReadToEnd();
+        sr.Close();
 
-            StreamReader sr = null;
-            sr = new StreamReader("..\\..\\testdocs\\rtfdocument1.rtf");
-            string rtf1 = sr.ReadToEnd();
-            sr.Close();
+        sr = new StreamReader(@"..\..\..\testdocs\rtf4.txt");
+        var rtf4 = sr.ReadToEnd();
+        sr.Close();
 
-            sr = null;
-            sr = new StreamReader("..\\..\\testdocs\\rtfdocument2.rtf");
-            string rtf2 = sr.ReadToEnd();
-            sr.Close();
+        sr = new StreamReader(@"..\..\..\testdocs\rtf6.txt");
+        var rtf6 = sr.ReadToEnd();
+        sr.Close();
 
-            sr = new StreamReader("..\\..\\testdocs\\rtf4.txt");
-            string rtf4 = sr.ReadToEnd();
-            sr.Close();
+        sr = new StreamReader(@"..\..\..\testdocs\doctext1.txt");
+        var doctext1 = sr.ReadToEnd();
+        sr.Close();
 
-            sr = new StreamReader("..\\..\\testdocs\\rtf6.txt");
-            string rtf6 = sr.ReadToEnd();
-            sr.Close();
+        sr = new StreamReader(@"..\..\..\testdocs\doctext2.txt");
+        var doctext2 = sr.ReadToEnd() + " Петяв ñáéíó\r\n\r\n\tStop.\r\n";
+        sr.Close();
 
-            sr = new StreamReader("..\\..\\testdocs\\doctext1.txt");
-            string doctext1 = sr.ReadToEnd();
-            sr.Close();
+        //Se adapta el lenguaje al del PC donde se ejecutan los tests
+        var deflangInd = rtf4.IndexOf("\\deflang3082");
+        rtf4 = rtf4.Substring(0, deflangInd) + "\\deflang" + CultureInfo.CurrentCulture.LCID + rtf4.Substring(deflangInd + 8 + CultureInfo.CurrentCulture.LCID.ToString().Length);
 
-            sr = new StreamReader("..\\..\\testdocs\\doctext2.txt");
-            string doctext2 = sr.ReadToEnd() + " Петяв ñáéíó\r\n\r\n\tStop.\r\n";
-            sr.Close();
+        //Se adapta el lenguaje al del PC donde se ejecutan los tests
+        var deflangInd2 = rtf6.IndexOf("\\deflang3082");
+        rtf6 = rtf6.Substring(0, deflangInd2) + "\\deflang" + CultureInfo.CurrentCulture.LCID + rtf6.Substring(deflangInd2 + 8 + CultureInfo.CurrentCulture.LCID.ToString().Length);
 
-            //Se adapta el lenguaje al del PC donde se ejecutan los tests
-            int deflangInd = rtf4.IndexOf("\\deflang3082");
-            rtf4 = rtf4.Substring(0, deflangInd) + "\\deflang" + CultureInfo.CurrentCulture.LCID + rtf4.Substring(deflangInd + 8 + CultureInfo.CurrentCulture.LCID.ToString().Length);
+        Assert.That(rtf1, Is.EqualTo(rtf6));
+        Assert.That(rtf2, Is.EqualTo(rtf4));
 
-            //Se adapta el lenguaje al del PC donde se ejecutan los tests
-            int deflangInd2 = rtf6.IndexOf("\\deflang3082");
-            rtf6 = rtf6.Substring(0, deflangInd2) + "\\deflang" + CultureInfo.CurrentCulture.LCID + rtf6.Substring(deflangInd2 + 8 + CultureInfo.CurrentCulture.LCID.ToString().Length);
-
-            Assert.That(rtf1, Is.EqualTo(rtf6));
-            Assert.That(rtf2, Is.EqualTo(rtf4));
-
-            Assert.That(text1, Is.EqualTo(doctext1));
-            Assert.That(text2, Is.EqualTo(doctext2));
-        }
+        Assert.That(text1, Is.EqualTo(doctext1));
+        Assert.That(text2, Is.EqualTo(doctext2));
     }
 }

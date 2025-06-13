@@ -26,140 +26,133 @@
  * Description:	Proyecto de Test para RtfPullParser
  * ******************************************************************************/
 
-using System;
-using System.Collections.Generic;
 using System.Text;
-using NUnit.Framework;
 using Net.Sgoliver.NRtfTree.Core;
 
-namespace Net.Sgoliver.NRtfTree.Test
+namespace Net.Sgoliver.NRtfTree.Test;
+
+public class RtfPullParserTest
 {
-    [TestFixture]
-    public class RtfPullParserTest
+
+    [SetUp]
+    public void InitTest()
     {
-        [TestFixtureSetUp]
-        public void InitTestFixture()
-        {
-            ;
-        }
+#if NETCORE || NET
+        // Add a reference to the NuGet package System.Text.Encoding.CodePages for .Net core only
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif
+    }
 
-        [SetUp]
-        public void InitTest()
-        {
-            ;
-        }
+    [Test]
+    public void ParseSimpleDocument()
+    {
+        var parser = new RtfPullParser();
+        parser.LoadRtfFile(@"..\..\..\testdocs\testdoc1.rtf");
 
-        [Test]
-        public void ParseSimpleDocument()
-        {
-            RtfPullParser parser = new RtfPullParser();
-            parser.LoadRtfFile("..\\..\\testdocs\\testdoc1.rtf");
+        parserTests(parser);
+    }
 
-            parserTests(parser);
-        }
+    [Test]
+    public void ParseSimpleRtfText()
+    {
+        var tree = new RtfTree();
+        tree.LoadRtfFile(@"..\..\..\testdocs\testdoc1.rtf");
 
-        [Test]
-        public void ParseSimpleRtfText()
-        {
-            RtfTree tree = new RtfTree();
-            tree.LoadRtfFile("..\\..\\testdocs\\testdoc1.rtf");
+        var parser = new RtfPullParser();
+        parser.LoadRtfText(tree.Rtf);
 
-            RtfPullParser parser = new RtfPullParser();
-            parser.LoadRtfText(tree.Rtf);
+        parserTests(parser);
+    }
 
-            parserTests(parser);
-        }
+    private static void parserTests(RtfPullParser parser)
+    {
+        var eventType = parser.GetEventType();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.START_DOCUMENT));
 
-        private static void parserTests(RtfPullParser parser)
-        {
-            int eventType = parser.GetEventType();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.START_DOCUMENT));
+        eventType = parser.Next();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.START_GROUP));
 
-            eventType = parser.Next();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.START_GROUP));
+        eventType = parser.Next();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.KEYWORD));
+        Assert.That(parser.GetName(), Is.EqualTo("rtf"));
+        Assert.That(parser.HasParam(), Is.EqualTo(true));
+        Assert.That(parser.GetParam(), Is.EqualTo(1));
 
-            eventType = parser.Next();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.KEYWORD));
-            Assert.That(parser.GetName(), Is.EqualTo("rtf"));
-            Assert.That(parser.HasParam(), Is.EqualTo(true));
-            Assert.That(parser.GetParam(), Is.EqualTo(1));
+        eventType = parser.Next();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.KEYWORD));
+        Assert.That(parser.GetName(), Is.EqualTo("ansi"));
+        Assert.That(parser.HasParam(), Is.EqualTo(false));
 
-            eventType = parser.Next();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.KEYWORD));
-            Assert.That(parser.GetName(), Is.EqualTo("ansi"));
-            Assert.That(parser.HasParam(), Is.EqualTo(false));
+        for (var i = 0; i < 3; i++)
+            parser.Next();
 
-            for (int i = 0; i < 3; i++)
-                parser.Next();
+        eventType = parser.Next();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.START_GROUP));
 
-            eventType = parser.Next();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.START_GROUP));
+        for (var i = 0; i < 6; i++)
+            parser.Next();
 
-            for (int i = 0; i < 6; i++)
-                parser.Next();
+        eventType = parser.Next();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.TEXT));
+        Assert.That(parser.GetText(), Is.EqualTo("Times New Roman;"));
 
-            eventType = parser.Next();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.TEXT));
-            Assert.That(parser.GetText(), Is.EqualTo("Times New Roman;"));
+        eventType = parser.Next();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.END_GROUP));
 
-            eventType = parser.Next();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.END_GROUP));
+        for (var i = 0; i < 27; i++)
+            parser.Next();
 
-            for (int i = 0; i < 27; i++)
-                parser.Next();
+        eventType = parser.Next();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.CONTROL));
+        Assert.That(parser.GetName(), Is.EqualTo("*"));
+        Assert.That(parser.HasParam(), Is.EqualTo(false));
 
-            eventType = parser.Next();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.CONTROL));
-            Assert.That(parser.GetName(), Is.EqualTo("*"));
-            Assert.That(parser.HasParam(), Is.EqualTo(false));
+        for (var i = 0; i < 40; i++)
+            parser.Next();
 
-            for (int i = 0; i < 40; i++)
-                parser.Next();
+        eventType = parser.Next();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.CONTROL));
+        Assert.That(parser.GetName(), Is.EqualTo("'"));
+        Assert.That(parser.HasParam(), Is.EqualTo(true));
+        Assert.That(parser.GetParam(), Is.EqualTo(233));
 
-            eventType = parser.Next();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.CONTROL));
-            Assert.That(parser.GetName(), Is.EqualTo("'"));
-            Assert.That(parser.HasParam(), Is.EqualTo(true));
-            Assert.That(parser.GetParam(), Is.EqualTo(233));
+        eventType = parser.Next();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.TEXT));
+        Assert.That(parser.GetText(), Is.EqualTo("st1 a"));
 
-            eventType = parser.Next();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.TEXT));
-            Assert.That(parser.GetText(), Is.EqualTo("st1 a"));
+        eventType = parser.Next();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.CONTROL));
+        Assert.That(parser.GetName(), Is.EqualTo("'"));
+        Assert.That(parser.HasParam(), Is.EqualTo(true));
+        Assert.That(parser.GetParam(), Is.EqualTo(241));
 
-            eventType = parser.Next();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.CONTROL));
-            Assert.That(parser.GetName(), Is.EqualTo("'"));
-            Assert.That(parser.HasParam(), Is.EqualTo(true));
-            Assert.That(parser.GetParam(), Is.EqualTo(241));
+        eventType = parser.Next();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.TEXT));
+        Assert.That(parser.GetText(), Is.EqualTo("u "));
 
-            eventType = parser.Next();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.TEXT));
-            Assert.That(parser.GetText(), Is.EqualTo("u "));
+        eventType = parser.Next();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.TEXT));
+        Assert.That(parser.GetText(), Is.EqualTo("{"));
 
-            eventType = parser.Next();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.TEXT));
-            Assert.That(parser.GetText(), Is.EqualTo("{"));
+        eventType = parser.Next();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.TEXT));
+        Assert.That(parser.GetText(), Is.EqualTo("\\"));
 
-            eventType = parser.Next();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.TEXT));
-            Assert.That(parser.GetText(), Is.EqualTo("\\"));
+        eventType = parser.Next();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.TEXT));
+        Assert.That(parser.GetText(), Is.EqualTo("test2"));
 
-            eventType = parser.Next();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.TEXT));
-            Assert.That(parser.GetText(), Is.EqualTo("test2"));
+        eventType = parser.Next();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.TEXT));
+        Assert.That(parser.GetText(), Is.EqualTo("}"));
 
-            eventType = parser.Next();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.TEXT));
-            Assert.That(parser.GetText(), Is.EqualTo("}"));
+        for (var i = 0; i < 29; i++)
+            parser.Next();
 
-            for (int i = 0; i < 29; i++)
-                parser.Next();
+        eventType = parser.Next();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.END_GROUP));
 
-            eventType = parser.Next();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.END_GROUP));
-
-            eventType = parser.Next();
-            Assert.That(eventType, Is.EqualTo(RtfPullParser.END_DOCUMENT));
-        }
+        eventType = parser.Next();
+        Assert.That(eventType, Is.EqualTo(RtfPullParser.END_DOCUMENT));
     }
 }

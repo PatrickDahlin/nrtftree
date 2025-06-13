@@ -26,112 +26,103 @@
  * Description:	Proyecto de Test para NRtfTree
  * ******************************************************************************/
 
-using System;
+using System.Text;
 using Net.Sgoliver.NRtfTree.Core;
 using Net.Sgoliver.NRtfTree.Util;
-using System.IO;
-using NUnit.Framework;
-using System.Drawing;
-using System.Drawing.Imaging;
 
-namespace Net.Sgoliver.NRtfTree.Test
+namespace Net.Sgoliver.NRtfTree.Test;
+
+public class ObjectNodeTest
 {
-    [TestFixture]
-    public class ObjectNodeTest
+
+    [SetUp]
+    public void Setup()
     {
-        [TestFixtureSetUp]
-        public void InitTestFixture()
-        {
+#if NETCORE || NET
+        // Add a reference to the NuGet package System.Text.Encoding.CodePages for .Net core only
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif   
+    }
 
-        }
+    [Test]
+    public void LoadObjectNode()
+    {
+        var tree = new RtfTree();
+        tree.LoadRtfFile(@"..\..\..\testdocs\testdoc3.rtf");
 
-        [SetUp]
-        public void InitTest()
-        {
-            ;
-        }
+        var node = tree.MainGroup.SelectSingleNode("object").ParentNode;
 
-        [Test]
-        public void LoadObjectNode()
-        {
-            RtfTree tree = new RtfTree();
-            tree.LoadRtfFile("..\\..\\testdocs\\testdoc3.rtf");
+        var objNode = new ObjectNode(node);
 
-            RtfTreeNode node = tree.MainGroup.SelectSingleNode("object").ParentNode;
+        Assert.That(objNode.ObjectType, Is.EqualTo("objemb"));
+        Assert.That(objNode.ObjectClass, Is.EqualTo("Excel.Sheet.8"));
+    }
 
-            ObjectNode objNode = new ObjectNode(node);
+    [Test]
+    public void ObjectHexData()
+    {
+        var tree = new RtfTree();
+        tree.LoadRtfFile(@"..\..\..\testdocs\testdoc3.rtf");
 
-            Assert.That(objNode.ObjectType, Is.EqualTo("objemb"));
-            Assert.That(objNode.ObjectClass, Is.EqualTo("Excel.Sheet.8"));
-        }
+        var node = tree.MainGroup.SelectSingleNode("object").ParentNode;
 
-        [Test]
-        public void ObjectHexData()
-        {
-            RtfTree tree = new RtfTree();
-            tree.LoadRtfFile("..\\..\\testdocs\\testdoc3.rtf");
+        var objNode = new ObjectNode(node);
 
-            RtfTreeNode node = tree.MainGroup.SelectSingleNode("object").ParentNode;
+        var sr = new StreamReader(@"..\..\..\testdocs\objhexdata.txt");
+        var hexdata = sr.ReadToEnd();
+        sr.Close();
 
-            ObjectNode objNode = new ObjectNode(node);
+        Assert.That(objNode.HexData, Is.EqualTo(hexdata));
+    }
 
-            StreamReader sr = null;
+    [Test]
+    public void ObjectBinData()
+    {
+        var tree = new RtfTree();
+        tree.LoadRtfFile(@"..\..\..\testdocs\testdoc3.rtf");
 
-            sr = new StreamReader("..\\..\\testdocs\\objhexdata.txt");
-            string hexdata = sr.ReadToEnd();
-            sr.Close();
+        var node = tree.MainGroup.SelectSingleNode("object").ParentNode;
 
-            Assert.That(objNode.HexData, Is.EqualTo(hexdata));
-        }
+        var objNode = new ObjectNode(node);
 
-        [Test]
-        public void ObjectBinData()
-        {
-            RtfTree tree = new RtfTree();
-            tree.LoadRtfFile("..\\..\\testdocs\\testdoc3.rtf");
+        var bw = new BinaryWriter(new FileStream(@"..\..\..\testdocs\objbindata-result.dat", FileMode.Create));
+        foreach (var b in objNode.GetByteData())
+            bw.Write(b);
+        bw.Close();
 
-            RtfTreeNode node = tree.MainGroup.SelectSingleNode("object").ParentNode;
+        var fs1 = new FileStream(@"..\..\..\testdocs\objbindata-result.dat", FileMode.Open);
+        var fs2 = new FileStream(@"..\..\..\testdocs\objbindata.dat", FileMode.Open);
 
-            ObjectNode objNode = new ObjectNode(node);
+        Assert.That(fs1, Is.EqualTo(fs2));
+    }
 
-            BinaryWriter bw = new BinaryWriter(new FileStream("..\\..\\testdocs\\objbindata-result.dat", FileMode.Create));
-            foreach (byte b in objNode.GetByteData())
-                bw.Write(b);
-            bw.Close();
+    [Test]
+    public void ResultNode()
+    {
+        var tree = new RtfTree();
+        tree.LoadRtfFile(@"..\..\..\testdocs\testdoc3.rtf");
 
-            FileStream fs1 = new FileStream("..\\..\\testdocs\\objbindata-result.dat", FileMode.Open);
-            FileStream fs2 = new FileStream("..\\..\\testdocs\\objbindata.dat", FileMode.Open);
+        var node = tree.MainGroup.SelectSingleNode("object").ParentNode;
 
-            Assert.That(fs1, Is.EqualTo(fs2));
-        }
+        var objNode = new ObjectNode(node);
 
-        [Test]
-        public void ResultNode()
-        {
-            RtfTree tree = new RtfTree();
-            tree.LoadRtfFile("..\\..\\testdocs\\testdoc3.rtf");
+        var resNode = objNode.ResultNode;
 
-            RtfTreeNode node = tree.MainGroup.SelectSingleNode("object").ParentNode;
+        Assert.That(resNode, Is.SameAs(tree.MainGroup.SelectSingleGroup("object").SelectSingleChildGroup("result")));
 
-            ObjectNode objNode = new ObjectNode(node);
+        var pictNode = resNode.SelectSingleNode("pict").ParentNode;
+        var imgNode = new ImageNode(pictNode);
 
-            RtfTreeNode resNode = objNode.ResultNode;
+        Assert.That(imgNode.Height, Is.EqualTo(2247));
+        Assert.That(imgNode.Width, Is.EqualTo(9320));
 
-            Assert.That(resNode, Is.SameAs(tree.MainGroup.SelectSingleGroup("object").SelectSingleChildGroup("result")));
+        Assert.That(imgNode.DesiredHeight, Is.EqualTo(1274));
+        Assert.That(imgNode.DesiredWidth, Is.EqualTo(5284));
 
-            RtfTreeNode pictNode = resNode.SelectSingleNode("pict").ParentNode;
-            ImageNode imgNode = new ImageNode(pictNode);
+        Assert.That(imgNode.ScaleX, Is.EqualTo(100));
+        Assert.That(imgNode.ScaleY, Is.EqualTo(100));
 
-            Assert.That(imgNode.Height, Is.EqualTo(2247));
-            Assert.That(imgNode.Width, Is.EqualTo(9320));
-
-            Assert.That(imgNode.DesiredHeight, Is.EqualTo(1274));
-            Assert.That(imgNode.DesiredWidth, Is.EqualTo(5284));
-
-            Assert.That(imgNode.ScaleX, Is.EqualTo(100));
-            Assert.That(imgNode.ScaleY, Is.EqualTo(100));
-
-            Assert.That(imgNode.ImageFormat, Is.EqualTo(ImageFormat.Emf));
-        }
+        Assert.That(imgNode.ImageFormat, Is.EqualTo(ImageFormat.Emf));
     }
 }
+

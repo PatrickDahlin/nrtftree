@@ -23,8 +23,8 @@
  * Home Page:	http://www.sgoliver.net
  * GitHub:	    https://github.com/sgolivernet/nrtftree
  * Class:		Rtf2Html
- * Description:	Traducción de documentos RTF a formato HTML.
- * Notes:       Contribución de Francisco Javier Marín (http://www.xuletas.es/).
+ * Description:	Traducciï¿½n de documentos RTF a formato HTML.
+ * Notes:       Contribuciï¿½n de Francisco Javier Marï¿½n (http://www.xuletas.es/).
  ********************************************************************************/
 
 using System;
@@ -35,6 +35,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Net.Sgoliver.NRtfTree.Core;
 using Net.Sgoliver.NRtfTree.Util;
+using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
 namespace Net.Sgoliver.NRtfTree
 {
@@ -48,17 +49,17 @@ namespace Net.Sgoliver.NRtfTree
             #region Atributos Privados
 
             /// <summary>
-            /// StringBuilder empleado para escribir el código HTML resultado
+            /// StringBuilder empleado para escribir el cï¿½digo HTML resultado
             /// </summary>
             private StringBuilder _builder;
 
             /// <summary>
-            /// Formato de texto que se está leyendo
+            /// Formato de texto que se estï¿½ leyendo
             /// </summary>
             private Format _currentFormat;
 
             /// <summary>
-            /// Formato de texto ya escrito en el código HTML
+            /// Formato de texto ya escrito en el cï¿½digo HTML
             /// </summary>
             private Format _htmlFormat;
 
@@ -105,7 +106,7 @@ namespace Net.Sgoliver.NRtfTree
             #region Propiedades
 
             /// <summary>
-            /// Obtiene o establece un valor que indica si se crearán parrafos automáticamente
+            /// Obtiene o establece un valor que indica si se crearï¿½n parrafos automï¿½ticamente
             /// </summary>
             public bool AutoParagraph
             {
@@ -120,8 +121,8 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Obtiene o establece un valor que indica si se ignorarán los nombres de las fuentes.
-            /// Establecer este valor como false generará un archivo HTML sin propiedad CSS font-face
+            /// Obtiene o establece un valor que indica si se ignorarï¿½n los nombres de las fuentes.
+            /// Establecer este valor como false generarï¿½ un archivo HTML sin propiedad CSS font-face
             /// </summary>
             public bool IgnoreFontNames
             {
@@ -136,7 +137,7 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Obtiene o establece un valor que indica si se reemplazarán las entidades HTML
+            /// Obtiene o establece un valor que indica si se reemplazarï¿½n las entidades HTML
             /// del texto
             /// </summary>
             public bool EscapeHtmlEntities
@@ -153,7 +154,7 @@ namespace Net.Sgoliver.NRtfTree
 
             /// <summary>
             /// Obtiene o establece un valor que indica el nombre de la fuente por defecto.
-            /// Los grupos de textos que usen esta fuente no incluirán la propiedad font-face
+            /// Los grupos de textos que usen esta fuente no incluirï¿½n la propiedad font-face
             /// </summary>
             public string DefaultFontName
             {
@@ -168,8 +169,8 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Obtiene o establece un valor que indica el tamaño de fuente que se ignorará.
-            /// Los grupos de texto que tengan ese tamaño no incluirán la propiedad CSS font-size
+            /// Obtiene o establece un valor que indica el tamaï¿½o de fuente que se ignorarï¿½.
+            /// Los grupos de texto que tengan ese tamaï¿½o no incluirï¿½n la propiedad CSS font-size
             /// </summary>
             public int DefaultFontSize
             {
@@ -184,8 +185,8 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Obtiene o establece un valor que indica si se incrustarán las imágenes en base64
-            /// dentro del código HTML  (true), o se guardarán en un archivo (false)
+            /// Obtiene o establece un valor que indica si se incrustarï¿½n las imï¿½genes en base64
+            /// dentro del cï¿½digo HTML  (true), o se guardarï¿½n en un archivo (false)
             /// </summary>
             /// <see cref="http://www.sweeting.org/mark/blog/2005/07/12/base64-encoded-images-embedded-in-html"/>
             public bool IncrustImages
@@ -201,8 +202,8 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Obtiene o establece la ruta donde se guardarán las imágenes contenidas en el
-            /// código RTF original. Sólo se usarará si el valor de IncrustImages es false
+            /// Obtiene o establece la ruta donde se guardarï¿½n las imï¿½genes contenidas en el
+            /// cï¿½digo RTF original. Sï¿½lo se usararï¿½ si el valor de IncrustImages es false
             /// </summary>
             public string ImagePath
             {
@@ -217,8 +218,8 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Obtiene o establece un valor que indica el formato en el que se guardarán las imágenes
-            /// incrustadas en el código RTF convertido
+            /// Obtiene o establece un valor que indica el formato en el que se guardarï¿½n las imï¿½genes
+            /// incrustadas en el cï¿½digo RTF convertido
             /// </summary>
             public ImageFormat ImageFormat
             {
@@ -234,10 +235,10 @@ namespace Net.Sgoliver.NRtfTree
 
             #endregion
 
-            #region Métodos Públicos
+            #region Mï¿½todos Pï¿½blicos
 
             /// <summary>
-            /// Convierte una cadena de código RTF a formato HTML
+            /// Convierte una cadena de cï¿½digo RTF a formato HTML
             /// </summary>
             public static string ConvertCode(string rtf)
             {
@@ -246,7 +247,7 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Convierte una cadena de código RTF a formato HTML
+            /// Convierte una cadena de cï¿½digo RTF a formato HTML
             /// </summary>
             public string Convert(string rtf)
             {
@@ -279,7 +280,7 @@ namespace Net.Sgoliver.NRtfTree
                 //Arreglar HTML
 
                 //Arreglar listas
-                Regex repairList = new Regex("<span [^>]*>·</span><span style=\"([^\"]*)\">(.*?)<br\\s+/><" + "/span>",
+                Regex repairList = new Regex("<span [^>]*>ï¿½</span><span style=\"([^\"]*)\">(.*?)<br\\s+/><" + "/span>",
                                              RegexOptions.IgnoreCase | RegexOptions.Singleline |
                                              RegexOptions.CultureInvariant);
 
@@ -302,7 +303,7 @@ namespace Net.Sgoliver.NRtfTree
                     _builder.Insert(match.Index + match.Length, "</ul>");
                 }
 
-                //Generar párrafos (cada 2 <br /><br /> se cambiará por un <p>)
+                //Generar pï¿½rrafos (cada 2 <br /><br /> se cambiarï¿½ por un <p>)
                 if (AutoParagraph)
                 {
                     string[] partes = _builder.ToString().Split(new[] { "<br /><br />" }, StringSplitOptions.RemoveEmptyEntries);
@@ -321,10 +322,10 @@ namespace Net.Sgoliver.NRtfTree
 
             #endregion
 
-            #region Métodos Privados
+            #region Mï¿½todos Privados
 
             /// <summary>
-            /// Función encargada de procesar los nodos hijo de un nodo padre RTF un nodo del documento RTF
+            /// Funciï¿½n encargada de procesar los nodos hijo de un nodo padre RTF un nodo del documento RTF
             /// y generar las etiquetas HTML necesarias
             /// </summary>
             private void ProcessChildNodes(RtfNodeCollection nodos, int inicio)
@@ -337,7 +338,7 @@ namespace Net.Sgoliver.NRtfTree
                     {
                         case RtfNodeType.Control:
 
-                            if (nodo.NodeKey == "'") //Símbolos especiales, como tildes y "ñ"
+                            if (nodo.NodeKey == "'") //Sï¿½mbolos especiales, como tildes y "ï¿½"
                             {
                                 WriteText(Encoding.Default.GetString(new[] { (byte)nodo.Parameter }));
                             }
@@ -366,7 +367,7 @@ namespace Net.Sgoliver.NRtfTree
                                         _currentFormat.BackColor = _colorTable[nodo.Parameter];
                                     break;
 
-                                case "fs": //Tamaño de fuente
+                                case "fs": //Tamaï¿½o de fuente
                                     _currentFormat.FontSize = nodo.Parameter;
                                     break;
 
@@ -413,7 +414,7 @@ namespace Net.Sgoliver.NRtfTree
                                     break;
 
                                 case "line":
-                                case "par": //Nueva línea
+                                case "par": //Nueva lï¿½nea
                                     _builder.Append("<br />");
                                     break;
                             }
@@ -450,7 +451,7 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Función encargada de añadir texto con el formato actual al código html resultado
+            /// Funciï¿½n encargada de aï¿½adir texto con el formato actual al cï¿½digo html resultado
             /// </summary>
             private void WriteText(string text)
             {
@@ -550,7 +551,7 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Función encargada de añadir una imagen al código HTML resultado
+            /// Funciï¿½n encargada de aï¿½adir una imagen al cï¿½digo HTML resultado
             /// </summary>
             /// <param name="imageNode"></param>
             private void WriteImage(ImageNode imageNode)
@@ -571,7 +572,7 @@ namespace Net.Sgoliver.NRtfTree
                         imageCodec = codec;
                 }
 
-                //Reducir imagen si el tamaño final es menor que el actual
+                //Reducir imagen si el tamaï¿½o final es menor que el actual
                 if (b.Size.Height > imageSize.Height || b.Size.Width > imageSize.Width)
                 {
                     Bitmap bmpResized = new Bitmap(imageSize.Width, imageSize.Height);
@@ -612,7 +613,7 @@ namespace Net.Sgoliver.NRtfTree
                     imageSrc = path;
                 }
 
-                //Añadir imagen al resultado HTML
+                //Aï¿½adir imagen al resultado HTML
                 _builder.Append(string.Format("<img src=\"{0}\" style=\"width:{1}px;height:{2}px;\" />"
                                               , imageSrc, imageSize.Width, imageSize.Height));
 

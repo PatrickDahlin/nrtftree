@@ -23,7 +23,7 @@
  * Home Page:	http://www.sgoliver.net
  * GitHub:	    https://github.com/sgolivernet/nrtftree
  * Class:		ImageNode
- * Description:	Nodo RTF especializado que contiene la información de una imagen.
+ * Description:	Nodo RTF especializado que contiene la informaciï¿½n de una imagen.
  * ******************************************************************************/
 
 using System.Text;
@@ -36,6 +36,17 @@ namespace Net.Sgoliver.NRtfTree
 {
     namespace Util
     {
+
+        public enum ImageFormat
+        {
+            Unknown,
+            Jpeg = 0,
+            Png = 1,
+            Emf = 2,
+            Wmf = 3,
+            Bmp = 4,
+        }
+        
         /// <summary>
         /// Encapsula un nodo RTF de tipo Imagen (Palabra clave "\pict")
         /// </summary>
@@ -44,7 +55,7 @@ namespace Net.Sgoliver.NRtfTree
             #region Atributos privados
 
             /// <summary>
-            /// Array de bytes con la información de la imagen.
+            /// Array de bytes con la informaciï¿½n de la imagen.
             /// </summary>
             private byte[] data;
 
@@ -55,7 +66,7 @@ namespace Net.Sgoliver.NRtfTree
             /// <summary>
             /// Constructor de la clase ImageNode.
             /// </summary>
-            /// <param name="node">Nodo RTF del que se obtendrán los datos de la imagen.</param>
+            /// <param name="node">Nodo RTF del que se obtendrï¿½n los datos de la imagen.</param>
             public ImageNode(RtfTreeNode node)
             {
 				if(node != null)
@@ -94,22 +105,22 @@ namespace Net.Sgoliver.NRtfTree
             /// <summary>
             /// Devuelve el formato original de la imagen.
             /// </summary>
-            public System.Drawing.Imaging.ImageFormat ImageFormat
+            public ImageFormat ImageFormat
             { 
                 get 
                 {
                     if (SelectSingleChildNode("jpegblip") != null)
-                        return System.Drawing.Imaging.ImageFormat.Jpeg;
+                        return ImageFormat.Jpeg;
                     else if (SelectSingleChildNode("pngblip") != null)
-                        return System.Drawing.Imaging.ImageFormat.Png;
+                        return ImageFormat.Png;
                     else if (SelectSingleChildNode("emfblip") != null)
-                        return System.Drawing.Imaging.ImageFormat.Emf;
+                        return ImageFormat.Emf;
                     else if (SelectSingleChildNode("wmetafile") != null)
-                        return System.Drawing.Imaging.ImageFormat.Wmf;
+                        return ImageFormat.Wmf;
                     else if (SelectSingleChildNode("dibitmap") != null || SelectSingleChildNode("wbitmap") != null)
-                        return System.Drawing.Imaging.ImageFormat.Bmp;
+                        return ImageFormat.Bmp;
                     else
-                        return null;
+                        return ImageFormat.Unknown;
                 }
             }
 
@@ -237,7 +248,7 @@ namespace Net.Sgoliver.NRtfTree
             /// <summary>
             /// Guarda una imagen a fichero con el formato original.
             /// </summary>
-            /// <param name="filePath">Ruta del fichero donde se guardará la imagen.</param>
+            /// <param name="filePath">Ruta del fichero donde se guardarï¿½ la imagen.</param>
             public void SaveImage(string filePath)
             {
                 if (data != null)
@@ -246,16 +257,26 @@ namespace Net.Sgoliver.NRtfTree
 
                     //Escribir a un fichero cualquier tipo de imagen
                     Bitmap bitmap = new Bitmap(stream);
-                    bitmap.Save(filePath, ImageFormat);
+                    System.Drawing.Imaging.ImageFormat imageFormat;
+                    switch (ImageFormat)
+                    {
+                        case ImageFormat.Jpeg: imageFormat = System.Drawing.Imaging.ImageFormat.Jpeg; break;
+                        case ImageFormat.Png: imageFormat = System.Drawing.Imaging.ImageFormat.Png; break;
+                        case ImageFormat.Emf: imageFormat = System.Drawing.Imaging.ImageFormat.Emf; break;
+                        case ImageFormat.Wmf: imageFormat = System.Drawing.Imaging.ImageFormat.Wmf; break;
+                        case ImageFormat.Bmp: imageFormat = System.Drawing.Imaging.ImageFormat.Bmp; break;
+                        default: imageFormat = System.Drawing.Imaging.ImageFormat.Png; break;
+                    }
+                    bitmap.Save(filePath, imageFormat);
                 }
             }
 
             /// <summary>
-            /// Guarda una imagen a fichero con un formato determinado indicado como parámetro.
+            /// Guarda una imagen a fichero con un formato determinado indicado como parï¿½metro.
             /// </summary>
-            /// <param name="filePath">Ruta del fichero donde se guardará la imagen.</param>
-            /// <param name="format">Formato con el que se escribirá la imagen.</param>
-            public void SaveImage(string filePath, System.Drawing.Imaging.ImageFormat format)
+            /// <param name="filePath">Ruta del fichero donde se guardarï¿½ la imagen.</param>
+            /// <param name="format">Formato con el que se escribirï¿½ la imagen.</param>
+            public void SaveImage(string filePath, ImageFormat ImageFormat)
             {
                 if (data != null)
                 {
@@ -269,6 +290,16 @@ namespace Net.Sgoliver.NRtfTree
                     //w.Write(image,0,imageSize);
                     //w.Close();
                     //fs.Close();
+                    System.Drawing.Imaging.ImageFormat format;
+                    switch (ImageFormat)
+                    {
+                        case ImageFormat.Jpeg: format = System.Drawing.Imaging.ImageFormat.Jpeg; break;
+                        case ImageFormat.Png: format = System.Drawing.Imaging.ImageFormat.Png; break;
+                        case ImageFormat.Emf: format = System.Drawing.Imaging.ImageFormat.Emf; break;
+                        case ImageFormat.Wmf: format = System.Drawing.Imaging.ImageFormat.Wmf; break;
+                        case ImageFormat.Bmp: format = System.Drawing.Imaging.ImageFormat.Bmp; break;
+                        default: format = System.Drawing.Imaging.ImageFormat.Png; break;
+                    }
 
                     //Escribir a un fichero cualquier tipo de imagen
                     Bitmap bitmap = new Bitmap(stream);
@@ -281,7 +312,7 @@ namespace Net.Sgoliver.NRtfTree
             #region Metodos privados
 
             /// <summary>
-            /// Obtiene los datos de la imagen a partir de la información contenida en el nodo RTF.
+            /// Obtiene los datos de la imagen a partir de la informaciï¿½n contenida en el nodo RTF.
             /// </summary>
             private void getImageData()
             {

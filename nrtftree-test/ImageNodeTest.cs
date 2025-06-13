@@ -26,88 +26,81 @@
  * Description:	Proyecto de Test para NRtfTree
  * ******************************************************************************/
 
-using System;
+using System.Text;
 using Net.Sgoliver.NRtfTree.Core;
 using Net.Sgoliver.NRtfTree.Util;
-using System.IO;
-using NUnit.Framework;
-using System.Drawing;
-using System.Drawing.Imaging;
 
-namespace Net.Sgoliver.NRtfTree.Test
+namespace Net.Sgoliver.NRtfTree.Test;
+
+public class ImageNodeTest
 {
-    [TestFixture]
-    public class ImageNodeTest
+
+    [SetUp]
+    public void InitTest()
     {
-        [TestFixtureSetUp]
-        public void InitTestFixture()
-        {
+#if NETCORE || NET
+        // Add a reference to the NuGet package System.Text.Encoding.CodePages for .Net core only
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif   
+    }
 
-        }
+    [Test]
+    public void LoadImageNode()
+    {
+        RtfTree tree = new RtfTree();
+        tree.LoadRtfFile(@"..\..\..\testdocs\testdoc3.rtf");
 
-        [SetUp]
-        public void InitTest()
-        {
-            ;
-        }
+        RtfTreeNode pictNode = tree.MainGroup.SelectNodes("pict")[2].ParentNode;
 
-        [Test]
-        public void LoadImageNode()
-        {
-            RtfTree tree = new RtfTree();
-            tree.LoadRtfFile("..\\..\\testdocs\\testdoc3.rtf");
+        ImageNode imgNode = new ImageNode(pictNode);
 
-            RtfTreeNode pictNode = tree.MainGroup.SelectNodes("pict")[2].ParentNode;
+        Assert.That(imgNode.Height, Is.EqualTo(6615));
+        Assert.That(imgNode.Width, Is.EqualTo(7938));
 
-            ImageNode imgNode = new ImageNode(pictNode);
+        Assert.That(imgNode.DesiredHeight, Is.EqualTo(3750));
+        Assert.That(imgNode.DesiredWidth, Is.EqualTo(4500));
 
-            Assert.That(imgNode.Height, Is.EqualTo(6615));
-            Assert.That(imgNode.Width, Is.EqualTo(7938));
+        Assert.That(imgNode.ScaleX, Is.EqualTo(100));
+        Assert.That(imgNode.ScaleY, Is.EqualTo(100));
 
-            Assert.That(imgNode.DesiredHeight, Is.EqualTo(3750));
-            Assert.That(imgNode.DesiredWidth, Is.EqualTo(4500));
+        Assert.That(imgNode.ImageFormat, Is.EqualTo(ImageFormat.Png));
+    }
 
-            Assert.That(imgNode.ScaleX, Is.EqualTo(100));
-            Assert.That(imgNode.ScaleY, Is.EqualTo(100));
+    [Test]
+    public void ImageHexData()
+    {
+        RtfTree tree = new RtfTree();
+        tree.LoadRtfFile(@"..\..\..\testdocs\testdoc3.rtf");
 
-            Assert.That(imgNode.ImageFormat, Is.EqualTo(ImageFormat.Png));
-        }
+        RtfTreeNode pictNode = tree.MainGroup.SelectNodes("pict")[2].ParentNode;
 
-        [Test]
-        public void ImageHexData()
-        {
-            RtfTree tree = new RtfTree();
-            tree.LoadRtfFile("..\\..\\testdocs\\testdoc3.rtf");
+        ImageNode imgNode = new ImageNode(pictNode);
 
-            RtfTreeNode pictNode = tree.MainGroup.SelectNodes("pict")[2].ParentNode;
+        StreamReader sr = null;
 
-            ImageNode imgNode = new ImageNode(pictNode);
+        sr = new StreamReader(@"..\..\..\testdocs\imghexdata.txt");
+        string hexdata = sr.ReadToEnd();
+        sr.Close();
 
-            StreamReader sr = null;
+        Assert.That(imgNode.HexData, Is.EqualTo(hexdata));
+    }
 
-            sr = new StreamReader("..\\..\\testdocs\\imghexdata.txt");
-            string hexdata = sr.ReadToEnd();
-            sr.Close();
+    [Test]
+    public void ImageBinData()
+    {
+        RtfTree tree = new RtfTree();
+        tree.LoadRtfFile(@"..\..\..\testdocs\testdoc3.rtf");
 
-            Assert.That(imgNode.HexData, Is.EqualTo(hexdata));
-        }
+        RtfTreeNode pictNode = tree.MainGroup.SelectNodes("pict")[2].ParentNode;
 
-        [Test]
-        public void ImageBinData()
-        {
-            RtfTree tree = new RtfTree();
-            tree.LoadRtfFile("..\\..\\testdocs\\testdoc3.rtf");
+        ImageNode imgNode = new ImageNode(pictNode);
 
-            RtfTreeNode pictNode = tree.MainGroup.SelectNodes("pict")[2].ParentNode;
+        imgNode.SaveImage(@"..\..\..\testdocs\img-result.png", ImageFormat.Jpeg);
 
-            ImageNode imgNode = new ImageNode(pictNode);
+        Stream fs1 = new FileStream(@"..\..\..\testdocs\img-result.jpg", FileMode.Open);
+        Stream fs2 = new FileStream(@"..\..\..\testdocs\image1.jpg", FileMode.Open);
 
-            imgNode.SaveImage("..\\..\\testdocs\\img-result.png", ImageFormat.Jpeg);
-
-            Stream fs1 = new FileStream("..\\..\\testdocs\\img-result.jpg", FileMode.Open);
-            Stream fs2 = new FileStream("..\\..\\testdocs\\image1.jpg", FileMode.Open);
-
-            Assert.That(fs1, Is.EqualTo(fs2));
-        }
+        Assert.That(fs1, Is.EqualTo(fs2));
     }
 }
+
