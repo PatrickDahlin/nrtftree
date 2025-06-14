@@ -47,7 +47,7 @@ public class MergeTest
     [Test]
     public void MergeDocumentsFile()
     {
-        RtfMerger merger = new RtfMerger(@"..\..\..\testdocs\merge-template.rtf");
+        var merger = new RtfMerger(@"..\..\..\testdocs\merge-template.rtf");
         merger.AddPlaceHolder("$doc1$", @"..\..\..\testdocs\merge-doc1.rtf");
         merger.AddPlaceHolder("$doc2$", @"..\..\..\testdocs\merge-doc2.rtf");
 
@@ -61,15 +61,15 @@ public class MergeTest
 
         Assert.That(merger.Placeholders.Count, Is.EqualTo(2));
 
-        RtfTree tree = merger.Merge();
+        var tree = merger.Merge();
         tree.SaveRtf(@"..\..\..\testdocs\merge-result-1.rtf");
 
         var sr = new StreamReader(@"..\..\..\testdocs\merge-result-1.rtf");
-        string rtf1 = sr.ReadToEnd();
+        var rtf1 = sr.ReadToEnd();
         sr.Close();
 
         sr = new StreamReader(@"..\..\..\testdocs\rtf3.txt");
-        string rtf3 = sr.ReadToEnd();
+        var rtf3 = sr.ReadToEnd();
         sr.Close();
 
         Assert.That(rtf1, Is.EqualTo(rtf3));
@@ -78,17 +78,17 @@ public class MergeTest
     [Test]
     public void MergeDocumentsInMemory()
     {
-        RtfMerger merger = new RtfMerger();
+        var merger = new RtfMerger();
 
-        RtfTree tree = new RtfTree();
+        var tree = new RtfTree();
         tree.LoadRtfFile(@"..\..\..\testdocs\merge-template.rtf");
 
         merger.Template = tree;
 
-        RtfTree ph1 = new RtfTree();
+        var ph1 = new RtfTree();
         ph1.LoadRtfFile(@"..\..\..\testdocs\merge-doc1.rtf");
 
-        RtfTree ph2 = new RtfTree();
+        var ph2 = new RtfTree();
         ph2.LoadRtfFile(@"..\..\..\testdocs\merge-doc2.rtf");
 
         merger.AddPlaceHolder("$doc1$", ph1);
@@ -96,7 +96,7 @@ public class MergeTest
 
         Assert.That(merger.Placeholders.Count, Is.EqualTo(2));
 
-        RtfTree ph3 = new RtfTree();
+        var ph3 = new RtfTree();
         ph3.LoadRtfFile(@"..\..\..\testdocs\merge-doc2.rtf");
 
         merger.AddPlaceHolder("$doc3$", ph3);
@@ -107,15 +107,15 @@ public class MergeTest
 
         Assert.That(merger.Placeholders.Count, Is.EqualTo(2));
 
-        RtfTree resTree = merger.Merge();
+        var resTree = merger.Merge();
         resTree.SaveRtf(@"..\..\..\testdocs\merge-result-2.rtf");
 
         var sr = new StreamReader(@"..\..\..\testdocs\merge-result-2.rtf");
-        string rtf1 = sr.ReadToEnd();
+        var rtf1 = sr.ReadToEnd();
         sr.Close();
 
         sr = new StreamReader(@"..\..\..\testdocs\rtf3.txt");
-        string rtf3 = sr.ReadToEnd();
+        var rtf3 = sr.ReadToEnd();
         sr.Close();
 
         Assert.That(rtf1, Is.EqualTo(rtf3));

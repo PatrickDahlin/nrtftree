@@ -23,35 +23,34 @@
  * Home Page:	http://www.sgoliver.net
  * GitHub:	    https://github.com/sgolivernet/nrtftree
  * Class:		RtfStyleSheetType
- * Description:	Tipos de hojas de estilo de documento RTF.
+ * Description:	Types of style sheets in an RTF document.
  * ******************************************************************************/
 
-namespace Net.Sgoliver.NRtfTree.Util
+namespace Net.Sgoliver.NRtfTree.Util;
+
+/// <summary>
+/// Types of style sheets in an RTF document.
+/// </summary>
+public enum RtfStyleSheetType
 {
     /// <summary>
-    /// Tipos de hojas de estilo de un documento RTF.
+    /// Undefined style sheet.
     /// </summary>
-    public enum RtfStyleSheetType
-    {
-        /// <summary>
-        /// Hoja de estilo sin definir.
-        /// </summary>
-        None = 0,
-        /// <summary>
-        /// Hoja de estilo de caracter.
-        /// </summary>
-        Character = 1,
-        /// <summary>
-        /// Hoja de estilo de párrafo.
-        /// </summary>
-        Paragraph = 2,
-        /// <summary>
-        /// Hoja de estilo de sección.
-        /// </summary>
-        Section = 3,
-        /// <summary>
-        /// Hoja de estilo de tabla.
-        /// </summary>
-        Table = 4
-    }
+    None = 0,
+    /// <summary>
+    /// Character style sheet.
+    /// </summary>
+    Character = 1,
+    /// <summary>
+    /// Paragraph style sheet.
+    /// </summary>
+    Paragraph = 2,
+    /// <summary>
+    /// Section style sheet.
+    /// </summary>
+    Section = 3,
+    /// <summary>
+    /// Table style sheet.
+    /// </summary>
+    Table = 4
 }

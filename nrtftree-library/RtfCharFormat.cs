@@ -23,108 +23,47 @@
  * Home Page:	http://www.sgoliver.net
  * GitHub:	    https://github.com/sgolivernet/nrtftree
  * Class:		RtfCharFormat
- * Description:	Representa un formato de texto.
+ * Description:	Representation of formatted text.
  * ******************************************************************************/
 
 using System.Drawing;
 
-namespace Net.Sgoliver.NRtfTree.Util
+namespace Net.Sgoliver.NRtfTree.Util;
+
+/// <summary>
+/// Representation of formatted text.
+/// </summary>
+public class RtfCharFormat
 {
+
     /// <summary>
-    /// Representa un formato de texto.
+    /// Bold font.
     /// </summary>
-    public class RtfCharFormat
-    {
-        #region Atributos Privados
+    public bool Bold { get; set; }
 
-        /// <summary>
-        /// Negrita.
-        /// </summary>
-        private bool bold = false;
+    /// <summary>
+    /// Cursive font.
+    /// </summary>
+    public bool Italic { get; set; }
 
-        /// <summary>
-        /// Cursiva.
-        /// </summary>
-        private bool italic = false;
+    /// <summary>
+    /// Font underline.
+    /// </summary>
+    public bool Underline { get; set; }
 
-        /// <summary>
-        /// Subrayado.
-        /// </summary>
-        private bool underline = false;
+    /// <summary>
+    /// Font name.
+    /// </summary>
+    public string Font { get; set; } = "Arial";
 
-        /// <summary>
-        /// Nombre de la fuente.
-        /// </summary>
-        private string font = "Arial";
+    /// <summary>
+    /// Font size.
+    /// </summary>
+    public int Size { get; set; } = 10;
 
-        /// <summary>
-        /// Tama�o de la fuente.
-        /// </summary>
-        private int size = 10;
+    /// <summary>
+    /// Font color.
+    /// </summary>
+    public Color Color { get; set; } = Color.Black;
 
-        /// <summary>
-        /// Color de la fuente.
-        /// </summary>
-        private Color color = Color.Black;
-
-        #endregion
-
-        #region Propiedades
-
-        /// <summary>
-        /// Fuente negrita.
-        /// </summary>
-        public bool Bold
-        {
-            get { return bold; }
-            set { bold = value; }
-        }
-
-        /// <summary>
-        /// Fuente cursiva.
-        /// </summary>
-        public bool Italic
-        {
-            get { return italic; }
-            set { italic = value; }
-        }
-
-        /// <summary>
-        /// Fuente subrayada.
-        /// </summary>
-        public bool Underline
-        {
-            get { return underline; }
-            set { underline = value; }
-        }
-
-        /// <summary>
-        /// Tipo de fuente.
-        /// </summary>
-        public string Font
-        {
-            get { return font; }
-            set { font = value; }
-        }
-
-        /// <summary>
-        /// Tama�o de fuente.
-        /// </summary>
-        public int Size
-        {
-            get { return size; }
-            set { size = value; }
-        }
-
-        /// <summary>
-        /// Color de fuente.
-        /// </summary>
-        public Color Color
-        {
-            get { return color; }
-            set { color = value; }
-        }
-
-        #endregion
-    }
 }

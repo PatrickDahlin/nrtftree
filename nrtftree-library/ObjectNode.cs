@@ -23,201 +23,188 @@
  * Home Page:	http://www.sgoliver.net
  * GitHub:	    https://github.com/sgolivernet/nrtftree
  * Class:		ObjectNode
- * Description:	Nodo RTF especializado que contiene la informaci�n de un objeto.
+ * Description:	Specialized RTF node that contains an object's information.
  * ******************************************************************************/
 
 using System.Text;
 using Net.Sgoliver.NRtfTree.Core;
 using System.Globalization;
 
-namespace Net.Sgoliver.NRtfTree.Util
+namespace Net.Sgoliver.NRtfTree.Util;
+
+/// <summary>
+/// Encapsulates an RTF node of type Object (Keyword "\object")
+/// </summary>
+public class ObjectNode : Net.Sgoliver.NRtfTree.Core.RtfTreeNode
 {
     /// <summary>
-    /// Encapsula un nodo RTF de tipo Objeto (Palabra clave "\object")
+    /// Byte array containing the object information.
     /// </summary>
-    public class ObjectNode : Net.Sgoliver.NRtfTree.Core.RtfTreeNode
+    private byte[]? objdata;
+
+    #region Constructors
+
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    /// <param name="node">RTF node from which the image data will be obtained.</param>
+    public ObjectNode(RtfTreeNode? node)
     {
-        #region Atributos Privados
+        if (node == null) return;
+        
+        // We assign all the fields of the node
+        NodeKey = node.NodeKey;
+        HasParameter = node.HasParameter;
+        Parameter= node.Parameter;
+        ParentNode = node.ParentNode;
+        RootNode = node.RootNode;
+        NodeType = node.NodeType;
 
-        /// <summary>
-        /// Array de bytes con la informaci�n del objeto.
-        /// </summary>
-        private byte[] objdata;
+        ChildNodes = new RtfNodeCollection();
+        if (node.ChildNodes != null)
+            ChildNodes.AddRange(node.ChildNodes);
 
-        #endregion
-
-        #region Constructores
-
-        /// <summary>
-        /// Constructor de la clase ObjectNode.
-        /// </summary>
-        /// <param name="node">Nodo RTF del que se obtendr�n los datos de la imagen.</param>
-        public ObjectNode(RtfTreeNode node)
-        {
-			if(node != null)
-			{
-				//Asignamos todos los campos del nodo
-				NodeKey = node.NodeKey;
-				HasParameter = node.HasParameter;
-				Parameter= node.Parameter;
-				ParentNode = node.ParentNode;
-				RootNode = node.RootNode;
-				NodeType = node.NodeType;
-
-                ChildNodes = new RtfNodeCollection();
-				ChildNodes.AddRange(node.ChildNodes);
-
-				//Obtenemos los datos del objeto como un array de bytes
-				getObjectData();
-			}
-        }
-
-        #endregion
-
-        #region Propiedades
-
-        /// <summary>
-        /// Devuelve el tipo de objeto.
-        /// </summary>
-        public string ObjectType
-        {
-            get 
-            {
-                if (SelectSingleChildNode("objemb") != null)
-                    return "objemb";
-                if (SelectSingleChildNode("objlink") != null)
-                    return "objlink";
-                if (SelectSingleChildNode("objautlink") != null)
-                    return "objautlink";
-                if (SelectSingleChildNode("objsub") != null)
-                    return "objsub";
-                if (SelectSingleChildNode("objpub") != null)
-                    return "objpub";
-                if (SelectSingleChildNode("objicemb") != null)
-                    return "objicemb";
-                if (SelectSingleChildNode("objhtml") != null)
-                    return "objhtml";
-                if (SelectSingleChildNode("objocx") != null)
-                    return "objocx";
-                else
-                    return "";
-            }
-        }
-
-        /// <summary>
-        /// Devuelve la clase del objeto.
-        /// </summary>
-        public string ObjectClass
-        {
-            get
-            {
-                //Formato: {\*\objclass Paint.Picture}
-
-                RtfTreeNode node = SelectSingleNode("objclass");
-
-                if (node != null)
-                    return node.NextSibling.NodeKey;
-                else
-                    return "";
-            }
-        }
-
-        /// <summary>
-        /// Devuelve el grupo RTF que encapsula el nodo "\result" del objeto.
-        /// </summary>
-        public RtfTreeNode ResultNode
-        {
-            get
-            {
-                RtfTreeNode node = SelectSingleNode("result");
-
-                //Si existe el nodo "\result" recuperamos el grupo RTF superior.
-                if (node != null)
-                    node = node.ParentNode;
-
-                return node;
-            }
-        }
-
-		/// <summary>
-		/// Devuelve una cadena de caracteres con el contenido del objeto en formato hexadecimal.
-		/// </summary>
-		public string HexData
-		{
-			get
-			{
-				string text = "";
-
-				//Buscamos el nodo "\objdata"
-				RtfTreeNode objdataNode = SelectSingleNode("objdata");
-
-				//Si existe el nodo
-				if (objdataNode != null)
-				{
-					//Buscamos los datos en formato hexadecimal (�ltimo hijo del grupo de \objdata)
-					text = objdataNode.ParentNode.LastChild.NodeKey;
-				}
-
-				return text;				
-			}
-		}
-
-        #endregion
-
-		#region M�todos Publicos
-
-		/// <summary>
-		/// Devuelve un array de bytes con el contenido del objeto.
-		/// </summary>
-		/// <returns>Array de bytes con el contenido del objeto.</returns>
-		public byte[] GetByteData()
-		{
-			return objdata;
-		}
-
-		#endregion
-
-        #region M�todos Privados
-
-        /// <summary>
-        /// Obtiene los datos binarios del objeto a partir de la informaci�n contenida en el nodo RTF.
-        /// </summary>
-        private void getObjectData()
-        {
-            //Formato: ( '{' \object (<objtype> & <objmod>? & <objclass>? & <objname>? & <objtime>? & <objsize>? & <rsltmod>?) ('{\*' \objdata (<objalias>? & <objsect>?) <data> '}') <result> '}' )
-
-            string text = "";
-
-            if (FirstChild.NodeKey == "object")
-            {
-                //Buscamos el nodo "\objdata"
-                RtfTreeNode objdataNode = SelectSingleNode("objdata");
-
-                //Si existe el nodo
-                if (objdataNode != null)
-                {
-                    //Buscamos los datos en formato hexadecimal (�ltimo hijo del grupo de \objdata)
-                    text = objdataNode.ParentNode.LastChild.NodeKey;
-
-                    int dataSize = text.Length / 2;
-                    objdata = new byte[dataSize];
-
-                    StringBuilder sbaux = new StringBuilder(2);
-
-                    for (int i = 0; i < text.Length; i++)
-                    {
-                        sbaux.Append(text[i]);
-
-                        if (sbaux.Length == 2)
-                        {
-                            objdata[i / 2] = byte.Parse(sbaux.ToString(), NumberStyles.HexNumber);
-                            sbaux.Remove(0, 2);
-                        }
-                    }
-                }
-            }
-        }
-
-        #endregion
+        // We get the object data as a byte array
+        getObjectData();
     }
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// Returns the type of the object.
+    /// </summary>
+    public string ObjectType
+    {
+        get 
+        {
+            if (SelectSingleChildNode("objemb") != null)
+                return "objemb";
+            if (SelectSingleChildNode("objlink") != null)
+                return "objlink";
+            if (SelectSingleChildNode("objautlink") != null)
+                return "objautlink";
+            if (SelectSingleChildNode("objsub") != null)
+                return "objsub";
+            if (SelectSingleChildNode("objpub") != null)
+                return "objpub";
+            if (SelectSingleChildNode("objicemb") != null)
+                return "objicemb";
+            if (SelectSingleChildNode("objhtml") != null)
+                return "objhtml";
+            if (SelectSingleChildNode("objocx") != null)
+                return "objocx";
+            else
+                return "";
+        }
+    }
+
+    /// <summary>
+    /// Returns the type of the object.
+    /// </summary>
+    public string? ObjectClass
+    {
+        get
+        {
+            //Format: {\*\objclass Paint.Picture}
+
+            var node = SelectSingleNode("objclass");
+
+            return node != null ? node.NextSibling?.NodeKey : "";
+        }
+    }
+
+    /// <summary>
+    /// Returns the RTF group that encapsulates the "\result" node of the object.
+    /// </summary>
+    public RtfTreeNode? ResultNode
+    {
+        get
+        {
+            var node = SelectSingleNode("result");
+
+            // If the "\result" node exists, we retrieve the top RTF group.
+            node = node?.ParentNode;
+
+            return node;
+        }
+    }
+
+	/// <summary>
+	/// Returns a string containing the contents of the object in hexadecimal format.
+	/// </summary>
+	public string HexData
+	{
+		get
+		{
+			var text = "";
+
+			// We look for the "\objdata" node
+			var objdataNode = SelectSingleNode("objdata");
+
+			// If the node exists
+			if (objdataNode != null)
+			{
+				// We look for the data in hexadecimal format (last child of the \objdata group)
+				text = objdataNode.ParentNode?.LastChild?.NodeKey ?? "";
+			}
+
+			return text;				
+		}
+	}
+
+    #endregion
+
+	#region Public Methods
+
+	/// <summary>
+	/// Returns a byte array containing the contents of the object.
+	/// </summary>
+	/// <returns>Byte array containing the contents of the object.</returns>
+	public byte[]? GetByteData()
+	{
+		return objdata;
+	}
+
+	#endregion
+
+    #region Private Methods
+
+    /// <summary>
+    /// Obtains the binary data of the object from the information contained in the RTF node.
+    /// </summary>
+    private void getObjectData()
+    {
+        //Format: ( '{' \object (<objtype> & <objmod>? & <objclass>? & <objname>? & <objtime>? & <objsize>? & <rsltmod>?) ('{\*' \objdata (<objalias>? & <objsect>?) <data> '}') <result> '}' )
+
+        var text = "";
+
+        if (FirstChild?.NodeKey != "object") return;
+        
+        // We look for the "\objdata" node
+        var objdataNode = SelectSingleNode("objdata");
+
+        if (objdataNode?.ParentNode?.LastChild == null) return;
+        
+        // We look for the data in hexadecimal format (last child of the \objdata group)
+        text = objdataNode!.ParentNode!.LastChild!.NodeKey;
+
+        var dataSize = text.Length / 2;
+        objdata = new byte[dataSize];
+
+        var sbaux = new StringBuilder(2);
+
+        for (var i = 0; i < text.Length; i++)
+        {
+            sbaux.Append(text[i]);
+
+            if (sbaux.Length != 2) continue;
+            
+            objdata[i / 2] = byte.Parse(sbaux.ToString(), NumberStyles.HexNumber);
+            sbaux.Remove(0, 2);
+        }
+    }
+
+    #endregion
 }

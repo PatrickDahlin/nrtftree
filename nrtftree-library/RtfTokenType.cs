@@ -26,43 +26,39 @@
  * Description: Token types of an RTF document tree.
  * ******************************************************************************/
 
-namespace Net.Sgoliver.NRtfTree
+namespace Net.Sgoliver.NRtfTree.Core;
+
+/// <summary>
+/// Token types of an RTF document tree.
+/// </summary>
+public enum RtfTokenType
 {
-    namespace Core
-    {
-        /// <summary>
-        /// Token types of an RTF document tree.
-        /// </summary>
-        public enum RtfTokenType
-        {
-            /// <summary>
-            /// Indication that the Token has only just been initialized.
-            /// </summary>
-            None = 0,
-            /// <summary>
-            /// Keyword without parameter.
-            /// </summary>
-            Keyword = 1,
-            /// <summary>
-            /// Control symbol without parameter.
-            /// </summary>
-            Control = 2,
-            /// <summary>
-            /// Document text.
-            /// </summary>
-            Text = 3,
-            /// <summary>
-            /// Marker for end of file.
-            /// </summary>
-            Eof = 4,
-            /// <summary>
-            ///	Start of group: '{'
-            /// </summary>
-            GroupStart = 5,
-            /// <summary>
-            /// End of group: '}'
-            /// </summary>
-            GroupEnd = 6
-        }
-    }
+    /// <summary>
+    /// Indication that the Token has only just been initialized.
+    /// </summary>
+    None = 0,
+    /// <summary>
+    /// Keyword without parameter.
+    /// </summary>
+    Keyword = 1,
+    /// <summary>
+    /// Control symbol without parameter.
+    /// </summary>
+    Control = 2,
+    /// <summary>
+    /// Document text.
+    /// </summary>
+    Text = 3,
+    /// <summary>
+    /// Marker for end of file.
+    /// </summary>
+    Eof = 4,
+    /// <summary>
+    ///	Start of group: '{'
+    /// </summary>
+    GroupStart = 5,
+    /// <summary>
+    /// End of group: '}'
+    /// </summary>
+    GroupEnd = 6
 }

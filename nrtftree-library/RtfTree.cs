@@ -30,609 +30,618 @@ using System.Text;
 using System.Drawing;
 using Net.Sgoliver.NRtfTree.Util;
 
-namespace Net.Sgoliver.NRtfTree.Core
+namespace Net.Sgoliver.NRtfTree.Core;
+
+/// <summary>
+/// Representation of a tree -shaped RTF document.
+/// </summary>
+public class RtfTree
 {
+    #region Private fields
+
     /// <summary>
-    /// Representation of a tree -shaped RTF document.
+    /// Rtf root node.
     /// </summary>
-    public class RtfTree
+    private RtfTreeNode rootNode;
+    /// <summary>
+    /// RTF input file/stream
+    /// </summary>
+    private TextReader? rtf;
+    /// <summary>
+    /// Lexical analyzer for RTF
+    /// </summary>
+    private RtfLex? lex;
+    /// <summary>
+    /// RTF Token
+    /// </summary>
+    private RtfToken? tok;
+    /// <summary>
+    /// Current node depth
+    /// </summary>
+    private int level;
+    /// <summary>
+    /// Indicate whether the special characters (\') are decoded by joining contiguous text nodes.
+    /// </summary>
+    private bool mergeSpecialCharacters;
+
+    #endregion
+
+    #region Constructors
+
+    /// <summary>
+    /// RtfTree constructor.
+    /// </summary>
+    public RtfTree()
     {
-        #region Private fields
+        //The root node of the document is created
+        rootNode = new RtfTreeNode(RtfNodeType.Root,"ROOT",false,0);
 
-        /// <summary>
-        /// Rtf root node.
-        /// </summary>
-        private RtfTreeNode rootNode;
-        /// <summary>
-        /// RTF input file/stream
-        /// </summary>
-        private TextReader rtf;
-        /// <summary>
-        /// Lexical analyzer for RTF
-        /// </summary>
-        private RtfLex lex;
-        /// <summary>
-        /// RTF Token
-        /// </summary>
-        private RtfToken tok;
-        /// <summary>
-        /// Current node depth
-        /// </summary>
-        private int level;
-        /// <summary>
-        /// Indicate whether the special characters (\') are decoded by joining contiguous text nodes.
-        /// </summary>
-        private bool mergeSpecialCharacters;
+        rootNode.Tree = this;
 
-        #endregion
+        /* Initialized default */
 
-        #region Constructors
+        mergeSpecialCharacters = false;
+    }
 
-        /// <summary>
-        /// RtfTree constructor.
-        /// </summary>
-        public RtfTree()
+    #endregion
+
+    #region Public Methods
+
+    /// <summary>
+    /// Make an exact copy of the RTF tree.
+    /// </summary>
+    /// <returns>Returns an exact copy of the RTF tree.</returns>
+    public RtfTree CloneTree()
+    {
+        var clon = new RtfTree();
+
+        clon.rootNode = rootNode.CloneNode();
+
+        return clon;
+    }
+
+    /// <summary>
+    /// Load a file in RTF format.
+    /// </summary>
+    /// <param name="path">Route of the file with the document.</param>
+    /// <returns>Value 0 is returned in case of no error in the document loading.
+    /// incase of error the value -1.</returns>
+    public int LoadRtfFile(string path)
+    {
+        var res = 0;
+
+        rtf = new StreamReader(path);
+
+        lex = new RtfLex(rtf);
+
+        res = parseRtfTree();
+
+        rtf.Close();
+
+        return res;
+    }
+
+    /// <summary>
+    /// Load a text stream with RTF format.
+    /// </summary>
+    /// <param name="text">Text stream containing the document.</param>
+    /// <returns>Value 0 is returned in case of no error in the document loading.
+    /// incase of error the value -1.</returns>
+    public int LoadRtfText(string text)
+    {
+        var res = 0;
+
+        rtf = new StringReader(text);
+
+        lex = new RtfLex(rtf);
+
+        res = parseRtfTree();
+
+        rtf.Close();
+
+        return res;
+    }
+
+    /// <summary>
+    /// Write the RTF code of the document to a file.
+    /// </summary>
+    /// <param name="filePath">Route of the file to generate from the RTF document.</param>
+    public void SaveRtf(string filePath)
+    {
+        var sw = new StreamWriter(filePath);
+
+        //The RTF tree is transformed into text and written to file
+        sw.Write(RootNode.Rtf);
+
+        sw.Flush();
+        sw.Close();
+    }
+
+    /// <summary>
+    /// Returns a textual representation of the document loaded.
+    /// </summary>
+    /// <returns>String with the representation of the document.</returns>
+    public override string ToString()
+    {
+        var res = "";
+
+        res = toStringInm(rootNode, 0, false);
+
+        return res;
+    }
+
+    /// <summary>
+    /// Returns a textual representation of the document loaded. Add the node type to the left of the node content.
+    /// </summary>
+    /// <returns>String with the representation of the document.</returns>
+    public string ToStringEx()
+    {
+        var res = "";
+
+        res = toStringInm(rootNode, 0, true);
+
+        return res;
+    }
+
+    /// <summary>
+    /// Returns the RTF document font table.
+    /// </summary>
+    /// <returns>Table of fonts in the RTF document</returns>
+    public RtfFontTable GetFontTable()
+    {
+        var tablaFuentes = new RtfFontTable();
+
+        var root = rootNode;
+
+        // Main Document Group
+        var nprin = root.FirstChild;
+
+        // We are looking for the font table in the tree
+        var enc = false;
+        var i = 0;
+        var ntf = new RtfTreeNode();  //Node with the Table of Fonts
+
+        while (!enc && nprin is { ChildNodes: not null } && i < nprin.ChildNodes.Count)
         {
-            //The root node of the document is created
-            rootNode = new RtfTreeNode(RtfNodeType.Root,"ROOT",false,0);
-
-            rootNode.Tree = this;
-
-            /* Initialized default */
-
-            mergeSpecialCharacters = false;
-        }
-
-        #endregion
-
-        #region Public Methods
-
-        /// <summary>
-        /// Make an exact copy of the RTF tree.
-        /// </summary>
-        /// <returns>Returns an exact copy of the RTF tree.</returns>
-        public RtfTree CloneTree()
-        {
-            RtfTree clon = new RtfTree();
-
-            clon.rootNode = rootNode.CloneNode();
-
-            return clon;
-        }
-
-        /// <summary>
-        /// Load a file in RTF format.
-        /// </summary>
-        /// <param name="path">Route of the file with the document.</param>
-        /// <returns>Value 0 is returned in case of no error in the document loading.
-        /// incase of error the value -1.</returns>
-        public int LoadRtfFile(string path)
-        {
-            int res = 0;
-
-            rtf = new StreamReader(path);
-
-            lex = new RtfLex(rtf);
-
-            res = parseRtfTree();
-
-            rtf.Close();
-
-            return res;
-        }
-
-        /// <summary>
-        /// Load a text stream with RTF format.
-        /// </summary>
-        /// <param name="text">Text stream containing the document.</param>
-        /// <returns>Value 0 is returned in case of no error in the document loading.
-        /// incase of error the value -1.</returns>
-        public int LoadRtfText(string text)
-        {
-            int res = 0;
-
-            rtf = new StringReader(text);
-
-            lex = new RtfLex(rtf);
-
-            res = parseRtfTree();
-
-            rtf.Close();
-
-            return res;
-        }
-
-        /// <summary>
-        /// Write the RTF code of the document to a file.
-        /// </summary>
-        /// <param name="filePath">Route of the file to generate from the RTF document.</param>
-        public void SaveRtf(string filePath)
-        {
-            StreamWriter sw = new StreamWriter(filePath);
-
-            //The RTF tree is transformed into text and written to file
-            sw.Write(RootNode.Rtf);
-
-            sw.Flush();
-            sw.Close();
-        }
-
-        /// <summary>
-        /// Returns a textual representation of the document loaded.
-        /// </summary>
-        /// <returns>String with the representation of the document.</returns>
-        public override string ToString()
-        {
-            string res = "";
-
-            res = toStringInm(rootNode, 0, false);
-
-            return res;
-        }
-
-        /// <summary>
-        /// Returns a textual representation of the document loaded. Add the node type to the left of the node content.
-        /// </summary>
-        /// <returns>String with the representation of the document.</returns>
-        public string ToStringEx()
-        {
-            string res = "";
-
-            res = toStringInm(rootNode, 0, true);
-
-            return res;
-        }
-
-        /// <summary>
-        /// Returns the RTF document font table.
-        /// </summary>
-        /// <returns>Table of fonts in the RTF document</returns>
-        public RtfFontTable GetFontTable()
-        {
-            RtfFontTable tablaFuentes = new RtfFontTable();
-
-            RtfTreeNode root = rootNode;
-
-            // Main Document Group
-            RtfTreeNode nprin = root.FirstChild;
-
-            // We are looking for the font table in the tree
-            bool enc = false;
-            int i = 0;
-            RtfTreeNode ntf = new RtfTreeNode();  //Node with the Table of Fonts
-
-            while (!enc && i < nprin.ChildNodes.Count)
+            if (nprin.ChildNodes[i].NodeType == RtfNodeType.Group &&
+                nprin.ChildNodes[i].FirstChild?.NodeKey == "fonttbl")
             {
-                if (nprin.ChildNodes[i].NodeType == RtfNodeType.Group &&
-                    nprin.ChildNodes[i].FirstChild.NodeKey == "fonttbl")
-                {
-                    enc = true;
-                    ntf = nprin.ChildNodes[i];
-                }
-
-                i++;
+                enc = true;
+                ntf = nprin.ChildNodes[i];
             }
 
-            // We fill the sources array
-            for (int j = 1; j < ntf.ChildNodes.Count; j++)
-            {
-                RtfTreeNode fuente = ntf.ChildNodes[j];
+            i++;
+        }
 
-                int indiceFuente = -1;
-                string nombreFuente = null;
+        // We fill the sources array
+        if (ntf.ChildNodes == null) return tablaFuentes;
+        
+        for (var j = 1; j < ntf.ChildNodes.Count; j++)
+        {
+            var fuente = ntf.ChildNodes[j];
 
+            var indiceFuente = -1;
+            string? nombreFuente = null;
+
+            if (fuente.ChildNodes != null)
                 foreach (RtfTreeNode nodo in fuente.ChildNodes)
                 {
                     if (nodo.NodeKey == "f")
                         indiceFuente = nodo.Parameter;
 
                     if (nodo.NodeType == RtfNodeType.Text)
-                        nombreFuente = nodo.NodeKey.Substring(0, nodo.NodeKey.Length - 1);
+                        nombreFuente = nodo.NodeKey[..^1];
                 }
 
+            if (nombreFuente != null) 
                 tablaFuentes.AddFont(indiceFuente, nombreFuente);
-            }
-
-            return tablaFuentes;
         }
 
-        /// <summary>
-        /// Returns the color table of the RTF document.
-        /// </summary>
-        /// <returns>RTF document colors table</returns>
-        public RtfColorTable GetColorTable()
+        return tablaFuentes;
+    }
+
+    /// <summary>
+    /// Returns the color table of the RTF document.
+    /// </summary>
+    /// <returns>RTF document colors table</returns>
+    public RtfColorTable GetColorTable()
+    {
+        var tableOfColors = new RtfColorTable();
+
+        var root = rootNode;
+
+        // Main Document Group
+        var nprin = root.FirstChild;
+
+        // We are looking for the color table in the tree
+        var enc = false;
+        var i = 0;
+        var ntc = new RtfTreeNode();
+
+        while (!enc && nprin is { ChildNodes: not null } && i < nprin.ChildNodes.Count)
         {
-            RtfColorTable tableOfColors = new RtfColorTable();
-
-            RtfTreeNode root = rootNode;
-
-            // Main Document Group
-            RtfTreeNode nprin = root.FirstChild;
-
-            // We are looking for the color table in the tree
-            bool enc = false;
-            int i = 0;
-            RtfTreeNode ntc = new RtfTreeNode();
-
-            while (!enc && i < nprin.ChildNodes.Count)
+            if (nprin.ChildNodes[i].NodeType == RtfNodeType.Group &&
+                nprin.ChildNodes[i].FirstChild?.NodeKey == "colortbl")
             {
-                if (nprin.ChildNodes[i].NodeType == RtfNodeType.Group &&
-                    nprin.ChildNodes[i].FirstChild.NodeKey == "colortbl")
-                {
-                    enc = true;
-                    ntc = nprin.ChildNodes[i];
-                }
-
-                i++;
+                enc = true;
+                ntc = nprin.ChildNodes[i];
             }
 
-            // We fill the array of colors
-            int red = 0;
-            int green = 0;
-            int blue = 0;
+            i++;
+        }
 
-            //We add the default color, in this case the black.
-            //tabla.Add(Color.FromArgb(rojo,verde,azul));
+        // We fill the array of colors
+        var red = 0;
+        var green = 0;
+        var blue = 0;
 
-            for (int j = 1; j < ntc.ChildNodes.Count; j++)
+        //We add the default color, in this case the black.
+        //tabla.Add(Color.FromArgb(rojo,verde,azul));
+
+        if (ntc.ChildNodes == null) return tableOfColors;
+        
+        for (var j = 1; j < ntc.ChildNodes.Count; j++)
+        {
+            var nodo = ntc.ChildNodes[j];
+
+            if (nodo.NodeType == RtfNodeType.Text && nodo.NodeKey.Trim() == ";")
             {
-                RtfTreeNode nodo = ntc.ChildNodes[j];
+                tableOfColors.AddColor(Color.FromArgb(red, green, blue));
 
-                if (nodo.NodeType == RtfNodeType.Text && nodo.NodeKey.Trim() == ";")
+                red = 0;
+                green = 0;
+                blue = 0;
+            }
+            else if (nodo.NodeType == RtfNodeType.Keyword)
+            {
+                switch (nodo.NodeKey)
                 {
-                    tableOfColors.AddColor(Color.FromArgb(red, green, blue));
-
-                    red = 0;
-                    green = 0;
-                    blue = 0;
+                    case "red":
+                        red = nodo.Parameter;
+                        break;
+                    case "green":
+                        green = nodo.Parameter;
+                        break;
+                    case "blue":
+                        blue = nodo.Parameter;
+                        break;
                 }
-                else if (nodo.NodeType == RtfNodeType.Keyword)
-                {
-                    switch (nodo.NodeKey)
+            }
+        }
+
+        return tableOfColors;
+    }
+
+    /// <summary>
+    /// Returns the RTF document style sheets.
+    /// </summary>
+    /// <returns>Table of stylesheets in the RTF document.</returns>
+    public RtfStyleSheetTable GetStyleSheetTable()
+    {
+        var sstable = new RtfStyleSheetTable();
+
+        var sst = MainGroup?.SelectSingleGroup("stylesheet");
+
+        var styles = sst?.ChildNodes;
+
+        if (styles == null) return sstable;
+        
+        for (var i = 1; i < styles.Count; i++)
+        {
+            var style = styles[i];
+
+            var rtfss = ParseStyleSheet(style);
+
+            sstable.AddStyleSheet(rtfss.Index, rtfss);
+        }
+
+        return sstable;
+    }
+
+    /// <summary>
+    /// Returns the information contained in the "\info" group of the RTF document.
+    /// </summary>
+    /// <returns>InfoGroup object containing the info from the document.</returns>
+    public InfoGroup? GetInfoGroup()
+    {
+        InfoGroup? info = null;
+
+        var infoNode = RootNode.SelectSingleNode("info");
+
+        // If there is the node "\info" we will extract all the information.
+        if (infoNode == null) return info;
+        
+        RtfTreeNode? auxnode = null;
+
+        info = new InfoGroup();
+
+        //Title
+        if ((auxnode = rootNode.SelectSingleNode("title")) != null)
+            info.Title = auxnode.NextSibling?.NodeKey ?? string.Empty;
+
+        //Subject
+        if ((auxnode = rootNode.SelectSingleNode("subject")) != null)
+            info.Subject = auxnode.NextSibling?.NodeKey ?? string.Empty;
+
+        //Author
+        if ((auxnode = rootNode.SelectSingleNode("author")) != null)
+            info.Author = auxnode.NextSibling?.NodeKey ?? string.Empty;
+
+        //Manager
+        if ((auxnode = rootNode.SelectSingleNode("manager")) != null)
+            info.Manager = auxnode.NextSibling?.NodeKey ?? string.Empty;
+
+        //Company
+        if ((auxnode = rootNode.SelectSingleNode("company")) != null)
+            info.Company = auxnode.NextSibling?.NodeKey ?? string.Empty;
+
+        //Operator
+        if ((auxnode = rootNode.SelectSingleNode("operator")) != null)
+            info.Operator = auxnode.NextSibling?.NodeKey ?? string.Empty;
+
+        //Category
+        if ((auxnode = rootNode.SelectSingleNode("category")) != null)
+            info.Category = auxnode.NextSibling?.NodeKey ?? string.Empty;
+
+        //Keywords
+        if ((auxnode = rootNode.SelectSingleNode("keywords")) != null)
+            info.Keywords = auxnode.NextSibling?.NodeKey ?? string.Empty;
+
+        //Comments
+        if ((auxnode = rootNode.SelectSingleNode("comment")) != null)
+            info.Comment = auxnode.NextSibling?.NodeKey ?? string.Empty;
+
+        //Document comments
+        if ((auxnode = rootNode.SelectSingleNode("doccomm")) != null)
+            info.DocComment = auxnode.NextSibling?.NodeKey ?? string.Empty;
+
+        //Hlinkbase (The base address that is used for the path of all relative hyperlinks inserted in the document)
+        if ((auxnode = rootNode.SelectSingleNode("hlinkbase")) != null)
+            info.HlinkBase = auxnode.NextSibling?.NodeKey ?? string.Empty;
+
+        //Version
+        if ((auxnode = rootNode.SelectSingleNode("version")) != null)
+            info.Version = auxnode.Parameter;
+
+        //Internal Version
+        if ((auxnode = rootNode.SelectSingleNode("vern")) != null)
+            info.InternalVersion = auxnode.Parameter;
+
+        //Editing Time
+        if ((auxnode = rootNode.SelectSingleNode("edmins")) != null)
+            info.EditingTime = auxnode.Parameter;
+
+        //Number of Pages
+        if ((auxnode = rootNode.SelectSingleNode("nofpages")) != null)
+            info.NumberOfPages = auxnode.Parameter;
+
+        //Number of Chars
+        if ((auxnode = rootNode.SelectSingleNode("nofchars")) != null)
+            info.NumberOfChars = auxnode.Parameter;
+
+        //Number of Words
+        if ((auxnode = rootNode.SelectSingleNode("nofwords")) != null)
+            info.NumberOfWords = auxnode.Parameter;
+
+        //Id
+        if ((auxnode = rootNode.SelectSingleNode("id")) != null)
+            info.Id = auxnode.Parameter;
+
+        //Creation DateTime
+        if ((auxnode = rootNode.SelectSingleNode("creatim")) != null)
+            if (auxnode.ParentNode != null)
+                info.CreationTime = parseDateTime(auxnode.ParentNode);
+
+        //Revision DateTime
+        if ((auxnode = rootNode.SelectSingleNode("revtim")) != null)
+            if (auxnode.ParentNode != null)
+                info.RevisionTime = parseDateTime(auxnode.ParentNode);
+
+        //Last Print Time
+        if ((auxnode = rootNode.SelectSingleNode("printim")) != null)
+            if (auxnode.ParentNode != null)
+                info.LastPrintTime = parseDateTime(auxnode.ParentNode);
+
+        //Backup Time
+        if ((auxnode = rootNode.SelectSingleNode("buptim")) != null)
+            if (auxnode.ParentNode != null)
+                info.BackupTime = parseDateTime(auxnode.ParentNode);
+
+        return info;
+    }
+
+    /// <summary>
+    /// Returns the code table with which the RTF document is coded.
+    /// </summary>
+    /// <returns>RTF document code table. If not specified in the document, the current system code table is returned.4</returns>
+    public Encoding GetEncoding()
+    {
+        //Contributed by Jan Stuchlík
+
+        var encoding = Encoding.Default;
+
+        var cpNode = RootNode.SelectSingleNode("ansicpg");
+
+        if (cpNode != null)
+        {
+            encoding = Encoding.GetEncoding(cpNode.Parameter);
+        }
+
+        return encoding;
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    /// <summary>
+    /// Analyze the document and load its tree structure.
+    /// </summary>
+    /// <returns>Value 0 is returned in case of no error in the document loading.
+    /// incase of error the value -1.</returns>
+    private int parseRtfTree()
+    {
+        var res = 0;
+
+        // Document default coding
+        var encoding = Encoding.Default;
+
+        var curNode = rootNode;
+
+        // New nodes to build the RTF tree
+
+        // The first token is obtained
+        tok = lex?.NextToken();
+
+        while (tok != null && tok.Type != RtfTokenType.Eof)
+        {
+            RtfTreeNode? newNode;
+            switch (tok.Type)
+            {
+                case RtfTokenType.GroupStart:
+                    newNode = new RtfTreeNode(RtfNodeType.Group,"GROUP",false,0);
+                    curNode?.AppendChild(newNode);
+                    curNode = newNode;
+                    level++;
+                    break;
+                case RtfTokenType.GroupEnd:
+                    curNode = curNode?.ParentNode;
+                    level--;
+                    break;
+                case RtfTokenType.Keyword:
+                case RtfTokenType.Control:
+                case RtfTokenType.Text:
+                    if (mergeSpecialCharacters)
                     {
-                        case "red":
-                            red = nodo.Parameter;
-                            break;
-                        case "green":
-                            green = nodo.Parameter;
-                            break;
-                        case "blue":
-                            blue = nodo.Parameter;
-                            break;
+                        //Contributed by Jan Stuchlík
+                        var isText = tok.Type == RtfTokenType.Text || (tok.Type == RtfTokenType.Control && tok.Key == "'");
+                        if (curNode?.LastChild is { NodeType: RtfNodeType.Text } && isText)
+                        {
+                            if (tok.Type == RtfTokenType.Text)
+                            {
+                                curNode.LastChild.NodeKey += tok.Key;
+                                break;
+                            }
+                            if (tok.Type == RtfTokenType.Control && tok.Key == "'")
+                            {
+                                curNode.LastChild.NodeKey += DecodeControlChar(tok.Parameter, encoding);
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            // First special character \'
+                            if (tok.Type == RtfTokenType.Control && tok.Key == "'")
+                            {
+                                newNode = new RtfTreeNode(RtfNodeType.Text, DecodeControlChar(tok.Parameter, encoding), false, 0);
+                                curNode?.AppendChild(newNode);
+                                break;
+                            }
+                        }
                     }
-                }
-            }
 
-            return tableOfColors;
-        }
+                    newNode = new RtfTreeNode(tok);
+                    curNode?.AppendChild(newNode);
 
-        /// <summary>
-        /// Returns the RTF document style sheets.
-        /// </summary>
-        /// <returns>Table of stylesheets in the RTF document.</returns>
-        public RtfStyleSheetTable GetStyleSheetTable()
-        {
-            RtfStyleSheetTable sstable = new RtfStyleSheetTable();
-
-            RtfTreeNode sst = MainGroup.SelectSingleGroup("stylesheet");
-
-            RtfNodeCollection styles = sst.ChildNodes;
-
-            for (int i = 1; i < styles.Count; i++)
-            {
-                RtfTreeNode style = styles[i];
-
-                RtfStyleSheet rtfss = ParseStyleSheet(style);
-
-                sstable.AddStyleSheet(rtfss.Index, rtfss);
-            }
-
-            return sstable;
-        }
-
-        /// <summary>
-        /// Returns the information contained in the "\info" group of the RTF document.
-        /// </summary>
-        /// <returns>InfoGroup object containing the info from the document.</returns>
-        public InfoGroup GetInfoGroup()
-        {
-            InfoGroup info = null;
-
-            RtfTreeNode infoNode = RootNode.SelectSingleNode("info");
-
-            // If there is the node "\info" we will extract all the information.
-            if (infoNode != null)
-            {
-                RtfTreeNode auxnode = null;
-
-                info = new InfoGroup();
-
-                //Title
-                if ((auxnode = rootNode.SelectSingleNode("title")) != null)
-                    info.Title = auxnode.NextSibling.NodeKey;
-
-                //Subject
-                if ((auxnode = rootNode.SelectSingleNode("subject")) != null)
-                    info.Subject = auxnode.NextSibling.NodeKey;
-
-                //Author
-                if ((auxnode = rootNode.SelectSingleNode("author")) != null)
-                    info.Author = auxnode.NextSibling.NodeKey;
-
-                //Manager
-                if ((auxnode = rootNode.SelectSingleNode("manager")) != null)
-                    info.Manager = auxnode.NextSibling.NodeKey;
-
-                //Company
-                if ((auxnode = rootNode.SelectSingleNode("company")) != null)
-                    info.Company = auxnode.NextSibling.NodeKey;
-
-                //Operator
-                if ((auxnode = rootNode.SelectSingleNode("operator")) != null)
-                    info.Operator = auxnode.NextSibling.NodeKey;
-
-                //Category
-                if ((auxnode = rootNode.SelectSingleNode("category")) != null)
-                    info.Category = auxnode.NextSibling.NodeKey;
-
-                //Keywords
-                if ((auxnode = rootNode.SelectSingleNode("keywords")) != null)
-                    info.Keywords = auxnode.NextSibling.NodeKey;
-
-                //Comments
-                if ((auxnode = rootNode.SelectSingleNode("comment")) != null)
-                    info.Comment = auxnode.NextSibling.NodeKey;
-
-                //Document comments
-                if ((auxnode = rootNode.SelectSingleNode("doccomm")) != null)
-                    info.DocComment = auxnode.NextSibling.NodeKey;
-
-                //Hlinkbase (The base address that is used for the path of all relative hyperlinks inserted in the document)
-                if ((auxnode = rootNode.SelectSingleNode("hlinkbase")) != null)
-                    info.HlinkBase = auxnode.NextSibling.NodeKey;
-
-                //Version
-                if ((auxnode = rootNode.SelectSingleNode("version")) != null)
-                    info.Version = auxnode.Parameter;
-
-                //Internal Version
-                if ((auxnode = rootNode.SelectSingleNode("vern")) != null)
-                    info.InternalVersion = auxnode.Parameter;
-
-                //Editing Time
-                if ((auxnode = rootNode.SelectSingleNode("edmins")) != null)
-                    info.EditingTime = auxnode.Parameter;
-
-                //Number of Pages
-                if ((auxnode = rootNode.SelectSingleNode("nofpages")) != null)
-                    info.NumberOfPages = auxnode.Parameter;
-
-                //Number of Chars
-                if ((auxnode = rootNode.SelectSingleNode("nofchars")) != null)
-                    info.NumberOfChars = auxnode.Parameter;
-
-                //Number of Words
-                if ((auxnode = rootNode.SelectSingleNode("nofwords")) != null)
-                    info.NumberOfWords = auxnode.Parameter;
-
-                //Id
-                if ((auxnode = rootNode.SelectSingleNode("id")) != null)
-                    info.Id = auxnode.Parameter;
-
-                //Creation DateTime
-                if ((auxnode = rootNode.SelectSingleNode("creatim")) != null)
-                    info.CreationTime = parseDateTime(auxnode.ParentNode);
-
-                //Revision DateTime
-                if ((auxnode = rootNode.SelectSingleNode("revtim")) != null)
-                    info.RevisionTime = parseDateTime(auxnode.ParentNode);
-                
-                //Last Print Time
-                if ((auxnode = rootNode.SelectSingleNode("printim")) != null)
-                    info.LastPrintTime = parseDateTime(auxnode.ParentNode);
-
-                //Backup Time
-                if ((auxnode = rootNode.SelectSingleNode("buptim")) != null)
-                    info.BackupTime = parseDateTime(auxnode.ParentNode);
-            }
-
-            return info;
-        }
-
-        /// <summary>
-        /// Returns the code table with which the RTF document is coded.
-        /// </summary>
-        /// <returns>RTF document code table. If not specified in the document, the current system code table is returned.4</returns>
-        public Encoding GetEncoding()
-        {
-            //Contributed by Jan Stuchlík
-
-            Encoding encoding = Encoding.Default;
-
-            RtfTreeNode cpNode = RootNode.SelectSingleNode("ansicpg");
-
-            if (cpNode != null)
-            {
-                encoding = Encoding.GetEncoding(cpNode.Parameter);
-            }
-
-            return encoding;
-        }
-
-        #endregion
-
-        #region Private Methods
-
-        /// <summary>
-        /// Analyze the document and load its tree structure.
-        /// </summary>
-        /// <returns>Value 0 is returned in case of no error in the document loading.
-        /// incase of error the value -1.</returns>
-        private int parseRtfTree()
-        {
-            int res = 0;
-
-            // Document default coding
-            Encoding encoding = Encoding.Default;
-
-            RtfTreeNode curNode = rootNode;
-
-            // New nodes to build the RTF tree
-            RtfTreeNode newNode = null;
-
-            // The first token is obtained
-            tok = lex.NextToken();
-
-            while (tok.Type != RtfTokenType.Eof)
-            {
-                switch (tok.Type)
-                {
-                    case RtfTokenType.GroupStart:
-                        newNode = new RtfTreeNode(RtfNodeType.Group,"GROUP",false,0);
-                        curNode.AppendChild(newNode);
-                        curNode = newNode;
-                        level++;
-                        break;
-                    case RtfTokenType.GroupEnd:
-                        curNode = curNode.ParentNode;
-                        level--;
-                        break;
-                    case RtfTokenType.Keyword:
-                    case RtfTokenType.Control:
-                    case RtfTokenType.Text:
-                        if (mergeSpecialCharacters)
+                    if (mergeSpecialCharacters)
+                    {
+                        //Contributed by Jan Stuchlík
+                        if (level == 1 && newNode.NodeType == RtfNodeType.Keyword && newNode.NodeKey == "ansicpg")
                         {
-                            //Contributed by Jan Stuchlík
-                            bool isText = tok.Type == RtfTokenType.Text || (tok.Type == RtfTokenType.Control && tok.Key == "'");
-                            if (curNode.LastChild != null && (curNode.LastChild.NodeType == RtfNodeType.Text && isText))
-                            {
-                                if (tok.Type == RtfTokenType.Text)
-                                {
-                                    curNode.LastChild.NodeKey += tok.Key;
-                                    break;
-                                }
-                                if (tok.Type == RtfTokenType.Control && tok.Key == "'")
-                                {
-                                    curNode.LastChild.NodeKey += DecodeControlChar(tok.Parameter, encoding);
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                // First special character \'
-                                if (tok.Type == RtfTokenType.Control && tok.Key == "'")
-                                {
-                                    newNode = new RtfTreeNode(RtfNodeType.Text, DecodeControlChar(tok.Parameter, encoding), false, 0);
-                                    curNode.AppendChild(newNode);
-                                    break;
-                                }
-                            }
+                            encoding = Encoding.GetEncoding(newNode.Parameter);
                         }
+                    }
 
-                        newNode = new RtfTreeNode(tok);
-                        curNode.AppendChild(newNode);
-
-                        if (mergeSpecialCharacters)
-                        {
-                            //Contributed by Jan Stuchlík
-                            if (level == 1 && newNode.NodeType == RtfNodeType.Keyword && newNode.NodeKey == "ansicpg")
-                            {
-                                encoding = Encoding.GetEncoding(newNode.Parameter);
-                            }
-                        }
-
-                        break;
-                    default:
-                        res = -1;
-                        break;
-                }
-
-                // The following token is obtained
-                tok = lex.NextToken();
+                    break;
+                default:
+                    res = -1;
+                    break;
             }
 
-            // If the current level is not 0 (== a group is not well formed)
-            if (level != 0)
-            {
-                res = -1;
-            }
-
-            return res;
+            // The following token is obtained
+            tok = lex?.NextToken();
         }
 
-        /// <summary>
-        /// Decodes a special character indicated by its decimal code
-        /// </summary>
-        /// <param name="code">Special character code (\')</param>
-        /// <param name="enc">Coding used to decode the special character.</param>
-        /// <returns>Special Decoded character.</returns>
-        private string DecodeControlChar(int code, Encoding enc)
+        // If the current level is not 0 (== a group is not well formed)
+        if (level != 0)
         {
-            //Contributed by Jan Stuchlík
-            return enc.GetString(new byte[] {(byte)code});                
+            res = -1;
         }
 
-        /// <summary>
-        /// Auxiliary method to generate the textual representation of the RTF document.
-        /// </summary>
-        /// <param name="curNode">Current tree node.</param>
-        /// <param name="level">Current level in tree.</param>
-        /// <param name="showNodeTypes">Indicates whether the type of each tree node will be displayed.</param>
-        /// <returns>Textual representation of the 'curNode' node with level 'level'</returns>
-        private string toStringInm(RtfTreeNode curNode, int level, bool showNodeTypes)
+        return res;
+    }
+
+    /// <summary>
+    /// Decodes a special character indicated by its decimal code
+    /// </summary>
+    /// <param name="code">Special character code (\')</param>
+    /// <param name="enc">Coding used to decode the special character.</param>
+    /// <returns>Special Decoded character.</returns>
+    private string DecodeControlChar(int code, Encoding enc)
+    {
+        //Contributed by Jan Stuchlík
+        return enc.GetString(new[] {(byte)code});                
+    }
+
+    /// <summary>
+    /// Auxiliary method to generate the textual representation of the RTF document.
+    /// </summary>
+    /// <param name="curNode">Current tree node.</param>
+    /// <param name="levelParam">Current level in tree.</param>
+    /// <param name="showNodeTypes">Indicates whether the type of each tree node will be displayed.</param>
+    /// <returns>Textual representation of the 'curNode' node with level 'level'</returns>
+    private string toStringInm(RtfTreeNode curNode, int levelParam, bool showNodeTypes)
+    {
+        var res = new StringBuilder();
+
+        var children = curNode.ChildNodes;
+
+        for (var i = 0; i < levelParam; i++)
+            res.Append("  ");
+
+        if (curNode.NodeType == RtfNodeType.Root)
+            res.Append("ROOT\r\n");
+        else if (curNode.NodeType == RtfNodeType.Group)
+            res.Append("GROUP\r\n");
+        else
         {
-            StringBuilder res = new StringBuilder();
-
-            RtfNodeCollection children = curNode.ChildNodes;
-
-            for (int i = 0; i < level; i++)
-                res.Append("  ");
-
-            if (curNode.NodeType == RtfNodeType.Root)
-                res.Append("ROOT\r\n");
-            else if (curNode.NodeType == RtfNodeType.Group)
-                res.Append("GROUP\r\n");
-            else
+            if (showNodeTypes)
             {
-                if (showNodeTypes)
-                {
-                    res.Append(curNode.NodeType);
-                    res.Append(": ");
-                }
-
-                res.Append(curNode.NodeKey);
-
-                if (curNode.HasParameter)
-                {
-                    res.Append(" ");
-                    res.Append(Convert.ToString(curNode.Parameter));
-                }
-
-                res.Append("\r\n");
+                res.Append(curNode.NodeType);
+                res.Append(": ");
             }
 
-            if (children != null)
+            res.Append(curNode.NodeKey);
+
+            if (curNode.HasParameter)
             {
-                foreach (RtfTreeNode node in children)
-                {
-                    res.Append(toStringInm(node, level + 1, showNodeTypes));
-                }
+                res.Append(' ');
+                res.Append(Convert.ToString(curNode.Parameter));
             }
 
-            return res.ToString();
+            res.Append("\r\n");
         }
 
-        /// <summary>
-        /// Parse a format date "\yr2005\mo12\dy2\hr22\min56\sec15"
-        /// </summary>
-        /// <param name="group">RTF Group with the date.</param>
-        /// <returns>Parsed DateTime object.</returns>
-        private static DateTime parseDateTime(RtfTreeNode group)
+        if (children == null) return res.ToString();
+        
+        foreach (RtfTreeNode node in children)
         {
-            DateTime dt;
+            res.Append(toStringInm(node, levelParam + 1, showNodeTypes));
+        }
 
-            int year = 0, month = 0, day = 0, hour = 0, min = 0, sec = 0;
+        return res.ToString();
+    }
 
+    /// <summary>
+    /// Parse a format date "\yr2005\mo12\dy2\hr22\min56\sec15"
+    /// </summary>
+    /// <param name="group">RTF Group with the date.</param>
+    /// <returns>Parsed DateTime object.</returns>
+    private static DateTime parseDateTime(RtfTreeNode group)
+    {
+        int year = 0, month = 0, day = 0, hour = 0, min = 0, sec = 0;
+
+        if (group.ChildNodes != null)
             foreach (RtfTreeNode node in group.ChildNodes)
             {
                 switch (node.NodeKey)
@@ -658,200 +667,165 @@ namespace Net.Sgoliver.NRtfTree.Core
                 }
             }
 
-            dt = new DateTime(year, month, day, hour, min, sec);
+        var dt = new DateTime(year, month, day, hour, min, sec);
 
-            return dt;
+        return dt;
+    }
+
+    /// <summary>
+    /// Extract the text from an RTF tree.
+    /// </summary>
+    /// <returns>Plaintext of the document.</returns>
+    private string ConvertToText()
+    {
+        var res = new StringBuilder("");
+
+        var pardNode =
+            MainGroup?.SelectSingleChildNode("pard");
+
+        if (pardNode == null) return res.ToString();
+
+        if (MainGroup?.ChildNodes == null) return res.ToString();
+        
+        for (var i = pardNode.Index; i < MainGroup.ChildNodes.Count; i++)
+        {
+            res.Append(MainGroup.ChildNodes[i].Text);
         }
 
-        /// <summary>
-        /// Extract the text from an RTF tree.
-        /// </summary>
-        /// <returns>Plaintext of the document.</returns>
-        private string ConvertToText()
+        return res.ToString();
+    }
+
+    /// <summary>
+    /// Parse a node as a document stylesheet.
+    /// </summary>
+    /// <param name="ssnode">Node with the styles.</param>
+    /// <returns>Table of styles for the document.</returns>
+    private RtfStyleSheet ParseStyleSheet(RtfTreeNode ssnode)
+    {
+        var rss = new RtfStyleSheet();
+
+        if (ssnode.ChildNodes == null) return rss;
+        
+        foreach (RtfTreeNode node in ssnode.ChildNodes)
         {
-            StringBuilder res = new StringBuilder("");
-
-            RtfTreeNode pardNode =
-                MainGroup.SelectSingleChildNode("pard");
-
-            for (int i = pardNode.Index; i < MainGroup.ChildNodes.Count; i++)
+            switch (node.NodeKey)
             {
-                res.Append(MainGroup.ChildNodes[i].Text);
-            }
-
-            return res.ToString();
-        }
-
-        /// <summary>
-        /// Parse a node as a document stylesheet.
-        /// </summary>
-        /// <param name="ssnode">Node with the styles.</param>
-        /// <returns>Table of styles for the document.</returns>
-        private RtfStyleSheet ParseStyleSheet(RtfTreeNode ssnode)
-        {
-            RtfStyleSheet rss = new RtfStyleSheet();
-
-            foreach (RtfTreeNode node in ssnode.ChildNodes)
-            {
-                if (node.NodeKey == "cs")
-                {
+                case "cs":
                     rss.Type = RtfStyleSheetType.Character;
                     rss.Index = node.Parameter;
-                }
-                else if (node.NodeKey == "s")
-                {
+                    break;
+                case "s":
                     rss.Type = RtfStyleSheetType.Paragraph;
                     rss.Index = node.Parameter;
-                }
-                else if (node.NodeKey == "ds")
-                {
+                    break;
+                case "ds":
                     rss.Type = RtfStyleSheetType.Section;
                     rss.Index = node.Parameter;
-                }
-                else if (node.NodeKey == "ts")
-                {
+                    break;
+                case "ts":
                     rss.Type = RtfStyleSheetType.Table;
                     rss.Index = node.Parameter;
-                }
-                else if (node.NodeKey == "additive")
-                {
+                    break;
+                case "additive":
                     rss.Additive = true;
-                }
-                else if (node.NodeKey == "sbasedon")
-                {
+                    break;
+                case "sbasedon":
                     rss.BasedOn = node.Parameter;
-                }
-                else if (node.NodeKey == "snext")
-                {
+                    break;
+                case "snext":
                     rss.Next = node.Parameter;
-                }
-                else if (node.NodeKey == "sautoupd")
-                {
+                    break;
+                case "sautoupd":
                     rss.AutoUpdate = true;
-                }
-                else if (node.NodeKey == "shidden")
-                {
+                    break;
+                case "shidden":
                     rss.Hidden = true;
-                }
-                else if (node.NodeKey == "slink")
-                {
+                    break;
+                case "slink":
                     rss.Link = node.Parameter;
-                }
-                else if (node.NodeKey == "slocked")
-                {
+                    break;
+                case "slocked":
                     rss.Locked = true;
-                }
-                else if (node.NodeKey == "spersonal")
-                {
+                    break;
+                case "spersonal":
                     rss.Personal = true;
-                }
-                else if (node.NodeKey == "scompose")
-                {
+                    break;
+                case "scompose":
                     rss.Compose = true;
-                }
-                else if (node.NodeKey == "sreply")
-                {
+                    break;
+                case "sreply":
                     rss.Reply = true;
-                }
-                else if (node.NodeKey == "styrsid")
-                {
+                    break;
+                case "styrsid":
                     rss.Styrsid = node.Parameter;
-                }
-                else if (node.NodeKey == "ssemihidden")
-                {
+                    break;
+                case "ssemihidden":
                     rss.SemiHidden = true;
-                }
-                else if (node.NodeType == RtfNodeType.Group &&
-                         (node.ChildNodes[0].NodeKey == "*" && node.ChildNodes[1].NodeKey == "keycode"))
+                    break;
+                default:
                 {
-                    rss.KeyCode = new RtfNodeCollection();
-
-                    for (int i = 2; i < node.ChildNodes.Count; i++)
+                    if (node.NodeType == RtfNodeType.Group &&
+                        (node.ChildNodes?[0].NodeKey == "*" && node.ChildNodes[1].NodeKey == "keycode"))
                     {
-                        rss.KeyCode.Add(node.ChildNodes[i].CloneNode());
+                        rss.KeyCode = new RtfNodeCollection();
+
+                        for (var i = 2; i < node.ChildNodes.Count; i++)
+                        {
+                            rss.KeyCode.Add(node.ChildNodes[i].CloneNode());
+                        }
                     }
+                    else if (node.NodeType == RtfNodeType.Text)
+                    {
+                        rss.Name = node.NodeKey[..^1];
+                    }
+                    else
+                    {
+                        if (node.NodeKey != "*")
+                            rss.Formatting.Add(node);
+                    }
+
+                    break;
                 }
-                else if (node.NodeType == RtfNodeType.Text)
-                {
-                    rss.Name = node.NodeKey.Substring(0,node.NodeKey.Length-1);
-                }
-                else
-                {
-                    if(node.NodeKey != "*")
-                        rss.Formatting.Add(node);
-                }
-            }
-
-            return rss;
-        }
-
-        #endregion
-
-        #region Properties
-
-        /// <summary>
-        /// Return the root node of the document tree.
-        /// </summary>
-        public RtfTreeNode RootNode
-        {
-            get
-            {
-                return rootNode;
             }
         }
 
-        /// <summary>
-        /// Returns the main group of the document.
-        /// </summary>
-        public RtfTreeNode MainGroup
-        {
-            get
-            { 
-                // The main group (null incase it doesnt exist)
-                if (rootNode.HasChildNodes())
-                    return rootNode.ChildNodes[0];
-                else
-                    return null;
-            }
-        }
-
-        /// <summary>
-        /// Returns the document as RTF.
-        /// </summary>
-        public string Rtf
-        {
-            get
-            {
-                return rootNode.Rtf;
-            }
-        }
-
-        /// <summary>
-        /// Indicate whether the special characters (\') are decoded by joining contiguous text nodes.
-        /// </summary>
-        public bool MergeSpecialCharacters
-        {
-            get
-            {
-                return mergeSpecialCharacters;
-            }
-            set
-            {
-                mergeSpecialCharacters = value;
-            }
-        }
-
-        /// <summary>
-        /// Return the document as plaintext
-        /// </summary>
-        public string Text
-        {
-            get
-            {
-                return ConvertToText();
-            }
-        }
-
-        #endregion
+        return rss;
     }
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// Return the root node of the document tree.
+    /// </summary>
+    public RtfTreeNode RootNode => rootNode;
+
+    /// <summary>
+    /// Returns the main group of the document.
+    /// </summary>
+    public RtfTreeNode? MainGroup =>
+        // The main group (null incase it doesnt exist)
+        rootNode.HasChildNodes() ? rootNode.ChildNodes?[0] : null;
+
+    /// <summary>
+    /// Returns the document as RTF.
+    /// </summary>
+    public string Rtf => rootNode.Rtf;
+
+    /// <summary>
+    /// Indicate whether the special characters (\') are decoded by joining contiguous text nodes.
+    /// </summary>
+    public bool MergeSpecialCharacters
+    {
+        get => mergeSpecialCharacters;
+        set => mergeSpecialCharacters = value;
+    }
+
+    /// <summary>
+    /// Return the document as plaintext
+    /// </summary>
+    public string Text => ConvertToText();
+
+    #endregion
 }

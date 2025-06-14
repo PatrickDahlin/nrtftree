@@ -45,10 +45,10 @@ public class NodeCollectionTest
     [Test]
     public void PopulateCollection()
     {
-        RtfNodeCollection list1 = new RtfNodeCollection();
-        RtfNodeCollection list2 = new RtfNodeCollection();
+        var list1 = new RtfNodeCollection();
+        var list2 = new RtfNodeCollection();
 
-        RtfTreeNode node = new RtfTreeNode(RtfNodeType.Keyword, "b", true, 2);
+        var node = new RtfTreeNode(RtfNodeType.Keyword, "b", true, 2);
 
         list1.Add(new RtfTreeNode(RtfNodeType.Keyword, "a", true, 1));
         list1.Add(node);
@@ -75,14 +75,14 @@ public class NodeCollectionTest
         Assert.That(list1[6].NodeKey, Is.EqualTo("g"));
         Assert.That(list2[0], Is.SameAs(node));
 
-        RtfTreeNode node1 = new RtfTreeNode(RtfNodeType.Keyword, "h", false, 8);
+        var node1 = new RtfTreeNode(RtfNodeType.Keyword, "h", false, 8);
 
         list1.Insert(5, node1);
 
         Assert.That(list1.Count, Is.EqualTo(8));
         Assert.That(list1[5], Is.SameAs(node1));
 
-        RtfTreeNode node2 = new RtfTreeNode(RtfNodeType.Keyword, "i", false, 9);
+        var node2 = new RtfTreeNode(RtfNodeType.Keyword, "i", false, 9);
 
         list1[1] = node2;
 
@@ -93,7 +93,7 @@ public class NodeCollectionTest
     [Test]
     public void RemoveNodesFromCollection()
     {
-        RtfNodeCollection list1 = new RtfNodeCollection();
+        var list1 = new RtfNodeCollection();
 
         list1.Add(new RtfTreeNode(RtfNodeType.Keyword, "a", true, 1));
         list1.Add(new RtfTreeNode(RtfNodeType.Keyword, "b", true, 2));
@@ -122,8 +122,8 @@ public class NodeCollectionTest
     [Test]
     public void SearchNodes()
     {
-        RtfNodeCollection list1 = new RtfNodeCollection();
-        RtfTreeNode node = new RtfTreeNode(RtfNodeType.Keyword, "c", true, 3);
+        var list1 = new RtfNodeCollection();
+        var node = new RtfTreeNode(RtfNodeType.Keyword, "c", true, 3);
 
         list1.Add(new RtfTreeNode(RtfNodeType.Keyword, "a", true, 1));
         list1.Add(new RtfTreeNode(RtfNodeType.Keyword, "b", true, 2));

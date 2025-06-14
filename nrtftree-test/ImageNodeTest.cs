@@ -47,12 +47,12 @@ public class ImageNodeTest
     [Test]
     public void LoadImageNode()
     {
-        RtfTree tree = new RtfTree();
+        var tree = new RtfTree();
         tree.LoadRtfFile(@"..\..\..\testdocs\testdoc3.rtf");
 
-        RtfTreeNode pictNode = tree.MainGroup.SelectNodes("pict")[2].ParentNode;
+        var pictNode = tree.MainGroup.SelectNodes("pict")[2].ParentNode;
 
-        ImageNode imgNode = new ImageNode(pictNode);
+        var imgNode = new ImageNode(pictNode);
 
         Assert.That(imgNode.Height, Is.EqualTo(6615));
         Assert.That(imgNode.Width, Is.EqualTo(7938));
@@ -69,17 +69,17 @@ public class ImageNodeTest
     [Test]
     public void ImageHexData()
     {
-        RtfTree tree = new RtfTree();
+        var tree = new RtfTree();
         tree.LoadRtfFile(@"..\..\..\testdocs\testdoc3.rtf");
 
-        RtfTreeNode pictNode = tree.MainGroup.SelectNodes("pict")[2].ParentNode;
+        var pictNode = tree.MainGroup.SelectNodes("pict")[2].ParentNode;
 
-        ImageNode imgNode = new ImageNode(pictNode);
+        var imgNode = new ImageNode(pictNode);
 
         StreamReader sr = null;
 
         sr = new StreamReader(@"..\..\..\testdocs\imghexdata.txt");
-        string hexdata = sr.ReadToEnd();
+        var hexdata = sr.ReadToEnd();
         sr.Close();
 
         Assert.That(imgNode.HexData, Is.EqualTo(hexdata));
@@ -88,12 +88,12 @@ public class ImageNodeTest
     [Test]
     public void ImageBinData()
     {
-        RtfTree tree = new RtfTree();
+        var tree = new RtfTree();
         tree.LoadRtfFile(@"..\..\..\testdocs\testdoc3.rtf");
 
-        RtfTreeNode pictNode = tree.MainGroup.SelectNodes("pict")[2].ParentNode;
+        var pictNode = tree.MainGroup.SelectNodes("pict")[2].ParentNode;
 
-        ImageNode imgNode = new ImageNode(pictNode);
+        var imgNode = new ImageNode(pictNode);
 
         imgNode.SaveImage(@"..\..\..\testdocs\img-result.png", ImageFormat.Jpeg);
 

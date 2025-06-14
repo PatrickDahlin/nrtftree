@@ -28,238 +28,236 @@
 
 using System.Text;
 
-namespace Net.Sgoliver.NRtfTree.Core
+namespace Net.Sgoliver.NRtfTree.Core;
+
+/// <summary>
+/// Lexical analyzer (tokenizer) for documents in RTF format. Analyze the document and return
+/// all RTF elements read (tokens).
+/// </summary>
+public class RtfLex
 {
+    #region Private fields
 
     /// <summary>
-    /// Lexical analyzer (tokenizer) for documents in RTF format. Analyze the document and return
-    /// all RTF elements read (tokens).
+    /// The open file.
     /// </summary>
-    public class RtfLex
+    private TextReader rtf;
+
+    /// <summary>
+    /// Stringbuilder to build the keyword / text fragment
+    /// </summary>
+    private StringBuilder keysb;
+
+    /// <summary>
+    /// Stringbuilder to build the keyword parameter
+    /// </summary>
+    private StringBuilder parsb;
+
+    /// <summary>
+    /// Character read of the document
+    /// </summary>
+    private int c;
+
+    #endregion
+
+    #region Constantes
+
+    /// <summary>
+    /// Marker for end of file
+    /// </summary>
+    private const int Eof = -1;
+
+    #endregion
+
+    #region Constructores
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="rtfReader">Filestream to parse</param>
+    public RtfLex(TextReader rtfReader)
     {
-        #region Private fields
+        rtf = rtfReader;
 
-        /// <summary>
-        /// The open file.
-        /// </summary>
-        private TextReader rtf;
+        keysb = new StringBuilder();
+        parsb = new StringBuilder();
 
-        /// <summary>
-        /// Stringbuilder to build the keyword / text fragment
-        /// </summary>
-        private StringBuilder keysb;
+        // The first character of the document is read
+        c = rtf.Read();
+    }
 
-        /// <summary>
-        /// Stringbuilder to build the keyword parameter
-        /// </summary>
-        private StringBuilder parsb;
+    #endregion
 
-        /// <summary>
-        /// Character read of the document
-        /// </summary>
-        private int c;
+    #region Public Methods
 
-        #endregion
+    /// <summary>
+    /// Read a new token from the RTF document.
+    /// </summary>
+    /// <returns>Siguiente token leido del documento.</returns>
+    public RtfToken NextToken()
+    {
+        //Se crea el nuevo token a devolver
+        var token = new RtfToken();
 
-        #region Constantes
-
-        /// <summary>
-        /// Marker for end of file
-        /// </summary>
-        private const int Eof = -1;
-
-        #endregion
-
-        #region Constructores
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="rtfReader">Filestream to parse</param>
-        public RtfLex(TextReader rtfReader)
-        {
-            rtf = rtfReader;
-
-            keysb = new StringBuilder();
-            parsb = new StringBuilder();
-
-            // The first character of the document is read
-            c = rtf.Read();
-        }
-
-        #endregion
-
-        #region Public Methods
-
-        /// <summary>
-        /// Read a new token from the RTF document.
-        /// </summary>
-        /// <returns>Siguiente token leido del documento.</returns>
-        public RtfToken NextToken()
-        {
-            //Se crea el nuevo token a devolver
-            RtfToken token = new RtfToken();
-
-            // Carriage returns, tabulators and null characters are ignored
-            while (c == '\r' || c == '\n' || c == '\t' || c == '\0')
-                c = rtf.Read();
-
-            // The character read is interpreted
-            if (c != Eof)
-            {
-                switch (c)
-                {
-                    case '{':
-                        token.Type = RtfTokenType.GroupStart;
-                        c = rtf.Read();
-                        break;
-                    case '}':
-                        token.Type = RtfTokenType.GroupEnd;
-                        c = rtf.Read();
-                        break;
-                    case '\\':
-                        parseKeyword(token);
-                        break;
-                    default:
-                        token.Type = RtfTokenType.Text;
-                        parseText(token);
-                        break;
-                }
-            }
-            else
-            {
-                token.Type = RtfTokenType.Eof;
-            }
-
-            return token;
-        }
-
-
-        #endregion
-
-        #region Private Methods
-
-        /// <summary>
-        /// Read a key word of the RTF document.
-        /// </summary>
-        /// <param name="token">RTF Token to which the keyword will be assigned.</param>
-        private void parseKeyword(RtfToken token)
-        {
-            // StringBuilders are reset
-            keysb.Length = 0;
-            parsb.Length = 0;
-
-            int tokenParameter = 0;
-            bool negative = false;
-
+        // Carriage returns, tabulators and null characters are ignored
+        while (c == '\r' || c == '\n' || c == '\t' || c == '\0')
             c = rtf.Read();
 
-            //If the character read is not a letter -> It is a control symbol or a special character: '\\', '\{' o '\}'
-            if (!Char.IsLetter((char)c))
+        // The character read is interpreted
+        if (c != Eof)
+        {
+            switch (c)
             {
-                if (c == '\\' || c == '{' || c == '}')  // Special character
-                {
-                    token.Type = RtfTokenType.Text;
-                    token.Key = ((char)c).ToString();
-                }
-                else // Control symbol
-                {
-                    token.Type = RtfTokenType.Control;
-                    token.Key = ((char)c).ToString();
-
-                    //If it is a special character (8 -bit code) the hexadecimal parameter is read
-                    if (token.Key == "\'")
-                    {
-                        string cod = "";
-
-                        cod += (char)rtf.Read();
-                        cod += (char)rtf.Read();
-
-                        token.HasParameter = true;
-
-                        token.Parameter = Convert.ToInt32(cod, 16);
-                    }
-
-                    //TODO: Are there more control symbols with parameters?
-                }
-
-                c = rtf.Read();
-            }
-            else  // The read character is a letter
-            {
-                // The complete keyword is read (until you find a non -alphanumeric character, for example '\' or '' '
-                while (Char.IsLetter((char)c))
-                {
-                    keysb.Append((char)c);
-
+                case '{':
+                    token.Type = RtfTokenType.GroupStart;
                     c = rtf.Read();
-                }
+                    break;
+                case '}':
+                    token.Type = RtfTokenType.GroupEnd;
+                    c = rtf.Read();
+                    break;
+                case '\\':
+                    parseKeyword(token);
+                    break;
+                default:
+                    token.Type = RtfTokenType.Text;
+                    parseText(token);
+                    break;
+            }
+        }
+        else
+        {
+            token.Type = RtfTokenType.Eof;
+        }
 
-                // The keyword read is assigned
-                token.Type = RtfTokenType.Keyword;
-                token.Key = keysb.ToString();
+        return token;
+    }
 
-                // Check if the keyword has parameter
-                if (Char.IsDigit((char)c) || c == '-')
+
+    #endregion
+
+    #region Private Methods
+
+    /// <summary>
+    /// Read a key word of the RTF document.
+    /// </summary>
+    /// <param name="token">RTF Token to which the keyword will be assigned.</param>
+    private void parseKeyword(RtfToken token)
+    {
+        // StringBuilders are reset
+        keysb.Length = 0;
+        parsb.Length = 0;
+
+        var tokenParameter = 0;
+        var negative = false;
+
+        c = rtf.Read();
+
+        //If the character read is not a letter -> It is a control symbol or a special character: '\\', '\{' o '\}'
+        if (!char.IsLetter((char)c))
+        {
+            if (c == '\\' || c == '{' || c == '}')  // Special character
+            {
+                token.Type = RtfTokenType.Text;
+                token.Key = ((char)c).ToString();
+            }
+            else // Control symbol
+            {
+                token.Type = RtfTokenType.Control;
+                token.Key = ((char)c).ToString();
+
+                //If it is a special character (8 -bit code) the hexadecimal parameter is read
+                if (token.Key == "\'")
                 {
+                    var cod = "";
+
+                    cod += (char)rtf.Read();
+                    cod += (char)rtf.Read();
+
                     token.HasParameter = true;
 
-                    // Check if the parameter is negative
-                    if (c == '-')
-                    {
-                        negative = true;
-
-                        c = rtf.Read();
-                    }
-
-                    // Read the parameter to the end
-                    while (Char.IsDigit((char)c))
-                    {
-                        parsb.Append((char)c);
-
-                        c = rtf.Read();
-                    }
-
-                    tokenParameter = Convert.ToInt32(parsb.ToString());
-
-                    if (negative)
-                        tokenParameter = -tokenParameter;
-
-                    //Se asigna el par�metro de la palabra clave
-                    token.Parameter = tokenParameter;
+                    token.Parameter = Convert.ToInt32(cod, 16);
                 }
 
-                if (c == ' ')
-                {
-                    c = rtf.Read();
-                }
+                //TODO: Are there more control symbols with parameters?
             }
+
+            c = rtf.Read();
         }
-
-        /// <summary>
-        /// Read a text stream of the RTF document.
-        /// </summary>
-        /// <param name="token">RTF Token to which the keyword will be assigned.</param>
-        private void parseText(RtfToken token)
+        else  // The read character is a letter
         {
-            // Reset StringBuilder
-            keysb.Length = 0;
-
-            while (c != '\\' && c != '}' && c != '{' && c != Eof)
+            // The complete keyword is read (until you find a non -alphanumeric character, for example '\' or '' '
+            while (char.IsLetter((char)c))
             {
                 keysb.Append((char)c);
 
                 c = rtf.Read();
-
-                // Carriage returns, tabs and null characters are ignored
-                while (c == '\r' || c == '\n' || c == '\t' || c == '\0')
-                    c = rtf.Read();
             }
 
+            // The keyword read is assigned
+            token.Type = RtfTokenType.Keyword;
             token.Key = keysb.ToString();
+
+            // Check if the keyword has parameter
+            if (char.IsDigit((char)c) || c == '-')
+            {
+                token.HasParameter = true;
+
+                // Check if the parameter is negative
+                if (c == '-')
+                {
+                    negative = true;
+
+                    c = rtf.Read();
+                }
+
+                // Read the parameter to the end
+                while (char.IsDigit((char)c))
+                {
+                    parsb.Append((char)c);
+
+                    c = rtf.Read();
+                }
+
+                tokenParameter = Convert.ToInt32(parsb.ToString());
+
+                if (negative)
+                    tokenParameter = -tokenParameter;
+
+                //Se asigna el par�metro de la palabra clave
+                token.Parameter = tokenParameter;
+            }
+
+            if (c == ' ')
+            {
+                c = rtf.Read();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Read a text stream of the RTF document.
+    /// </summary>
+    /// <param name="token">RTF Token to which the keyword will be assigned.</param>
+    private void parseText(RtfToken token)
+    {
+        // Reset StringBuilder
+        keysb.Length = 0;
+
+        while (c != '\\' && c != '}' && c != '{' && c != Eof)
+        {
+            keysb.Append((char)c);
+
+            c = rtf.Read();
+
+            // Carriage returns, tabs and null characters are ignored
+            while (c == '\r' || c == '\n' || c == '\t' || c == '\0')
+                c = rtf.Read();
         }
 
-        #endregion
+        token.Key = keysb.ToString();
     }
-    
+
+    #endregion
 }
+    

@@ -23,150 +23,128 @@
  * Home Page:	http://www.sgoliver.net
  * GitHub:	    https://github.com/sgolivernet/nrtftree
  * Class:		RtfReader
- * Description:	Analizador secuencial de documentos RTF.
+ * Description:	Sequentially analyze RTF Dcoument.
  * ******************************************************************************/
 
-namespace Net.Sgoliver.NRtfTree.Core
+namespace Net.Sgoliver.NRtfTree.Core;
+
+/// <summary>
+/// This class provides the methods necessary for sequential loading and parsing of an RTF document.
+/// </summary>
+public class RtfReader
 {
+    #region Private Fields
+
+    private TextReader? rtf;		//File/text input reader RTF
+    private RtfLex? lex;		//Lexical analyzer of RTF
+    private RtfToken? tok;		//Token
+    private SarParser? reader;		//Rtf Reader
+
+    #endregion
+
+
     /// <summary>
-    /// Esta clase proporciona los m�todos necesarios para la carga y an�lisis secuencial de un documento RTF.
+    /// Constructor.
     /// </summary>
-    public class RtfReader
+    /// <param name="reader">
+    /// Object of the SARParser type that contains the methods necessary for processing the different elements of an RTF document.
+    /// </param>
+    public RtfReader(SarParser reader)
     {
-        #region Atributos privados
+        this.reader = reader;
+    }
 
-        private TextReader rtf;		//Fichero/Cadena de entrada RTF
-        private RtfLex lex;		//Analizador l�xico para RTF
-        private RtfToken tok;		//Token actual
-        private SarParser reader;		//Rtf Reader
 
-        #endregion
+    #region Public Methods
 
-        #region Constructores
+    /// <summary>
+    /// Loads an RTF document given the path of the file that contains it.
+    /// </summary>
+    /// <param name="path">Path of the file containing the RTF document.</param>
+    /// <returns>
+    /// Result of the operation, 0 if successful
+    /// </returns>
+    public int LoadRtfFile(string path)
+    {
+        // Input is prepared
+        rtf = new StreamReader(path);
 
-        /// <summary>
-        /// Constructor de la clase RtfReader.
-        /// </summary>
-        /// <param name="reader">
-        /// Objeto del tipo SARParser que contienen los m�todos necesarios para el tratamiento de los
-        /// distintos elementos de un documento RTF.
-        /// </param>
-        public RtfReader(SarParser reader)
+        // Initialize lexical analyzer
+        lex = new RtfLex(rtf);
+
+        return 0;
+    }
+
+    /// <summary>
+    /// Loads an RTF document given the character string that contains it.
+    /// </summary>
+    /// <param name="text">Character string containing the RTF document.</param>
+    /// <returns>
+    /// Result of the loading, 0 if successful
+    /// </returns>
+    public int LoadRtfText(string text)
+    {
+        // Input is prepared
+        rtf = new StringReader(text);
+
+        // Initialize lexical analyzer
+        lex = new RtfLex(rtf);
+
+        return 0;
+    }
+
+    /// <summary>
+    /// Begin the analysis of the RTF document and calls the different methods of the IRtfReader object indicated in the class constructor.
+    /// </summary>
+    /// <returns>
+    /// Result of the parsing, 0 is successful
+    /// </returns>
+    public int Parse()
+    {
+        // Resultcode
+        var res = 0;
+
+        // Begin a new document
+        reader?.StartRtfDocument();
+
+        // Get the first token
+        tok = lex?.NextToken();
+
+        while (tok != null && tok.Type != RtfTokenType.Eof)
         {
-            /* Inicializados por defecto */
-			//lex = null;
-            //tok = null;
-            //rtf = null;
-
-            this.reader = reader;
-        }
-
-        #endregion
-
-        #region M�todos P�blicos
-
-        /// <summary>
-        /// Carga un documento RTF dada la ruta del fichero que lo contiene.
-        /// </summary>
-        /// <param name="path">Ruta del fichero que contiene el documento RTF.</param>
-        /// <returns>
-        /// Resultado de la carga del documento. Si la carga se realiza correctamente
-        /// se devuelve el valor 0.
-        /// </returns>
-        public int LoadRtfFile(string path)
-        {
-            //Resultado de la carga
-            int res = 0;
-
-            //Se abre el fichero de entrada
-            rtf = new StreamReader(path);
-
-            //Se crea el analizador l�xico para RTF
-            lex = new RtfLex(rtf);
-
-            //Se devuelve el resultado de la carga
-            return res;
-        }
-
-        /// <summary>
-        /// Carga un documento RTF dada la cadena de caracteres que lo contiene.
-        /// </summary>
-        /// <param name="text">Cadena de caractres que contiene el documento RTF.</param>
-        /// <returns>
-        /// Resultado de la carga del documento. Si la carga se realiza correctamente
-        /// se devuelve el valor 0.
-        /// </returns>
-        public int LoadRtfText(string text)
-        {
-            //Resultado de la carga
-            int res = 0;
-
-            //Se abre el fichero de entrada
-            rtf = new StringReader(text);
-
-            //Se crea el analizador l�xico para RTF
-            lex = new RtfLex(rtf);
-
-            //Se devuelve el resultado de la carga
-            return res;
-        }
-
-        /// <summary>
-        /// Comienza el an�lisis del documento RTF y provoca la llamada a los distintos m�todos 
-        /// del objeto IRtfReader indicado en el constructor de la clase.
-        /// </summary>
-        /// <returns>
-        /// Resultado del an�lisis del documento. Si la carga se realiza correctamente
-        /// se devuelve el valor 0.
-        /// </returns>
-        public int Parse()
-        {
-            //Resultado del an�lisis
-            int res = 0;
-
-            //Comienza el documento
-            reader.StartRtfDocument();
-
-            //Se obtiene el primer token
-            tok = lex.NextToken();
-
-            while (tok.Type != RtfTokenType.Eof)
+            switch (tok.Type)
             {
-                switch (tok.Type)
-                {
-                    case RtfTokenType.GroupStart:
-                        reader.StartRtfGroup();
-                        break;
-                    case RtfTokenType.GroupEnd:
-                        reader.EndRtfGroup();
-                        break;
-                    case RtfTokenType.Keyword:
-                        reader.RtfKeyword(tok.Key, tok.HasParameter, tok.Parameter);
-                        break;
-                    case RtfTokenType.Control:
-                        reader.RtfControl(tok.Key, tok.HasParameter, tok.Parameter);
-                        break;
-                    case RtfTokenType.Text:
-                        reader.RtfText(tok.Key);
-                        break;
-                    default:
-                        res = -1;
-                        break;
-                }
-
-                //Se obtiene el siguiente token
-                tok = lex.NextToken();
+                case RtfTokenType.GroupStart:
+                    reader?.StartRtfGroup();
+                    break;
+                case RtfTokenType.GroupEnd:
+                    reader?.EndRtfGroup();
+                    break;
+                case RtfTokenType.Keyword:
+                    reader?.RtfKeyword(tok.Key, tok.HasParameter, tok.Parameter);
+                    break;
+                case RtfTokenType.Control:
+                    reader?.RtfControl(tok.Key, tok.HasParameter, tok.Parameter);
+                    break;
+                case RtfTokenType.Text:
+                    reader?.RtfText(tok.Key);
+                    break;
+                default:
+                    res = -1;
+                    break;
             }
 
-            //Finaliza el documento
-            reader.EndRtfDocument();
-
-            //Se cierra el stream
-            rtf.Close();
-
-            return res;
+            // Get next singular token
+            tok = lex?.NextToken();
         }
 
-        #endregion
+        //Finalize doucment
+        reader?.EndRtfDocument();
+
+        rtf?.Close();
+
+        return res;
     }
+
+    #endregion
 }

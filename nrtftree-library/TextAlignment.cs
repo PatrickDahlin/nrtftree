@@ -26,28 +26,27 @@
  * Description:	Types of text alignment.
  * ******************************************************************************/
 
-namespace Net.Sgoliver.NRtfTree.Util
+namespace Net.Sgoliver.NRtfTree.Util;
+
+/// <summary>
+/// Types of text alignment.
+/// </summary>
+public enum TextAlignment
 {
     /// <summary>
-    /// Types of text alignment.
+    /// Text aligned to the left.
     /// </summary>
-    public enum TextAlignment
-    {
-        /// <summary>
-        /// Text aligned to the left.
-        /// </summary>
-        Left = 0,
-        /// <summary>
-        /// Text aligned to the right.
-        /// </summary>
-        Right = 1,
-        /// <summary>
-        /// Centered text.
-        /// </summary>
-        Centered = 2,
-        /// <summary>
-        /// Justified text.
-        /// </summary>
-        Justified = 3
-    }
+    Left = 0,
+    /// <summary>
+    /// Text aligned to the right.
+    /// </summary>
+    Right = 1,
+    /// <summary>
+    /// Centered text.
+    /// </summary>
+    Centered = 2,
+    /// <summary>
+    /// Justified text.
+    /// </summary>
+    Justified = 3
 }

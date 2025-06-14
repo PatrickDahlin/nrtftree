@@ -75,15 +75,6 @@ namespace Net.Sgoliver.NRtfTree
 
             //Propiedades
 
-            private bool _autoParagraph;
-            private bool _ignoreFontNames;
-            private bool _escapeHtmlEntities;
-            private string _defaultFontName;
-            private int _defaultFontSize;
-            private bool _incrustImages;
-            private string _imagePath;
-            private ImageFormat _imageFormat;
-
             #endregion
 
             #region Constructores
@@ -108,130 +99,50 @@ namespace Net.Sgoliver.NRtfTree
             /// <summary>
             /// Obtiene o establece un valor que indica si se crearán parrafos automáticamente
             /// </summary>
-            public bool AutoParagraph
-            {
-                get
-                {
-                    return _autoParagraph;
-                }
-                set
-                {
-                    _autoParagraph = value;
-                }
-            }
+            public bool AutoParagraph { get; set; }
 
             /// <summary>
             /// Obtiene o establece un valor que indica si se ignorarán los nombres de las fuentes.
             /// Establecer este valor como false generará un archivo HTML sin propiedad CSS font-face
             /// </summary>
-            public bool IgnoreFontNames
-            {
-                get
-                {
-                    return _ignoreFontNames;
-                }
-                set
-                {
-                    _ignoreFontNames = value;
-                }
-            }
+            public bool IgnoreFontNames { get; set; }
 
             /// <summary>
             /// Obtiene o establece un valor que indica si se reemplazarán las entidades HTML
             /// del texto
             /// </summary>
-            public bool EscapeHtmlEntities
-            {
-                get
-                {
-                    return _escapeHtmlEntities;
-                }
-                set
-                {
-                    _escapeHtmlEntities = value;
-                }
-            }
+            public bool EscapeHtmlEntities { get; set; }
 
             /// <summary>
             /// Obtiene o establece un valor que indica el nombre de la fuente por defecto.
             /// Los grupos de textos que usen esta fuente no incluirán la propiedad font-face
             /// </summary>
-            public string DefaultFontName
-            {
-                get
-                {
-                    return _defaultFontName;
-                }
-                set
-                {
-                    _defaultFontName = value;
-                }
-            }
+            public string DefaultFontName { get; set; }
 
             /// <summary>
             /// Obtiene o establece un valor que indica el tamaño de fuente que se ignorará.
             /// Los grupos de texto que tengan ese tamaño no incluirán la propiedad CSS font-size
             /// </summary>
-            public int DefaultFontSize
-            {
-                get
-                {
-                    return _defaultFontSize;
-                }
-                set
-                {
-                    _defaultFontSize = value;
-                }
-            }
+            public int DefaultFontSize { get; set; }
 
             /// <summary>
             /// Obtiene o establece un valor que indica si se incrustarán las imágenes en base64
             /// dentro del código HTML  (true), o se guardarán en un archivo (false)
             /// </summary>
             /// <see cref="http://www.sweeting.org/mark/blog/2005/07/12/base64-encoded-images-embedded-in-html"/>
-            public bool IncrustImages
-            {
-                get
-                {
-                    return _incrustImages;
-                }
-                set
-                {
-                    _incrustImages = value;
-                }
-            }
+            public bool IncrustImages { get; set; }
 
             /// <summary>
             /// Obtiene o establece la ruta donde se guardarán las imágenes contenidas en el
             /// código RTF original. Sólo se usarará si el valor de IncrustImages es false
             /// </summary>
-            public string ImagePath
-            {
-                get
-                {
-                    return _imagePath;
-                }
-                set
-                {
-                    _imagePath = value;
-                }
-            }
+            public string ImagePath { get; set; }
 
             /// <summary>
             /// Obtiene o establece un valor que indica el formato en el que se guardarán las imágenes
             /// incrustadas en el código RTF convertido
             /// </summary>
-            public ImageFormat ImageFormat
-            {
-                get
-                {
-                    return _imageFormat;
-                }
-                set
-                {
-                    _imageFormat = value;
-                }
-            }
+            public ImageFormat ImageFormat { get; set; }
 
             #endregion
 
@@ -242,7 +153,7 @@ namespace Net.Sgoliver.NRtfTree
             /// </summary>
             public static string ConvertCode(string rtf)
             {
-                Rtf2Html rtfToHtml = new Rtf2Html();
+                var rtfToHtml = new Rtf2Html();
                 return rtfToHtml.Convert(rtf);
             }
 
@@ -252,7 +163,7 @@ namespace Net.Sgoliver.NRtfTree
             public string Convert(string rtf)
             {
                 //Generar arbol DOM
-                RtfTree rtfTree = new RtfTree();
+                var rtfTree = new RtfTree();
                 rtfTree.LoadRtfText(rtf);
 
                 //Inicializar variables empleadas
@@ -280,7 +191,7 @@ namespace Net.Sgoliver.NRtfTree
                 //Arreglar HTML
 
                 //Arreglar listas
-                Regex repairList = new Regex("<span [^>]*>·</span><span style=\"([^\"]*)\">(.*?)<br\\s+/><" + "/span>",
+                var repairList = new Regex("<span [^>]*>·</span><span style=\"([^\"]*)\">(.*?)<br\\s+/><" + "/span>",
                                              RegexOptions.IgnoreCase | RegexOptions.Singleline |
                                              RegexOptions.CultureInvariant);
 
@@ -289,7 +200,7 @@ namespace Net.Sgoliver.NRtfTree
                     _builder.Replace(match.Value, string.Format("<li style=\"{0}\">{1}</li>", match.Groups[1].Value, match.Groups[2].Value));
                 }
 
-                Regex repairUl = new Regex("(?<!</li>)<li", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                var repairUl = new Regex("(?<!</li>)<li", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
                 foreach (Match match in repairUl.Matches(_builder.ToString()))
                 {
@@ -309,7 +220,7 @@ namespace Net.Sgoliver.NRtfTree
                     string[] partes = _builder.ToString().Split(new[] { "<br /><br />" }, StringSplitOptions.RemoveEmptyEntries);
                     _builder = new StringBuilder(_builder.Length + 7 * partes.Length);
 
-                    foreach (string parte in partes)
+                    foreach (var parte in partes)
                     {
                         _builder.Append("<p>");
                         _builder.Append(parte);
@@ -330,9 +241,9 @@ namespace Net.Sgoliver.NRtfTree
             /// </summary>
             private void ProcessChildNodes(RtfNodeCollection nodos, int inicio)
             {
-                for (int i = inicio; i < nodos.Count; i++)
+                for (var i = inicio; i < nodos.Count; i++)
                 {
-                    RtfTreeNode nodo = nodos[i];
+                    var nodo = nodos[i];
 
                     switch (nodo.NodeType)
                     {
@@ -428,7 +339,7 @@ namespace Net.Sgoliver.NRtfTree
                             {
                                 if (nodo["pict"] != null) //El grupo es una imagen
                                 {
-                                    ImageNode imageNode = new ImageNode(nodo);
+                                    var imageNode = new ImageNode(nodo);
                                     WriteImage(imageNode);
                                 }
                                 else
@@ -495,7 +406,7 @@ namespace Net.Sgoliver.NRtfTree
                 //Abrir etiquetas necesarias para representar el formato actual
                 if (_currentFormat.CompareFontFormat(_htmlFormat) == false) //El formato de fuente ha cambiado
                 {
-                    string estilo = string.Empty;
+                    var estilo = string.Empty;
 
                     if (!IgnoreFontNames && !string.IsNullOrEmpty(_currentFormat.FontName) &&
                         string.Compare(_currentFormat.FontName, DefaultFontName, true) != 0)
@@ -556,7 +467,7 @@ namespace Net.Sgoliver.NRtfTree
             /// <param name="imageNode"></param>
             private void WriteImage(ImageNode imageNode)
             {
-                Bitmap b = imageNode.Bitmap;
+                var b = imageNode.Bitmap;
                 Size imageSize;
 
                 if (imageNode.DesiredHeight > 0 && imageNode.DesiredWidth > 0)//Aproximar twips a px dividiendo entre 15
@@ -566,7 +477,7 @@ namespace Net.Sgoliver.NRtfTree
 
                 //Buscar codec
                 ImageCodecInfo imageCodec = null;
-                foreach (ImageCodecInfo codec in ImageCodecInfo.GetImageDecoders())
+                foreach (var codec in ImageCodecInfo.GetImageDecoders())
                 {
                     if (imageCodec == null || codec.FormatID == ImageFormat.Guid)
                         imageCodec = codec;
@@ -575,8 +486,8 @@ namespace Net.Sgoliver.NRtfTree
                 //Reducir imagen si el tamaño final es menor que el actual
                 if (b.Size.Height > imageSize.Height || b.Size.Width > imageSize.Width)
                 {
-                    Bitmap bmpResized = new Bitmap(imageSize.Width, imageSize.Height);
-                    Graphics g = Graphics.FromImage(bmpResized);
+                    var bmpResized = new Bitmap(imageSize.Width, imageSize.Height);
+                    var g = Graphics.FromImage(bmpResized);
                     g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
                     g.DrawImage(b, 0, 0, imageSize.Width, imageSize.Height);
                     b.Dispose();
@@ -597,8 +508,8 @@ namespace Net.Sgoliver.NRtfTree
                 }
                 else
                 {
-                    int index = 1;
-                    string ext = imageCodec.FilenameExtension.Split(';')[0].Substring(2).ToLower();
+                    var index = 1;
+                    var ext = imageCodec.FilenameExtension.Split(';')[0].Substring(2).ToLower();
                     string path;
 
                     do

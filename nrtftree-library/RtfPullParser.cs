@@ -23,165 +23,160 @@
  * Home Page:	http://www.sgoliver.net
  * GitHub:	    https://github.com/sgolivernet/nrtftree
  * Class:		RtfPullParser
- * Description:	Pull parser para documentos RTF.
+ * Description:	Pull parser of RTF documents.
  * ******************************************************************************/
 
 
-namespace Net.Sgoliver.NRtfTree.Core
+namespace Net.Sgoliver.NRtfTree.Core;
+
+/// <summary>
+/// Pull parser of RTF documents.
+/// </summary>
+public class RtfPullParser
 {
+    #region Constants
+
+    public const int START_DOCUMENT = 0;
+    public const int END_DOCUMENT = 1;
+    public const int KEYWORD = 2;
+    public const int CONTROL = 3;
+    public const int START_GROUP = 4;
+    public const int END_GROUP = 5;
+    public const int TEXT = 6;
+
+    #endregion
+
+    #region Fields
+
+    private TextReader? rtf;		//File/text input RTF
+    private RtfLex? lex;		    //Lexical analyzer of RTF
+    private RtfToken? tok;		//Token
+    private int currentEvent;   //Event
+
+    #endregion
+
+    #region Constructors
+
     /// <summary>
-    /// Pull parser para documentos RTF.
+    /// Constructor.
     /// </summary>
-    public class RtfPullParser
+    public RtfPullParser()
     {
-        #region Constantes
-
-        public const int START_DOCUMENT = 0;
-        public const int END_DOCUMENT = 1;
-        public const int KEYWORD = 2;
-        public const int CONTROL = 3;
-        public const int START_GROUP = 4;
-        public const int END_GROUP = 5;
-        public const int TEXT = 6;
-
-        #endregion
-
-        #region Atributos
-
-        private TextReader rtf;		//Fichero/Cadena de entrada RTF
-        private RtfLex lex;		    //Analizador léxico para RTF
-        private RtfToken tok;		//Token actual
-        private int currentEvent;   //Evento actual
-
-        #endregion
-
-        #region Construtores
-
-        /// <summary>
-        /// Constructor de la clase.
-        /// </summary>
-        public RtfPullParser()
-        {
-            currentEvent = START_DOCUMENT;
-        }
-
-        /// <summary>
-        /// Carga un fichero en formato RTF
-        /// </summary>
-        /// <param name="path">Ruta del fichero.</param>
-        public int LoadRtfFile(string path)
-        {
-            int res = 0;
-
-            //Se abre el fichero de entrada
-            rtf = new StreamReader(path);
-
-            //Se crea el analizador léxico para RTF
-            lex = new RtfLex(rtf);
-
-            return res;
-        }
-
-        /// <summary>
-        /// Carga una cadena de Texto con formato RTF.
-        /// </summary>
-        /// <param name="text">Cadena de Texto que contiene el documento.</param>
-        public int LoadRtfText(string text)
-        {
-            int res = 0;
-
-            //Se abre el fichero de entrada
-            rtf = new StringReader(text);
-
-            //Se crea el analizador léxico para RTF
-            lex = new RtfLex(rtf);
-
-            return res;
-        }
-
-        #endregion
-
-        #region Métodos Públicos
-
-        /// <summary>
-        /// Obtiene el tipo de evento actual.
-        /// </summary>
-        /// <returns>Tipo de evento actual.</returns>
-        public int GetEventType()
-        {
-            return currentEvent;
-        }
-
-        /// <summary>
-        /// Obtiene el siguiente elemento del documento.
-        /// </summary>
-        /// <returns>Siguiente elemento del documento.</returns>
-        public int Next()
-        {
-            tok = lex.NextToken();
-
-            switch (tok.Type)
-            {
-                case RtfTokenType.GroupStart:
-                    currentEvent = START_GROUP;
-                    break;
-                case RtfTokenType.GroupEnd:
-                    currentEvent = END_GROUP;
-                    break;
-                case RtfTokenType.Keyword:
-                    currentEvent = KEYWORD;
-                    break;
-                case RtfTokenType.Control:
-                    currentEvent = CONTROL;
-                    break;
-                case RtfTokenType.Text:
-                    currentEvent = TEXT;
-                    break;
-                case RtfTokenType.Eof:
-                    currentEvent = END_DOCUMENT;
-                    break;
-            }
-
-            return currentEvent;
-        }
-
-        /// <summary>
-        /// Obtiene la palabra clave / símbolo control del elemento actual.
-        /// </summary>
-        /// <returns>Palabra clave / símbolo control del elemento actual.</returns>
-        public string GetName()
-        {
-            return tok.Key;
-        }
-
-        /// <summary>
-        /// Obtiene el parámetro del elemento actual.
-        /// </summary>
-        /// <returns>Parámetro del elemento actual.</returns>
-        public int GetParam()
-        {
-            return tok.Parameter;
-        }
-
-        /// <summary>
-        /// Consulta si el elemento actual tiene parámetro.
-        /// </summary>
-        /// <returns>Devuelve TRUE si el elemento actual tiene parámetro.</returns>
-        public bool HasParam()
-        {
-            return tok.HasParameter;
-        }
-
-        /// <summary>
-        /// Obtiene el texto del elemento actual.
-        /// </summary>
-        /// <returns>Texto del elemento actual.</returns>
-        public string GetText()
-        {
-            return tok.Key;
-        }
-
-        #endregion
+        currentEvent = START_DOCUMENT;
     }
 
+    /// <summary>
+    /// Load a file in RTF format
+    /// </summary>
+    /// <param name="path">Path to the file.</param>
+    public int LoadRtfFile(string path)
+    {
+        // Initialize input
+        rtf = new StreamReader(path);
+
+        // Initialize lexical analyzer
+        lex = new RtfLex(rtf);
+
+        return 0;
+    }
+
+    /// <summary>
+    /// Load an RTF document from text stream
+    /// </summary>
+    /// <param name="text">Text containing the rtf document.</param>
+    public int LoadRtfText(string text)
+    {
+        // Initialize input
+        rtf = new StringReader(text);
+
+        // Initialize lexical analyzer
+        lex = new RtfLex(rtf);
+
+        return 0;
+    }
+
+    #endregion
+
+    #region Public Methods
+
+    /// <summary>
+    /// Get the current event type.
+    /// </summary>
+    /// <returns>Type of event</returns>
+    public int GetEventType()
+    {
+        return currentEvent;
+    }
+
+    /// <summary>
+    /// Gets the next element in the document.
+    /// </summary>
+    /// <returns>Next element of the document.</returns>
+    public int Next()
+    {
+        tok = lex?.NextToken();
+
+        switch (tok?.Type)
+        {
+            case RtfTokenType.GroupStart:
+                currentEvent = START_GROUP;
+                break;
+            case RtfTokenType.GroupEnd:
+                currentEvent = END_GROUP;
+                break;
+            case RtfTokenType.Keyword:
+                currentEvent = KEYWORD;
+                break;
+            case RtfTokenType.Control:
+                currentEvent = CONTROL;
+                break;
+            case RtfTokenType.Text:
+                currentEvent = TEXT;
+                break;
+            case RtfTokenType.Eof:
+                currentEvent = END_DOCUMENT;
+                break;
+        }
+
+        return currentEvent;
+    }
+
+    /// <summary>
+    /// Gets the keyword/control symbol of the current element.
+    /// </summary>
+    /// <returns>Keyword/control symbol of the current element.</returns>
+    public string? GetName()
+    {
+        return tok?.Key;
+    }
+
+    /// <summary>
+    /// Get the parameter of the current element
+    /// </summary>
+    /// <returns>Parameter value of current element.</returns>
+    public int? GetParam()
+    {
+        return tok?.Parameter;
+    }
+
+    /// <summary>
+    /// Check if current element has a parameter value.
+    /// </summary>
+    /// <returns>Returns true if current element has a parameter.</returns>
+    public bool? HasParam()
+    {
+        return tok?.HasParameter;
+    }
+
+    /// <summary>
+    /// Get the text of the current element.
+    /// </summary>
+    /// <returns>Text of current element.</returns>
+    public string? GetText()
+    {
+        return tok?.Key;
+    }
+
+    #endregion
 }
+

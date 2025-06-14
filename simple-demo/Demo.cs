@@ -40,9 +40,9 @@ public class Demo
         // Add a reference to the NuGet package System.Text.Encoding.CodePages for .Net core only
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 #endif  
-        string option = "";
+        var option = "";
 
-        int language = SelectLanguage();
+        var language = SelectLanguage();
 
         while (!option.Equals("0"))
         {
@@ -135,11 +135,11 @@ public class Demo
     
     private static int SelectLanguage()
     {
-        int language = 0;
+        var language = 0;
 
         PrintLanguageMenu();
 
-        string option = Console.In.ReadLine();
+        var option = Console.In.ReadLine();
 
         Console.WriteLine("");
 
@@ -169,10 +169,10 @@ public class Demo
     
     public static void ExtractDocumentProperties()
     {
-        RtfTree tree = new RtfTree();
+        var tree = new RtfTree();
         tree.LoadRtfFile(@"..\..\..\testdocs\test-doc.rtf");
 
-        InfoGroup info = tree.GetInfoGroup();
+        var info = tree.GetInfoGroup();
 
         Console.WriteLine("Extracting document properties:");
 
@@ -188,10 +188,10 @@ public class Demo
     
     public static void GenerateRtfTree()
     {
-        RtfTree tree = new RtfTree();
+        var tree = new RtfTree();
         tree.LoadRtfFile(@"..\..\..\testdocs\test-doc.rtf");
 
-        StreamWriter sw = new StreamWriter(@"..\..\..\testdocs\rtftree.txt");
+        var sw = new StreamWriter(@"..\..\..\testdocs\rtftree.txt");
 
         Console.WriteLine("Generating RTF tree...");
 
@@ -206,10 +206,10 @@ public class Demo
     
     public static void ExtractPlainText()
     {
-        RtfTree tree = new RtfTree();
+        var tree = new RtfTree();
         tree.LoadRtfFile(@"..\..\..\testdocs\test-doc.rtf");
 
-        StreamWriter sw = new StreamWriter(@"..\..\..\testdocs\rtftext.txt");
+        var sw = new StreamWriter(@"..\..\..\testdocs\rtftext.txt");
 
         Console.WriteLine("Extracting text...");
 
@@ -224,30 +224,30 @@ public class Demo
     
     public static void ExtractDocumentOutline()
     {
-        RtfTree tree = new RtfTree();
+        var tree = new RtfTree();
         tree.LoadRtfFile(@"..\..\..\testdocs\test-doc.rtf");
 
-        RtfStyleSheetTable sst = tree.GetStyleSheetTable();
+        var sst = tree.GetStyleSheetTable();
 
-        int heading1 = sst.IndexOf("heading 1");
-        int heading2 = sst.IndexOf("heading 2");
-        int heading3 = sst.IndexOf("heading 3");
+        var heading1 = sst.IndexOf("heading 1");
+        var heading2 = sst.IndexOf("heading 2");
+        var heading3 = sst.IndexOf("heading 3");
 
         tree.MainGroup.RemoveChild(tree.MainGroup.SelectChildGroups("stylesheet")[0]);
 
-        RtfNodeCollection headingKeywords = tree.MainGroup.SelectNodes("s");
+        var headingKeywords = tree.MainGroup.SelectNodes("s");
 
-        for (int i = 0; i < headingKeywords.Count; i++)
+        for (var i = 0; i < headingKeywords.Count; i++)
         {
-            RtfTreeNode hk = headingKeywords[i];
+            var hk = headingKeywords[i];
 
-            StringBuilder text = new StringBuilder("");
+            var text = new StringBuilder("");
 
             if (hk.Parameter == heading1 ||
                 hk.Parameter == heading2 ||
                 hk.Parameter == heading3)
             {
-                RtfTreeNode sibling = hk.NextSibling;
+                var sibling = hk.NextSibling;
 
                 while (sibling != null && !sibling.NodeKey.Equals("pard"))
                 {
@@ -271,7 +271,7 @@ public class Demo
     
     private static string ExtractGroupText(RtfTreeNode group)
     {
-        StringBuilder sb = new StringBuilder("");
+        var sb = new StringBuilder("");
 
         foreach (RtfTreeNode node in group.ChildNodes)
         {
@@ -286,26 +286,26 @@ public class Demo
     
     private static void ExtractHyperlinks()
     {
-        RtfTree tree = new RtfTree();
+        var tree = new RtfTree();
         tree.LoadRtfFile(@"..\..\..\testdocs\test-doc.rtf");
 
-        RtfNodeCollection fields = tree.MainGroup.SelectGroups("field");
+        var fields = tree.MainGroup.SelectGroups("field");
 
         foreach (RtfTreeNode node in fields)
         {
             //Extract URL
 
-            RtfTreeNode fldInst = node.ChildNodes[1];
+            var fldInst = node.ChildNodes[1];
 
-            string fldInstText = ExtractGroupText(fldInst);
+            var fldInstText = ExtractGroupText(fldInst);
 
-            string url = fldInstText.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries)[1];
+            var url = fldInstText.Split([" "], StringSplitOptions.RemoveEmptyEntries)[1];
 
             //Extract Link Text
 
-            RtfTreeNode fldRslt = node.SelectSingleChildGroup("fldrslt");
+            var fldRslt = node.SelectSingleChildGroup("fldrslt");
 
-            string linkText = ExtractGroupText(fldRslt);
+            var linkText = ExtractGroupText(fldRslt);
 
             Console.WriteLine("[" + linkText + ", " + url + "]");
         }
@@ -313,17 +313,17 @@ public class Demo
     
     private static void ExtractImages()
     {
-        RtfTree tree = new RtfTree();
+        var tree = new RtfTree();
         tree.LoadRtfFile(@"..\..\..\testdocs\test-doc.rtf");
 
-        RtfNodeCollection imageNodes = tree.RootNode.SelectNodes("pict");
+        var imageNodes = tree.RootNode.SelectNodes("pict");
 
         Console.WriteLine("Extracting images...");
 
-        int i = 1;
+        var i = 1;
         foreach (RtfTreeNode node in imageNodes)
         {
-            ImageNode imageNode = new ImageNode(node.ParentNode);
+            var imageNode = new ImageNode(node.ParentNode);
 
             if (imageNode.ImageFormat == Net.Sgoliver.NRtfTree.Util.ImageFormat.Png)
             {
@@ -340,30 +340,30 @@ public class Demo
     
     private static void ExtractObjects()
     {
-        RtfTree tree = new RtfTree();
+        var tree = new RtfTree();
         tree.LoadRtfFile(@"..\..\..\testdocs\test-doc.rtf");
 
         //Busca el primer nodo de tipo objeto.
-        RtfNodeCollection objects = tree.RootNode.SelectGroups("object");
+        var objects = tree.RootNode.SelectGroups("object");
 
         Console.WriteLine("Extracting objects...");
 
-        int i = 1;
-        foreach (RtfTreeNode node in objects)
+        var i = 1;
+        foreach (RtfTreeNode? node in objects)
         {
             //Se crea un nodo RTF especializado en imágenes
-            ObjectNode objectNode = new ObjectNode(node);
+            var objectNode = new ObjectNode(node);
 
             Console.WriteLine("Found new object:");
             Console.WriteLine("Object type: " + objectNode.ObjectType);
             Console.WriteLine("Object class: " + objectNode.ObjectClass);
 
-            byte[] data = objectNode.GetByteData();
+            var data = objectNode.GetByteData();
 
-            FileStream binaryFile = new FileStream(@"..\..\..\testdocs\object" + i + ".xls", FileMode.Create, FileAccess.ReadWrite);
-            BinaryWriter bw = new BinaryWriter(binaryFile);
+            var binaryFile = new FileStream(@"..\..\..\testdocs\object" + i + ".xls", FileMode.Create, FileAccess.ReadWrite);
+            var bw = new BinaryWriter(binaryFile);
 
-            for (int j = 38; j < data.Length; j++)
+            for (var j = 38; j < data.Length; j++)
             {
                 bw.Write(data[j]);
             }
@@ -380,11 +380,11 @@ public class Demo
     
     private static void TagFormat()
     {
-        string res = "";
+        var res = "";
 
-        MyParser parser = new MyParser(res);
+        var parser = new MyParser(res);
 
-        RtfReader reader = new RtfReader(parser);
+        var reader = new RtfReader(parser);
 
         reader.LoadRtfFile(@"..\..\..\testdocs\test-doc2.rtf");
 
@@ -392,7 +392,7 @@ public class Demo
 
         reader.Parse();
 
-        StreamWriter sw = new StreamWriter(@"..\..\..\testdocs\taggedfile.txt");
+        var sw = new StreamWriter(@"..\..\..\testdocs\taggedfile.txt");
         sw.Write(parser.doc);
         sw.Flush();
         sw.Close();
@@ -404,14 +404,14 @@ public class Demo
     
     private static void MergeDocuments()
     {
-        RtfMerger merger = new RtfMerger(@"..\..\..\testdocs\test-doc3.rtf");
+        var merger = new RtfMerger(@"..\..\..\testdocs\test-doc3.rtf");
 
         merger.AddPlaceHolder("[TagTextRTF1]", @"..\..\..\testdocs\merge1.rtf");
         merger.AddPlaceHolder("[TagTextRTF2]", @"..\..\..\testdocs\merge2.rtf");
 
         Console.WriteLine("Processing...");
 
-        RtfTree tree = merger.Merge();
+        var tree = merger.Merge();
         tree.SaveRtf(@"..\..\..\testdocs\merge-result.rtf");
 
         Console.WriteLine("File 'merge-result.txt' created.");
@@ -421,16 +421,16 @@ public class Demo
     
     private static void ConvertToHtml()
     {
-        RtfTree tree = new RtfTree();
+        var tree = new RtfTree();
         tree.LoadRtfFile(@"..\..\..\testdocs\test-doc2.rtf");
 
-        Rtf2Html rtfToHtml = new Rtf2Html();
+        var rtfToHtml = new Rtf2Html();
 
         Console.WriteLine("Processing...");
         rtfToHtml.IncrustImages = false;
-        string html = rtfToHtml.Convert(tree.Rtf);
+        var html = rtfToHtml.Convert(tree.Rtf);
 
-        StreamWriter sw = new StreamWriter(@"..\..\..\testdocs\test.html", false);
+        var sw = new StreamWriter(@"..\..\..\testdocs\test.html", false);
         sw.Write(html);
         sw.Flush();
         sw.Close();

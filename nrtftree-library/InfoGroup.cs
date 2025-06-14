@@ -23,285 +23,167 @@
  * Home Page:	http://www.sgoliver.net
  * GitHub:	    https://github.com/sgolivernet/nrtftree
  * Class:		InfoGroup
- * Description:	Clase para encapsular toda la informaci�n contenida en un
- *              grupo RTF de tipo "\info".
+ * Description:	Class to encapsulate all the information contained in an RTF group of type "\info".
  * ******************************************************************************/
 
-using System;
 using System.Text;
 
-namespace Net.Sgoliver.NRtfTree.Util
+namespace Net.Sgoliver.NRtfTree.Util;
+/// <summary>
+/// Class that encapsulates all the information contained in a "\info" group of an RTF document.
+/// </summary>
+public class InfoGroup
 {
+
+    #region Properties
+
     /// <summary>
-    /// Clase que encapsula toda la informaci�n contenida en un grupo "\info" de un documento RTF.
+    /// Title of the document.
     /// </summary>
-    public class InfoGroup
+    public string Title { get; set; } = "";
+
+    /// <summary>
+    /// Subject of the document.
+    /// </summary>
+    public string Subject { get; set; } = "";
+
+    /// <summary>
+    /// Author of the document.
+    /// </summary>
+    public string Author { get; set; } = "";
+
+    /// <summary>
+    /// Manager of the document.
+    /// </summary>
+    public string Manager { get; set; } = "";
+
+    /// <summary>
+    /// Company of the author of the document.
+    /// </summary>
+    public string Company { get; set; } = "";
+
+    /// <summary>
+    /// Last person who made changes to the document.
+    /// </summary>
+    public string Operator { get; set; } = "";
+
+    /// <summary>
+    /// Category of the document.
+    /// </summary>
+    public string Category { get; set; } = "";
+
+    /// <summary>
+    /// Keywords of the document.
+    /// </summary>
+    public string Keywords { get; set; } = "";
+
+    /// <summary>
+    /// Comments.
+    /// </summary>
+    public string Comment { get; set; } = "";
+
+    /// <summary>
+    /// Comments displayed in the "Summary Info" or "Properties" text box in Microsoft Word.
+    /// </summary>
+    public string DocComment { get; set; } = "";
+
+    /// <summary>
+    /// The base address used in relative paths for document links. This can be a local path or a URL.
+    /// </summary>
+    public string HlinkBase { get; set; } = "";
+
+    /// <summary>
+    /// Date/Time the document was created.
+    /// </summary>
+    public DateTime CreationTime { get; set; } = DateTime.MinValue;
+
+    /// <summary>
+    /// Date/Time of document review.
+    /// </summary>
+    public DateTime RevisionTime { get; set; } = DateTime.MinValue;
+
+    /// <summary>
+    /// Date/Time the document was last printed.
+    /// </summary>
+    public DateTime LastPrintTime { get; set; } = DateTime.MinValue;
+
+    /// <summary>
+    /// Date/Time of last copy of the document.
+    /// </summary>
+    public DateTime BackupTime { get; set; } = DateTime.MinValue;
+
+    /// <summary>
+    /// Version of the document.
+    /// </summary>
+    public int Version { get; set; } = -1;
+
+    /// <summary>
+    /// Internal version of the document.
+    /// </summary>
+    public int InternalVersion { get; set; } = -1;
+
+    /// <summary>
+    /// Total time spent editing the document (in minutes).
+    /// </summary>
+    public int EditingTime { get; set; } = -1;
+
+    /// <summary>
+    /// Number of pages in the document.
+    /// </summary>
+    public int NumberOfPages { get; set; } = -1;
+
+    /// <summary>
+    /// Number of words in the document.
+    /// </summary>
+    public int NumberOfWords { get; set; } = -1;
+
+    /// <summary>
+    /// Number of characters in the document.
+    /// </summary>
+    public int NumberOfChars { get; set; } = -1;
+
+    /// <summary>
+    /// Internal identification of the document.
+    /// </summary>
+    public int Id { get; set; } = -1;
+
+    #endregion
+
+    #region Public Methods
+
+    /// <summary>
+    /// Returns the representation of the node as a string.
+    /// </summary>
+    /// <returns>Representation of the node in the form of a character string.</returns>
+    public override string ToString()
     {
-        #region Atributos privados
+        var str = new StringBuilder();
 
-        private string _title = "";
-        private string _subject = "";
-        private string _author = "";
-        private string _manager = "";
-        private string _company = "";
-        private string _operator = "";
-        private string _category = "";
-        private string _keywords = "";
-        private string _comment = "";
-        private string _doccomm = "";
-        private string _hlinkbase = "";
-        private DateTime _creatim = DateTime.MinValue;
-        private DateTime _revtim = DateTime.MinValue;
-        private DateTime _printim = DateTime.MinValue;
-        private DateTime _buptim = DateTime.MinValue;
-        private int _version = -1;
-        private int _vern = -1;
-        private int _edmins = -1;
-        private int _nofpages = -1;
-        private int _nofwords = -1;
-        private int _nofchars = -1;
-        private int _id = -1;
+        str.AppendLine("Title     : " + Title);
+        str.AppendLine("Subject   : " + Subject);
+        str.AppendLine("Author    : " + Author);
+        str.AppendLine("Manager   : " + Manager);
+        str.AppendLine("Company   : " + Company);
+        str.AppendLine("Operator  : " + Operator);
+        str.AppendLine("Category  : " + Category);
+        str.AppendLine("Keywords  : " + Keywords);
+        str.AppendLine("Comment   : " + Comment);
+        str.AppendLine("DComment  : " + DocComment);
+        str.AppendLine("HLinkBase : " + HlinkBase);
+        str.AppendLine("Created   : " + CreationTime);
+        str.AppendLine("Revised   : " + RevisionTime);
+        str.AppendLine("Printed   : " + LastPrintTime);
+        str.AppendLine("Backup    : " + BackupTime);
+        str.AppendLine("Version   : " + Version);
+        str.AppendLine("IVersion  : " + InternalVersion);
+        str.AppendLine("Editing   : " + EditingTime);
+        str.AppendLine("Num Pages : " + NumberOfPages);
+        str.AppendLine("Num Words : " + NumberOfWords);
+        str.AppendLine("Num Chars : " + NumberOfChars);
+        str.AppendLine("Id        : " + Id);
 
-        #endregion
-
-        #region Propiedades
-
-        /// <summary>
-        /// T�tulo del documento.
-        /// </summary>
-        public string Title
-        {
-            get { return _title; }
-            set { _title = value; }
-        }
-        
-        /// <summary>
-        /// Tema del documento.
-        /// </summary>
-        public string Subject
-        {
-            get { return _subject; }
-            set { _subject = value; }
-        }
-
-        /// <summary>
-        /// Autor del documento.
-        /// </summary>
-        public string Author
-        {
-            get { return _author; }
-            set { _author = value; }
-        }
-        
-        /// <summary>
-        /// Manager del autor del documento.
-        /// </summary>
-        public string Manager
-        {
-            get { return _manager; }
-            set { _manager = value; }
-        }
-        
-        /// <summary>
-        /// Compa��a del autor del documento.
-        /// </summary>
-        public string Company
-        {
-            get { return _company; }
-            set { _company = value; }
-        }
-       
-        /// <summary>
-        /// �ltima persona que ha realizao cambios sobre el documento.
-        /// </summary>
-        public string Operator
-        {
-            get { return _operator; }
-            set { _operator = value; }
-        }
-        
-        /// <summary>
-        /// Categor�a del documento.
-        /// </summary>
-        public string Category
-        {
-            get { return _category; }
-            set { _category = value; }
-        }
-        
-        /// <summary>
-        /// Palabras clave del documento.
-        /// </summary>
-        public string Keywords
-        {
-            get { return _keywords; }
-            set { _keywords = value; }
-        }
-        
-        /// <summary>
-        /// Comentarios.
-        /// </summary>
-        public string Comment
-        {
-            get { return _comment; }
-            set { _comment = value; }
-        }
-        
-        /// <summary>
-        /// Comentarios mostrados en el cuadro de Texto "Summary Info" o "Properties" de Microsoft Word.
-        /// </summary>
-        public string DocComment
-        {
-            get { return _doccomm; }
-            set { _doccomm = value; }
-        }
-        
-        /// <summary>
-        /// La direcci�n base usada en las rutas relativas de los enlaces del documento. Puede ser una ruta local o una URL.
-        /// </summary>
-        public string HlinkBase
-        {
-            get { return _hlinkbase; }
-            set { _hlinkbase = value; }
-        }
-        
-        /// <summary>
-        /// Fecha/Hora de creaci�n del documento.
-        /// </summary>
-        public DateTime CreationTime
-        {
-            get { return _creatim; }
-            set { _creatim = value; }
-        }
-        
-        /// <summary>
-        /// Fecha/Hora de revisi�n del documento.
-        /// </summary>
-        public DateTime RevisionTime  
-        {
-            get { return _revtim; }
-            set { _revtim = value; }
-        }
-        
-        /// <summary>
-        /// Fecha/Hora de �ltima impresi�n del documento.
-        /// </summary>
-        public DateTime LastPrintTime
-        {
-            get { return _printim; }
-            set { _printim = value; }
-        }
-        
-        /// <summary>
-        /// Fecha/Hora de �ltima copia del documento.
-        /// </summary>
-        public DateTime BackupTime
-        {
-            get { return _buptim; }
-            set { _buptim = value; }
-        }
-        
-        /// <summary>
-        /// Versi�n del documento.
-        /// </summary>
-        public int Version
-        {
-            get { return _version; }
-            set { _version = value; }
-        }
-        
-        /// <summary>
-        /// Versi�n interna del documento.
-        /// </summary>
-        public int InternalVersion
-        {
-            get { return _vern; }
-            set { _vern = value; }
-        }
-        
-        /// <summary>
-        /// Tiempo total de edici�n del documento (en minutos).
-        /// </summary>
-        public int EditingTime
-        {
-            get { return _edmins; }
-            set { _edmins = value; }
-        }
-        
-        /// <summary>
-        /// N�mero de p�ginas del documento.
-        /// </summary>
-        public int NumberOfPages
-        {
-            get { return _nofpages; }
-            set { _nofpages = value; }
-        }
-        
-        /// <summary>
-        /// N�mero de palabras del documento.
-        /// </summary>
-        public int NumberOfWords
-        {
-            get { return _nofwords; }
-            set { _nofwords = value; }
-        }
-        
-        /// <summary>
-        /// N�mero de caracteres del documento.
-        /// </summary>
-        public int NumberOfChars
-        {
-            get { return _nofchars; }
-            set { _nofchars = value; }
-        }
-        
-        /// <summary>
-        /// Identificaci�n interna del documento.
-        /// </summary>
-        public int Id
-        {
-            get { return _id; }
-            set { _id = value; }
-        }
-
-        #endregion
-
-        #region Metodos publicos
-
-        /// <summary>
-        /// Devuelve la representaci�n del nodo en forma de cadena de caracteres.
-        /// </summary>
-        /// <returns>Representaci�n del nodo en forma de cadena de caracteres.</returns>
-        public override string  ToString()
-        {
-            StringBuilder str = new StringBuilder();
-
-            str.AppendLine("Title     : " + Title);
-            str.AppendLine("Subject   : " + Subject);
-            str.AppendLine("Author    : " + Author);
-            str.AppendLine("Manager   : " + Manager);
-            str.AppendLine("Company   : " + Company);
-            str.AppendLine("Operator  : " + Operator);
-            str.AppendLine("Category  : " + Category);
-            str.AppendLine("Keywords  : " + Keywords);
-            str.AppendLine("Comment   : " + Comment);
-            str.AppendLine("DComment  : " + DocComment);
-            str.AppendLine("HLinkBase : " + HlinkBase);
-            str.AppendLine("Created   : " + CreationTime);
-            str.AppendLine("Revised   : " + RevisionTime);
-            str.AppendLine("Printed   : " + LastPrintTime);
-            str.AppendLine("Backup    : " + BackupTime);
-            str.AppendLine("Version   : " + Version);
-            str.AppendLine("IVersion  : " + InternalVersion);
-            str.AppendLine("Editing   : " + EditingTime);
-            str.AppendLine("Num Pages : " + NumberOfPages);
-            str.AppendLine("Num Words : " + NumberOfWords);
-            str.AppendLine("Num Chars : " + NumberOfChars);
-            str.AppendLine("Id        : " + Id);
-
-            return str.ToString();
-        }
-
-        #endregion
+        return str.ToString();
     }
+
+    #endregion
 }

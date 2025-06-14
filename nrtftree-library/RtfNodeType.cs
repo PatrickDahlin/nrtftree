@@ -26,39 +26,35 @@
  * Description:	Types of node of an RTF document.
  * ******************************************************************************/
 
-namespace Net.Sgoliver.NRtfTree
+namespace Net.Sgoliver.NRtfTree.Core;
+
+/// <summary>
+/// Types of node of an RTF document.
+/// </summary>
+public enum RtfNodeType
 {
-    namespace Core
-    {
-        /// <summary>
-        /// Types of node of an RTF document.
-        /// </summary>
-        public enum RtfNodeType
-        {
-            /// <summary>
-            /// Root node
-            /// </summary>
-            Root = 0,
-            /// <summary>
-            /// Keyword.
-            /// </summary>
-            Keyword = 1,
-            /// <summary>
-            /// Control symbol.
-            /// </summary>
-            Control = 2,
-            /// <summary>
-            /// Document text.
-            /// </summary>
-            Text = 3,
-            /// <summary>
-            /// RTF Group
-            /// </summary>
-            Group = 4,
-            /// <summary>
-            /// Uninitialized node
-            /// </summary>
-            None = 5
-        }
-    }
+    /// <summary>
+    /// Root node
+    /// </summary>
+    Root = 0,
+    /// <summary>
+    /// Keyword.
+    /// </summary>
+    Keyword = 1,
+    /// <summary>
+    /// Control symbol.
+    /// </summary>
+    Control = 2,
+    /// <summary>
+    /// Document text.
+    /// </summary>
+    Text = 3,
+    /// <summary>
+    /// RTF Group
+    /// </summary>
+    Group = 4,
+    /// <summary>
+    /// Uninitialized node
+    /// </summary>
+    None = 5
 }

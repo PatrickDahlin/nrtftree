@@ -28,1594 +28,1349 @@
 
 using System.Text;
 
-namespace Net.Sgoliver.NRtfTree
+namespace Net.Sgoliver.NRtfTree.Core;
+
+/// <summary>
+/// RTF node of the tree representation of a document.
+/// </summary>
+public class RtfTreeNode
 {
-    namespace Core
+    #region Private Fields
+
+    /// <summary>
+    /// Child nodes of the current node.
+    /// </summary>
+    private RtfNodeCollection? children;
+
+    #endregion
+
+    #region Constructors
+
+    /// <summary>
+    /// Constructor for the RtfTreeNode class. Creates an uninitialized node.
+    /// </summary>
+    public RtfTreeNode()
     {
-        /// <summary>
-        /// RTF node of the tree representation of a document.
-        /// </summary>
-        public class RtfTreeNode
+        NodeType = RtfNodeType.None;
+        NodeKey = "";
+    }
+
+    /// <summary>
+    /// Constructor for the RtfTreeNode class. Creates a node of a specific type.
+    /// </summary>
+    /// <param name="nodeType">Type of node to create.</param>
+    public RtfTreeNode(RtfNodeType nodeType)
+    {
+        NodeType = nodeType;
+        NodeKey = "";
+
+        if (nodeType is RtfNodeType.Group or RtfNodeType.Root)
+            children = new RtfNodeCollection();
+
+        if (nodeType == RtfNodeType.Root)
+            RootNode = this;
+
+    }
+
+    /// <summary>
+    /// Constructor for the RtfTreeNode class. Creates a node by specifying its type, keyword, and parameter.
+    /// </summary>
+    /// <param name="type">Type of node.</param>
+    /// <param name="key">Keyword or Control symbol.</param>
+    /// <param name="hasParameter">Indicates whether the keyword or control symbol is accompanied by a parameter.</param>
+    /// <param name="parameter">Parameter of the Control keyword or symbol.</param>
+    public RtfTreeNode(RtfNodeType type, string key, bool hasParameter, int parameter)
+    {
+        this.NodeType = type;
+        this.NodeKey = key;
+        HasParameter = hasParameter;
+        Parameter = parameter;
+
+        if (type is RtfNodeType.Group or RtfNodeType.Root)
+            children = new RtfNodeCollection();
+
+        if (type == RtfNodeType.Root)
+            RootNode = this;
+
+    }
+
+    #endregion
+
+    #region Private Constructor
+
+    /// <summary>
+    /// Private constructor for the RtfTreeNode class. Creates a node from a lexical analyzer token.
+    /// </summary>
+    /// <param name="token">RTF token returned by the lexical analyzer.</param>
+    internal RtfTreeNode(RtfToken token)
+    {
+        NodeType = (RtfNodeType)token.Type;
+        NodeKey = token.Key;
+        HasParameter = token.HasParameter;
+        Parameter = token.Parameter;
+    }
+
+    #endregion
+
+    #region Public Methods
+
+    /// <summary>
+    /// Adds a node to the end of the children list.
+    /// </summary>
+    /// <param name="newNode">New node to add.</param>
+    public void AppendChild(RtfTreeNode? newNode)
+    {
+        if (newNode == null) return;
+        // If you do not have children yet, the collection is initialized.
+        children ??= new RtfNodeCollection();
+
+        // The current node is assigned as the parent node
+        newNode.ParentNode = this;
+
+        // The Root and Tree properties of the new node and its possible children are updated
+        updateNodeRoot(newNode);
+
+        // The new node is added to the end of the list of child nodes
+        children.Add(newNode);
+    }
+
+    /// <summary>
+    /// Inserts a new node at a given position in the list of children.
+    /// </summary>
+    /// <param name="index">Position at which the node will be inserted.</param>
+    /// <param name="newNode">New node to add.</param>
+    public void InsertChild(int index, RtfTreeNode? newNode)
+    {
+        if (newNode == null) return;
+        // If you do not have children yet, the collection is initialized.
+        children ??= new RtfNodeCollection();
+
+        if (index < 0 || index > children.Count) return;
+        
+        // The current node is assigned as the parent node
+        newNode.ParentNode = this;
+
+        // The Root and Tree properties of the new node and its possible children are updated
+        updateNodeRoot(newNode);
+
+        // The new node is added to the end of the list of child nodes
+        children.Insert(index, newNode);
+    }
+
+    /// <summary>
+    /// Removes a node from the list of children.
+    /// </summary>
+    /// <param name="index">Indice del nodo a eliminar.</param>
+    public void RemoveChild(int index)
+    {
+        // If the current node has children
+        if (children == null) return;
+        if (index >= 0 && index < children.Count)
         {
-            #region Private Fields
+            // The i-th child is eliminated
+            children.RemoveAt(index);
+        }
+    }
 
-            /// <summary>
-            /// Tipo de nodo.
-            /// </summary>
-            private RtfNodeType type;
-            /// <summary>
-            /// Palabra clave / S�mbolo de Control / Texto.
-            /// </summary>
-            private string key;
-            /// <summary>
-            /// Indica si la palabra clave o s�mbolo de Control tiene par�metro.
-            /// </summary>
-            private bool hasParam;
-            /// <summary>
-            /// Par�metro de la palabra clave o s�mbolo de Control.
-            /// </summary>
-            private int param;
-            /// <summary>
-            /// Nodos hijos del nodo actual.
-            /// </summary>
-            private RtfNodeCollection children;
-            /// <summary>
-            /// Nodo padre del nodo actual.
-            /// </summary>
-            private RtfTreeNode parent;
-            /// <summary>
-            /// Nodo ra�z del documento.
-            /// </summary>
-            private RtfTreeNode root;
-            /// <summary>
-            /// �rbol Rtf al que pertenece el nodo
-            /// </summary>
-            private RtfTree tree;
+    /// <summary>
+    /// Removes a node from the list of children.
+    /// </summary>
+    /// <param name="node">Nodo a eliminar.</param>
+    public void RemoveChild(RtfTreeNode node)
+    {
+        // If the current node has children
+        if (children == null) return;
+        
+        // Search for the node to be deleted
+        var index = children.IndexOf(node);
 
-            #endregion
+        // If we find it
+        if (index != -1)
+        {
+            // The i-th child is eliminated
+            children.RemoveAt(index);
+        }
+    }
 
-            #region Constructores P�blicos
+    /// <summary>
+    /// Makes an exact copy of the current node.
+    /// </summary>
+    /// <returns>Returns an exact copy of the current node</returns>
+    public RtfTreeNode CloneNode()
+    {
+        var clon = new RtfTreeNode
+        {
+            NodeKey = NodeKey,
+            HasParameter = HasParameter,
+            Parameter = Parameter,
+            ParentNode = null,
+            RootNode = null,
+            Tree = null,
+            NodeType = NodeType,
+            // Each of the children is also cloned
+            children = null
+        };
 
-            /// <summary>
-            /// Constructor de la clase RtfTreeNode. Crea un nodo sin inicializar.
-            /// </summary>
-            public RtfTreeNode()
+        if (children == null) return clon;
+        
+        clon.children = new RtfNodeCollection();
+
+        foreach (RtfTreeNode child in children)
+        {
+            var childclon = child.CloneNode();
+            childclon.ParentNode = clon;
+
+            clon.children.Add(childclon);
+        }
+
+        return clon;
+    }
+
+    /// <summary>
+    /// Indicates whether the current node has any child nodes.
+    /// </summary>
+    /// <returns>Returns true if the current node has any child nodes.</returns>
+    public bool HasChildNodes()
+    {
+        return children is { Count: > 0 };
+    }
+
+    /// <summary>
+    /// Returns the first node in the list of child nodes of the current node whose keyword is the one given as a parameter.
+    /// </summary>
+    /// <param name="keyword">Keyword searched.</param>
+    /// <returns>First node in the list of child nodes of the current node whose keyword is the one given as a parameter.</returns>
+    public RtfTreeNode? SelectSingleChildNode(string keyword)
+    {
+        var i = 0;
+        var found = false;
+        RtfTreeNode? node = null;
+
+        if (children == null) return node;
+        
+        while (i < children.Count && !found)
+        {
+            if (children[i]?.NodeKey == keyword)
             {
-                type = RtfNodeType.None;
-                key = "";
-                
-				/* Inicializados por defecto */
-				//this.param = 0;
-				//this.hasParam = false;
-                //this.parent = null;
-                //this.root = null;
-                //this.tree = null;
-                //children = null;
+                node = children[i];
+                found = true;
             }
 
-            /// <summary>
-            /// Constructor de la clase RtfTreeNode. Crea un nodo de un tipo concreto.
-            /// </summary>
-            /// <param name="nodeType">Tipo del nodo que se va a crear.</param>
-            public RtfTreeNode(RtfNodeType nodeType)
+            i++;
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Returns the first node in the list of child nodes of the current node whose type is the one specified as a parameter.
+    /// </summary>
+    /// <param name="nodeType">Type of node searched</param>
+    /// <returns>First node in the list of child nodes of the current node whose type is the one specified as a parameter.</returns>
+    public RtfTreeNode? SelectSingleChildNode(RtfNodeType nodeType)
+    {
+        var i = 0;
+        var found = false;
+        RtfTreeNode? node = null;
+
+        if (children == null) return node;
+        while (i < children.Count && !found)
+        {
+            if (children[i] != null && children[i]!.NodeType == nodeType)
             {
-                type = nodeType;
-                key = "";
-
-                if (nodeType == RtfNodeType.Group || nodeType == RtfNodeType.Root)
-                    children = new RtfNodeCollection();
-
-                if (nodeType == RtfNodeType.Root)
-                    root = this;
-                
-				/* Inicializados por defecto */
-				//this.param = 0;
-				//this.hasParam = false;
-                //this.parent = null;
-                //this.root = null;
-                //this.tree = null;
-                //children = null;
+                node = children[i];
+                found = true;
             }
 
-            /// <summary>
-            /// Constructor de la clase RtfTreeNode. Crea un nodo especificando su tipo, palabra clave y par�metro.
-            /// </summary>
-            /// <param name="type">Tipo del nodo.</param>
-            /// <param name="key">Palabra clave o s�mbolo de Control.</param>
-            /// <param name="hasParameter">Indica si la palabra clave o el s�mbolo de Control va acompa�ado de un par�metro.</param>
-            /// <param name="parameter">Par�metro del la palabra clave o s�mbolo de Control.</param>
-            public RtfTreeNode(RtfNodeType type, string key, bool hasParameter, int parameter)
+            i++;
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Returns the first node in the list of child nodes of the current node whose keyword and parameter are the given parameters.
+    /// </summary>
+    /// <param name="keyword">Keyword searched.</param>
+    /// <param name="parameter">Parameter searched.</param>
+    /// <returns>First node in the list of child nodes of the current node whose keyword and parameter are those indicated as parameters</returns>
+    public RtfTreeNode? SelectSingleChildNode(string keyword, int parameter)
+    {
+        var i = 0;
+        var found = false;
+        RtfTreeNode? node = null;
+
+        if (children == null) return node;
+        while (i < children.Count && !found)
+        {
+            if (children[i]?.NodeKey == keyword && children[i]?.Parameter == parameter)
             {
-                this.type = type;
-                this.key = key;
-                hasParam = hasParameter;
-                param = parameter;
-
-                if (type == RtfNodeType.Group || type == RtfNodeType.Root)
-                    children = new RtfNodeCollection();
-
-                if (type == RtfNodeType.Root)
-                    root = this;
-
-				/* Inicializados por defecto */
-                //this.parent = null;
-                //this.root = null;
-                //this.tree = null;
-                //children = null;
+                node = children[i];
+                found = true;
             }
 
-            #endregion
+            i++;
+        }
 
-            #region Constructor Privado
+        return node;
+    }
 
-            /// <summary>
-            /// Constructor privado de la clase RtfTreeNode. Crea un nodo a partir de un token del analizador l�xico.
-            /// </summary>
-            /// <param name="token">Token RTF devuelto por el analizador l�xico.</param>
-            internal RtfTreeNode(RtfToken token)
+    /// <summary>
+    /// Returns the first group node from the list of child nodes of the current node whose first keyword is the one given as a parameter.
+    /// </summary>
+    /// <param name="keyword">Keyword searched.</param>
+    /// <param name="ignoreSpecial">If enabled, '\*' control nodes before some keywords will be ignored.</param>
+    /// <returns>First group node in the list of child nodes of the current node whose first keyword is the one given as a parameter.</returns>
+    public RtfTreeNode? SelectSingleChildGroup(string keyword, bool ignoreSpecial = false)
+    {
+        var i = 0;
+        var found = false;
+        RtfTreeNode? node = null;
+
+        if (children == null) return node;
+        
+        while (i < children.Count && !found)
+        {
+            if (children[i]?.NodeType == RtfNodeType.Group && children[i]?.HasChildNodes() == true &&
+                (
+                    (children[i]?.FirstChild?.NodeKey == keyword) ||
+                    (ignoreSpecial && children[i]?.ChildNodes?[0]?.NodeKey == "*" && children[i]?.ChildNodes?[1]?.NodeKey == keyword))
+               )
             {
-                type = (RtfNodeType)token.Type;
-                key = token.Key;
-                hasParam = token.HasParameter;
-                param = token.Parameter;
-
-				/* Inicializados por defecto */
-                //this.parent = null;
-                //this.root = null;
-                //this.tree = null;
-                //this.children = null;
+                node = children[i];
+                found = true;
             }
 
-            #endregion
+            i++;
+        }
 
-            #region M�todos P�blicos
+        return node;
+    }
 
-            /// <summary>
-            /// A�ade un nodo al final de la lista de hijos.
-            /// </summary>
-            /// <param name="newNode">Nuevo nodo a a�adir.</param>
-            public void AppendChild(RtfTreeNode newNode)
+    /// <summary>
+    /// Returns the first node in the tree, starting from the current node, whose type is the one specified as a parameter.
+    /// </summary>
+    /// <param name="nodeType">Type of node searched.</param>
+    /// <returns>First node in the tree, starting from the current node, whose type is the one indicated as a parameter.</returns>
+    public RtfTreeNode? SelectSingleNode(RtfNodeType nodeType)
+    {
+        var i = 0;
+        var found = false;
+        RtfTreeNode? node = null;
+
+        if (children == null) return node;
+        
+        while (i < children.Count && !found)
+        {
+            if (children[i]?.NodeType == nodeType)
             {
-				if(newNode != null)
-				{
-                    //Si a�n no ten�a hijos se inicializa la colecci�n
-                    if (children == null)
-                        children = new RtfNodeCollection();
-
-					//Se asigna como nodo padre el nodo actual
-					newNode.parent = this;
-
-                    //Se actualizan las propiedades Root y Tree del nuevo nodo y sus posibles hijos
-                    updateNodeRoot(newNode);
-
-					//Se a�ade el nuevo nodo al final de la lista de nodos hijo
-					children.Add(newNode);
-				}
+                node = children[i];
+                found = true;
             }
-
-            /// <summary>
-            /// Inserta un nuevo nodo en una posici�n determinada de la lista de hijos.
-            /// </summary>
-            /// <param name="index">Posici�n en la que se insertar� el nodo.</param>
-            /// <param name="newNode">Nuevo nodo a insertar.</param>
-            public void InsertChild(int index, RtfTreeNode newNode)
+            else
             {
-                if (newNode != null)
+                node = children[i]?.SelectSingleNode(nodeType);
+
+                if (node != null)
                 {
-                    //Si a�n no ten�a hijos se inicializa la colecci�n
-                    if (children == null)
-                        children = new RtfNodeCollection();
-
-                    if (index >= 0 && index <= children.Count)
-                    {
-                        //Se asigna como nodo padre el nodo actual
-                        newNode.parent = this;
-
-                        //Se actualizan las propiedades Root y Tree del nuevo nodo y sus posibles hijos
-                        updateNodeRoot(newNode);
-
-                        //Se a�ade el nuevo nodo al final de la lista de nodos hijo
-                        children.Insert(index, newNode);
-                    }
+                    found = true;
                 }
             }
 
-            /// <summary>
-            /// Elimina un nodo de la lista de hijos.
-            /// </summary>
-            /// <param name="index">Indice del nodo a eliminar.</param>
-            public void RemoveChild(int index)
+            i++;
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Returns the first node in the tree, starting from the current node, whose keyword is the one given as a parameter.
+    /// </summary>
+    /// <param name="keyword">Keyword searched.</param>
+    /// <returns>First node of the tree, starting from the current node, whose keyword is the one indicated as a parameter.</returns>
+    public RtfTreeNode? SelectSingleNode(string keyword)
+    {
+        var i = 0;
+        var found = false;
+        RtfTreeNode? node = null;
+
+        if (children == null) return node;
+        while (i < children.Count && !found)
+        {
+            if (children[i]?.NodeKey == keyword)
             {
-                //Si el nodo actual tiene hijos
-                if (children != null)
+                node = children[i];
+                found = true;
+            }
+            else
+            {
+                node = children[i]?.SelectSingleNode(keyword);
+
+                if (node != null)
                 {
-                    if (index >= 0 && index < children.Count)
-                    {
-                        //Se elimina el i-�simo hijo
-                        children.RemoveAt(index);
-                    }
+                    found = true;
                 }
             }
 
-            /// <summary>
-            /// Elimina un nodo de la lista de hijos.
-            /// </summary>
-            /// <param name="node">Nodo a eliminar.</param>
-            public void RemoveChild(RtfTreeNode node)
-            {
-                //Si el nodo actual tiene hijos
-                if (children != null)
-                {
-                    //Se busca el nodo a eliminar
-                    int index = children.IndexOf(node);
+            i++;
+        }
 
-                    //Si lo encontramos
-                    if (index != -1)
-                    {
-                        //Se elimina el i-�simo hijo
-                        children.RemoveAt(index);
-                    }
+        return node;
+    }
+
+    /// <summary>
+    /// Returns the first group node in the tree, starting from the current node, whose first keyword is the one given as a parameter.
+    /// </summary>
+    /// <param name="keyword">Keyword searched.</param>
+    /// <param name="ignoreSpecial">If enabled, '\*' control nodes before some keywords will be ignored.</param>
+    /// <returns>First group node of the tree, starting from the current node, whose first keyword is the one indicated as a parameter</returns>
+    public RtfTreeNode? SelectSingleGroup(string keyword, bool ignoreSpecial = false)
+    {
+        var i = 0;
+        var found = false;
+        RtfTreeNode? node = null;
+
+        if (children == null) return node;
+        
+        while (i < children.Count && !found)
+        {
+            if (children[i]?.NodeType == RtfNodeType.Group && children[i]?.HasChildNodes() == true &&
+                (
+                    (children[i]?.FirstChild?.NodeKey == keyword) ||
+                    (ignoreSpecial && children[i]?.ChildNodes?[0]?.NodeKey == "*" && children[i]?.ChildNodes?[1]?.NodeKey == keyword))
+               )
+            {
+                node = children[i];
+                found = true;
+            }
+            else
+            {
+                node = children[i]?.SelectSingleGroup(keyword, ignoreSpecial);
+
+                if (node != null)
+                {
+                    found = true;
                 }
             }
 
-            /// <summary>
-            /// Realiza una copia exacta del nodo actual.
-            /// </summary>
-            /// <returns>Devuelve una copia exacta del nodo actual.</returns>
-            public RtfTreeNode CloneNode()
+            i++;
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Returns the first node in the tree, starting from the current node, whose keyword and parameter are the ones given as parameter.
+    /// </summary>
+    /// <param name="keyword">Keyword searched.</param>
+    /// <param name="parameter">Parameter searched.</param>
+    /// <returns>First node of the tree, starting from the current node, whose keyword and parameter are the ones given as parameter.</returns>
+    public RtfTreeNode? SelectSingleNode(string keyword, int parameter)
+    {
+        var i = 0;
+        var found = false;
+        RtfTreeNode? node = null;
+
+        if (children == null) return node;
+        
+        while (i < children.Count && !found)
+        {
+            if (children[i]?.NodeKey == keyword && children[i]?.Parameter == parameter)
             {
-                RtfTreeNode clon = new RtfTreeNode();
+                node = children[i];
+                found = true;
+            }
+            else
+            {
+                node = children[i]?.SelectSingleNode(keyword, parameter);
 
-                clon.key = key;
-                clon.hasParam = hasParam;
-                clon.param = param;
-                clon.parent = null;
-                clon.root = null;
-                clon.tree = null;
-                clon.type = type;
-
-                //Se clonan tambi�n cada uno de los hijos
-                clon.children = null;
-
-                if (children != null)
+                if (node != null)
                 {
-                    clon.children = new RtfNodeCollection();
-
-                    foreach (RtfTreeNode child in children)
-                    {
-                        RtfTreeNode childclon = child.CloneNode();
-                        childclon.parent = clon;
-
-                        clon.children.Add(childclon);
-                    }
-                }
-
-                return clon;
-            }
-
-            /// <summary>
-            /// Indica si el nodo actual tiene nodos hijos.
-            /// </summary>
-            /// <returns>Devuelve true si el nodo actual tiene alg�n nodo hijo.</returns>
-            public bool HasChildNodes()
-            {
-                bool res = false;
-
-                if (children != null && children.Count > 0)
-                    res = true;
-
-                return res;
-            }
-
-            /// <summary>
-            /// Devuelve el primer nodo de la lista de nodos hijos del nodo actual cuya palabra clave es la indicada como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Primer nodo de la lista de nodos hijos del nodo actual cuya palabra clave es la indicada como par�metro.</returns>
-            public RtfTreeNode SelectSingleChildNode(string keyword)
-            {
-                int i = 0;
-                bool found = false;
-                RtfTreeNode node = null;
-
-                if (children != null)
-                {
-                    while (i < children.Count && !found)
-                    {
-                        if (children[i].key == keyword)
-                        {
-                            node = children[i];
-                            found = true;
-                        }
-
-                        i++;
-                    }
-                }
-
-                return node;
-            }
-
-            /// <summary>
-            /// Devuelve el primer nodo de la lista de nodos hijos del nodo actual cuyo tipo es el indicado como par�metro.
-            /// </summary>
-            /// <param name="nodeType">Tipo de nodo buscado.</param>
-            /// <returns>Primer nodo de la lista de nodos hijos del nodo actual cuyo tipo es el indicado como par�metro.</returns>
-            public RtfTreeNode SelectSingleChildNode(RtfNodeType nodeType)
-            {
-                int i = 0;
-                bool found = false;
-                RtfTreeNode node = null;
-
-                if (children != null)
-                {
-                    while (i < children.Count && !found)
-                    {
-                        if (children[i].type == nodeType)
-                        {
-                            node = children[i];
-                            found = true;
-                        }
-
-                        i++;
-                    }
-                }
-
-                return node;
-            }
-
-            /// <summary>
-            /// Devuelve el primer nodo de la lista de nodos hijos del nodo actual cuya palabra clave y par�metro son los indicados como par�metros.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="param">Par�metro buscado.</param>
-            /// <returns>Primer nodo de la lista de nodos hijos del nodo actual cuya palabra clave y par�metro son los indicados como par�metros.</returns>
-            public RtfTreeNode SelectSingleChildNode(string keyword, int param)
-            {
-                int i = 0;
-                bool found = false;
-                RtfTreeNode node = null;
-
-                if (children != null)
-                {
-                    while (i < children.Count && !found)
-                    {
-                        if (children[i].key == keyword && children[i].param == param)
-                        {
-                            node = children[i];
-                            found = true;
-                        }
-
-                        i++;
-                    }
-                }
-
-                return node;
-            }
-
-            /// <summary>
-            /// Devuelve el primer nodo grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Primer nodo grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como par�metro.</returns>
-            public RtfTreeNode SelectSingleChildGroup(string keyword)
-            {
-                return SelectSingleChildGroup(keyword, false);
-            }
-
-            /// <summary>
-            /// Devuelve el primer nodo grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="ignoreSpecial">Si est� activo se ignorar�n los nodos de control '\*' previos a algunas palabras clave.</param>
-            /// <returns>Primer nodo grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como par�metro.</returns>
-            public RtfTreeNode SelectSingleChildGroup(string keyword, bool ignoreSpecial)
-            {
-                int i = 0;
-                bool found = false;
-                RtfTreeNode node = null;
-
-                if (children != null)
-                {
-                    while (i < children.Count && !found)
-                    {
-                        if (children[i].NodeType == RtfNodeType.Group && children[i].HasChildNodes() &&
-                            (
-                             (children[i].FirstChild.NodeKey == keyword) ||
-                             (ignoreSpecial && children[i].ChildNodes[0].NodeKey == "*" && children[i].ChildNodes[1].NodeKey == keyword))
-                            )
-                        {
-                            node = children[i];
-                            found = true;
-                        }
-
-                        i++;
-                    }
-                }
-
-                return node;
-            }
-
-            /// <summary>
-            /// Devuelve el primer nodo del �rbol, a partir del nodo actual, cuyo tipo es el indicado como par�metro.
-            /// </summary>
-            /// <param name="nodeType">Tipo del nodo buscado.</param>
-            /// <returns>Primer nodo del �rbol, a partir del nodo actual, cuyo tipo es el indicado como par�metro.</returns>
-            public RtfTreeNode SelectSingleNode(RtfNodeType nodeType)
-            {
-                int i = 0;
-                bool found = false;
-                RtfTreeNode node = null;
-
-                if (children != null)
-                {
-                    while (i < children.Count && !found)
-                    {
-                        if (children[i].type == nodeType)
-                        {
-                            node = children[i];
-                            found = true;
-                        }
-                        else
-                        {
-                            node = children[i].SelectSingleNode(nodeType);
-
-                            if (node != null)
-                            {
-                                found = true;
-                            }
-                        }
-
-                        i++;
-                    }
-                }
-
-                return node;
-            }
-
-            /// <summary>
-            /// Devuelve el primer nodo del �rbol, a partir del nodo actual, cuya palabra clave es la indicada como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Primer nodo del �rbol, a partir del nodo actual, cuya palabra clave es la indicada como par�metro.</returns>
-            public RtfTreeNode SelectSingleNode(string keyword)
-            {
-                int i = 0;
-                bool found = false;
-                RtfTreeNode node = null;
-
-                if (children != null)
-                {
-                    while (i < children.Count && !found)
-                    {
-                        if (children[i].key == keyword)
-                        {
-                            node = children[i];
-                            found = true;
-                        }
-                        else
-                        {
-                            node = children[i].SelectSingleNode(keyword);
-
-                            if (node != null)
-                            {
-                                found = true;
-                            }
-                        }
-
-                        i++;
-                    }
-                }
-
-                return node;
-            }
-
-            /// <summary>
-            /// Devuelve el primer nodo grupo del �rbol, a partir del nodo actual, cuya primera palabra clave es la indicada como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Primer nodo grupo del �rbol, a partir del nodo actual, cuya primera palabra clave es la indicada como par�metro.</returns>
-            public RtfTreeNode SelectSingleGroup(string keyword)
-            {
-                return SelectSingleGroup(keyword, false);
-            }
-
-            /// <summary>
-            /// Devuelve el primer nodo grupo del �rbol, a partir del nodo actual, cuya primera palabra clave es la indicada como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="ignoreSpecial">Si est� activo se ignorar�n los nodos de control '\*' previos a algunas palabras clave.</param>
-            /// <returns>Primer nodo grupo del �rbol, a partir del nodo actual, cuya primera palabra clave es la indicada como par�metro.</returns>
-            public RtfTreeNode SelectSingleGroup(string keyword, bool ignoreSpecial)
-            {
-                int i = 0;
-                bool found = false;
-                RtfTreeNode node = null;
-
-                if (children != null)
-                {
-                    while (i < children.Count && !found)
-                    {
-                        if (children[i].NodeType == RtfNodeType.Group && children[i].HasChildNodes() &&
-                            (
-                             (children[i].FirstChild.NodeKey == keyword) ||
-                             (ignoreSpecial && children[i].ChildNodes[0].NodeKey == "*" && children[i].ChildNodes[1].NodeKey == keyword))
-                            )
-                        {
-                            node = children[i];
-                            found = true;
-                        }
-                        else
-                        {
-                            node = children[i].SelectSingleGroup(keyword, ignoreSpecial);
-
-                            if (node != null)
-                            {
-                                found = true;
-                            }
-                        }
-
-                        i++;
-                    }
-                }
-
-                return node;
-            }
-
-            /// <summary>
-            /// Devuelve el primer nodo del �rbol, a partir del nodo actual, cuya palabra clave y par�metro son los indicados como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="param">Par�metro buscado.</param>
-            /// <returns>Primer nodo del �rbol, a partir del nodo actual, cuya palabra clave y par�metro son ls indicados como par�metro.</returns>
-            public RtfTreeNode SelectSingleNode(string keyword, int param)
-            {
-                int i = 0;
-                bool found = false;
-                RtfTreeNode node = null;
-
-                if (children != null)
-                {
-                    while (i < children.Count && !found)
-                    {
-                        if (children[i].key == keyword && children[i].param == param)
-                        {
-                            node = children[i];
-                            found = true;
-                        }
-                        else
-                        {
-                            node = children[i].SelectSingleNode(keyword, param);
-
-                            if (node != null)
-                            {
-                                found = true;
-                            }
-                        }
-
-                        i++;
-                    }
-                }
-
-                return node;
-            }
-
-            /// <summary>
-            /// Devuelve todos los nodos, a partir del nodo actual, cuya palabra clave es la indicada como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Colecci�n de nodos, a partir del nodo actual, cuya palabra clave es la indicada como par�metro.</returns>
-            public RtfNodeCollection SelectNodes(string keyword)
-            {
-                RtfNodeCollection nodes = new RtfNodeCollection();
-
-                if (children != null)
-                {
-                    foreach (RtfTreeNode node in children)
-                    {
-                        if (node.key == keyword)
-                        {
-                            nodes.Add(node);
-                        }
-
-                        nodes.AddRange(node.SelectNodes(keyword));
-                    }
-                }
-
-                return nodes;
-            }
-
-            /// <summary>
-            /// Devuelve todos los nodos grupo, a partir del nodo actual, cuya primera palabra clave es la indicada como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Colecci�n de nodos grupo, a partir del nodo actual, cuya primera palabra clave es la indicada como par�metro.</returns>
-            public RtfNodeCollection SelectGroups(string keyword)
-            {
-                return SelectGroups(keyword, false);
-            }
-
-            /// <summary>
-            /// Devuelve todos los nodos grupo, a partir del nodo actual, cuya primera palabra clave es la indicada como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="ignoreSpecial">Si est� activo se ignorar�n los nodos de control '\*' previos a algunas palabras clave.</param>
-            /// <returns>Colecci�n de nodos grupo, a partir del nodo actual, cuya primera palabra clave es la indicada como par�metro.</returns>
-            public RtfNodeCollection SelectGroups(string keyword, bool ignoreSpecial)
-            {
-                RtfNodeCollection nodes = new RtfNodeCollection();
-
-                if (children != null)
-                {
-                    foreach (RtfTreeNode node in children)
-                    {
-                        if (node.NodeType == RtfNodeType.Group && node.HasChildNodes() &&
-                            (
-                             (node.FirstChild.NodeKey == keyword) ||
-                             (ignoreSpecial && node.ChildNodes[0].NodeKey == "*" && node.ChildNodes[1].NodeKey == keyword))
-                            )
-                        {
-                            nodes.Add(node);
-                        }
-
-                        nodes.AddRange(node.SelectGroups(keyword, ignoreSpecial));
-                    }
-                }
-
-                return nodes;
-            }
-
-            /// <summary>
-            /// Devuelve todos los nodos, a partir del nodo actual, cuyo tipo es el indicado como par�metro.
-            /// </summary>
-            /// <param name="nodeType">Tipo del nodo buscado.</param>
-            /// <returns>Colecci�n de nodos, a partir del nodo actual, cuyo tipo es la indicado como par�metro.</returns>
-            public RtfNodeCollection SelectNodes(RtfNodeType nodeType)
-            {
-                RtfNodeCollection nodes = new RtfNodeCollection();
-
-                if (children != null)
-                {
-                    foreach (RtfTreeNode node in children)
-                    {
-                        if (node.type == nodeType)
-                        {
-                            nodes.Add(node);
-                        }
-
-                        nodes.AddRange(node.SelectNodes(nodeType));
-                    }
-                }
-
-                return nodes;
-            }
-
-            /// <summary>
-            /// Devuelve todos los nodos, a partir del nodo actual, cuya palabra clave y par�metro son los indicados como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="param">Par�metro buscado.</param>
-            /// <returns>Colecci�n de nodos, a partir del nodo actual, cuya palabra clave y par�metro son los indicados como par�metro.</returns>
-            public RtfNodeCollection SelectNodes(string keyword, int param)
-            {
-                RtfNodeCollection nodes = new RtfNodeCollection();
-
-                if (children != null)
-                {
-                    foreach (RtfTreeNode node in children)
-                    {
-                        if (node.key == keyword && node.param == param)
-                        {
-                            nodes.Add(node);
-                        }
-
-                        nodes.AddRange(node.SelectNodes(keyword, param));
-                    }
-                }
-
-                return nodes;
-            }
-
-            /// <summary>
-            /// Devuelve todos los nodos de la lista de nodos hijos del nodo actual cuya palabra clave es la indicada como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Colecci�n de nodos de la lista de nodos hijos del nodo actual cuya palabra clave es la indicada como par�metro.</returns>
-            public RtfNodeCollection SelectChildNodes(string keyword)
-            {
-                RtfNodeCollection nodes = new RtfNodeCollection();
-
-                if (children != null)
-                {
-                    foreach (RtfTreeNode node in children)
-                    {
-                        if (node.key == keyword)
-                        {
-                            nodes.Add(node);
-                        }
-                    }
-                }
-
-                return nodes;
-            }
-
-            /// <summary>
-            /// Devuelve todos los nodos grupos de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Colecci�n de nodos grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como par�metro.</returns>
-            public RtfNodeCollection SelectChildGroups(string keyword)
-            {
-                return SelectChildGroups(keyword, false);
-            }
-
-            /// <summary>
-            /// Devuelve todos los nodos grupos de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="ignoreSpecial">Si est� activo se ignorar�n los nodos de control '\*' previos a algunas palabras clave.</param>
-            /// <returns>Colecci�n de nodos grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como par�metro.</returns>
-            public RtfNodeCollection SelectChildGroups(string keyword, bool ignoreSpecial)
-            {
-                RtfNodeCollection nodes = new RtfNodeCollection();
-
-                if (children != null)
-                {
-                    foreach (RtfTreeNode node in children)
-                    {
-                        if (node.NodeType == RtfNodeType.Group && node.HasChildNodes() &&
-                            (
-                             (node.FirstChild.NodeKey == keyword) ||
-                             (ignoreSpecial && node.ChildNodes[0].NodeKey == "*" && node.ChildNodes[1].NodeKey == keyword))
-                            )
-                        {
-                            nodes.Add(node);
-                        }
-                    }
-                }
-
-                return nodes;
-            }
-
-            /// <summary>
-            /// Devuelve todos los nodos de la lista de nodos hijos del nodo actual cuyo tipo es el indicado como par�metro.
-            /// </summary>
-            /// <param name="nodeType">Tipo del nodo buscado.</param>
-            /// <returns>Colecci�n de nodos de la lista de nodos hijos del nodo actual cuyo tipo es el indicado como par�metro.</returns>
-            public RtfNodeCollection SelectChildNodes(RtfNodeType nodeType)
-            {
-                RtfNodeCollection nodes = new RtfNodeCollection();
-
-                if (children != null)
-                {
-                    foreach (RtfTreeNode node in children)
-                    {
-                        if (node.type == nodeType)
-                        {
-                            nodes.Add(node);
-                        }
-                    }
-                }
-
-                return nodes;
-            }
-
-            /// <summary>
-            /// Devuelve todos los nodos de la lista de nodos hijos del nodo actual cuya palabra clave y par�metro son los indicados como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="param">Par�metro buscado.</param>
-            /// <returns>Colecci�n de nodos de la lista de nodos hijos del nodo actual cuya palabra clave y par�metro son los indicados como par�metro.</returns>
-            public RtfNodeCollection SelectChildNodes(string keyword, int param)
-            {
-                RtfNodeCollection nodes = new RtfNodeCollection();
-
-                if (children != null)
-                {
-                    foreach (RtfTreeNode node in children)
-                    {
-                        if (node.key == keyword && node.param == param)
-                        {
-                            nodes.Add(node);
-                        }
-                    }
-                }
-
-                return nodes;
-            }
-
-            /// <summary>
-            /// Devuelve el siguiente nodo hermano del actual cuya palabra clave es la indicada como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Primer nodo hermano del actual cuya palabra clave es la indicada como par�metro.</returns>
-            public RtfTreeNode SelectSibling(string keyword)
-            {
-                RtfTreeNode node = null;
-                RtfTreeNode par = parent;
-
-                if (par != null)
-                {
-                    int curInd = par.ChildNodes.IndexOf(this);
-
-                    int i = curInd + 1;
-                    bool found = false;
-
-                    while (i < par.children.Count && !found)
-                    {
-                        if (par.children[i].key == keyword)
-                        {
-                            node = par.children[i];
-                            found = true;
-                        }
-
-                        i++;
-                    }
-                }
-
-                return node;
-            }
-
-            /// <summary>
-            /// Devuelve el siguiente nodo hermano del actual cuyo tipo es el indicado como par�metro.
-            /// </summary>
-            /// <param name="nodeType">Tpo de nodo buscado.</param>
-            /// <returns>Primer nodo hermano del actual cuyo tipo es el indicado como par�metro.</returns>
-            public RtfTreeNode SelectSibling(RtfNodeType nodeType)
-            {
-                RtfTreeNode node = null;
-                RtfTreeNode par = parent;
-
-                if (par != null)
-                {
-                    int curInd = par.ChildNodes.IndexOf(this);
-
-                    int i = curInd + 1;
-                    bool found = false;
-
-                    while (i < par.children.Count && !found)
-                    {
-                        if (par.children[i].type == nodeType)
-                        {
-                            node = par.children[i];
-                            found = true;
-                        }
-
-                        i++;
-                    }
-                }
-
-                return node;
-            }
-
-            /// <summary>
-            /// Devuelve el siguiente nodo hermano del actual cuya palabra clave y par�metro son los indicados como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="param">Par�metro buscado.</param>
-            /// <returns>Primer nodo hermano del actual cuya palabra clave y par�metro son los indicados como par�metro.</returns>
-            public RtfTreeNode SelectSibling(string keyword, int param)
-            {
-                RtfTreeNode node = null;
-                RtfTreeNode par = parent;
-
-                if (par != null)
-                {
-                    int curInd = par.ChildNodes.IndexOf(this);
-
-                    int i = curInd + 1;
-                    bool found = false;
-
-                    while (i < par.children.Count && !found)
-                    {
-                        if (par.children[i].key == keyword && par.children[i].param == param)
-                        {
-                            node = par.children[i];
-                            found = true;
-                        }
-
-                        i++;
-                    }
-                }
-
-                return node;
-            }
-
-            /// <summary>
-            /// Busca todos los nodos de tipo Texto que contengan el texto buscado.
-            /// </summary>
-            /// <param name="text">Texto buscado en el documento.</param>
-            /// <returns>Lista de nodos, a partir del actual, que contienen el texto buscado.</returns>
-            public RtfNodeCollection FindText(string text)
-            {
-                RtfNodeCollection list = new RtfNodeCollection();
-
-                //Si el nodo actual tiene hijos
-                if (children != null)
-                {
-                    foreach (RtfTreeNode node in children)
-                    {
-                        if (node.NodeType == RtfNodeType.Text && node.NodeKey.IndexOf(text) != -1)
-                            list.Add(node);
-                        else if(node.NodeType == RtfNodeType.Group)
-                            list.AddRange(node.FindText(text));
-                    }
-                }
-
-                return list;
-            }
-
-            /// <summary>
-            /// Busca y reemplaza un texto determinado en todos los nodos de tipo Texto a partir del actual.
-            /// </summary>
-            /// <param name="oldValue">Texto buscado.</param>
-            /// <param name="newValue">Texto de reemplazo.</param>
-            public void ReplaceText(string oldValue, string newValue)
-            {
-                //Si el nodo actual tiene hijos
-                if (children != null)
-                {
-                    foreach (RtfTreeNode node in children)
-                    {
-                        if (node.NodeType == RtfNodeType.Text)
-                            node.NodeKey = node.NodeKey.Replace(oldValue, newValue);
-                        else if (node.NodeType == RtfNodeType.Group)
-                            node.ReplaceText(oldValue, newValue);
-                    }
+                    found = true;
                 }
             }
 
-			/// <summary>
-			/// Devuelve una representaci�n del nodo donde se indica su tipo, clave, indicador de par�metro y valor de par�metro
-			/// </summary>
-			/// <returns>Cadena de caracteres del tipo [TIPO, CLAVE, IND_PARAMETRO, VAL_PARAMETRO]</returns>
-			public override string ToString()
-			{
-				return "[" + type + ", " + key + ", " + hasParam + ", " + param + "]";
-			}
+            i++;
+        }
 
-            #endregion
+        return node;
+    }
 
-            #region Metodos Privados
+    /// <summary>
+    /// Returns all nodes, starting from the current node, whose keyword is the one given as a parameter.
+    /// </summary>
+    /// <param name="keyword">Keyword searched.</param>
+    /// <returns>Collection of nodes, starting from the current node, whose keyword is the one given as a parameter.</returns>
+    public RtfNodeCollection SelectNodes(string keyword)
+    {
+        var nodes = new RtfNodeCollection();
 
-            /// <summary>
-            /// Decodifica un caracter especial indicado por su c�digo decimal
-            /// </summary>
-            /// <param name="code">C�digo del caracter especial (\')</param>
-            /// <param name="enc">Codificaci�n utilizada para decodificar el caracter especial.</param>
-            /// <returns>Caracter especial decodificado.</returns>
-            private string DecodeControlChar(int code, Encoding enc)
+        if (children == null) return nodes;
+        
+        foreach (RtfTreeNode node in children)
+        {
+            if (node.NodeKey == keyword)
             {
-                //Contributed by Jan Stuchl�k
-                return enc.GetString(new byte[] { (byte)code });
+                nodes.Add(node);
             }
 
-            /// <summary>
-            /// Obtiene el Texto RTF a partir de la representaci�n en �rbol del nodo actual.
-            /// </summary>
-            /// <returns>Texto RTF del nodo.</returns>
-            private string getRtf()
+            nodes.AddRange(node.SelectNodes(keyword));
+        }
+
+        return nodes;
+    }
+
+    /// <summary>
+    /// Returns all group nodes, starting from the current node, whose first keyword is the one given as a parameter.
+    /// </summary>
+    /// <param name="keyword">Keyword searched.</param>
+    /// <param name="ignoreSpecial">If enabled, '\*' control nodes before some keywords will be ignored.</param>
+    /// <returns>Collection of nodes, starting from the current node, whose keyword is the one given as a parameter.</returns>
+    public RtfNodeCollection SelectGroups(string keyword, bool ignoreSpecial = false)
+    {
+        var nodes = new RtfNodeCollection();
+
+        if (children == null) return nodes;
+        
+        foreach (RtfTreeNode node in children)
+        {
+            if (node.NodeType == RtfNodeType.Group && node.HasChildNodes() &&
+                (
+                    (node.FirstChild?.NodeKey == keyword) ||
+                    (ignoreSpecial && node.ChildNodes?[0]?.NodeKey == "*" && node.ChildNodes[1]?.NodeKey == keyword))
+               )
             {
-                string res = "";
-
-                Encoding enc = tree.GetEncoding();
-
-                res = getRtfInm(this, null, enc);
-
-                return res;
+                nodes.Add(node);
             }
 
-            /// <summary>
-            /// M�todo auxiliar para obtener el Texto RTF del nodo actual a partir de su representaci�n en �rbol.
-            /// </summary>
-            /// <param name="curNode">Nodo actual del �rbol.</param>
-            /// <param name="prevNode">Nodo anterior tratado.</param>
-            /// <param name="enc">Codificaci�n del documento.</param>
-            /// <returns>Texto en formato RTF del nodo.</returns>
-            private string getRtfInm(RtfTreeNode curNode, RtfTreeNode prevNode, Encoding enc)
-            {
-                StringBuilder res = new StringBuilder("");
+            nodes.AddRange(node.SelectGroups(keyword, ignoreSpecial));
+        }
 
-                if (curNode.NodeType == RtfNodeType.Root)
-                    res.Append("");
-                else if (curNode.NodeType == RtfNodeType.Group)
-                    res.Append("{");
+        return nodes;
+    }
+
+    /// <summary>
+    /// Returns all nodes, starting from the current node, whose type is the one specified as a parameter.
+    /// </summary>
+    /// <param name="nodeType">Type of node searched.</param>
+    /// <returns>Collection of nodes, starting from the current node, whose type is the one indicated as a parameter.</returns>
+    public RtfNodeCollection SelectNodes(RtfNodeType nodeType)
+    {
+        var nodes = new RtfNodeCollection();
+
+        if (children == null) return nodes;
+        
+        foreach (RtfTreeNode node in children)
+        {
+            if (node.NodeType == nodeType)
+            {
+                nodes.Add(node);
+            }
+
+            nodes.AddRange(node.SelectNodes(nodeType));
+        }
+
+        return nodes;
+    }
+
+    /// <summary>
+    /// Returns all nodes, starting from the current node, whose keyword and parameter are the given parameter.
+    /// </summary>
+    /// <param name="keyword">Keyword searched.</param>
+    /// <param name="parameter">Parameter searched.</param>
+    /// <returns>Collection of nodes, starting from the current node, whose keyword and parameter are those indicated as parameter.</returns>
+    public RtfNodeCollection SelectNodes(string keyword, int parameter)
+    {
+        var nodes = new RtfNodeCollection();
+
+        if (children == null) return nodes;
+        
+        foreach (RtfTreeNode node in children)
+        {
+            if (node.NodeKey == keyword && node.Parameter == parameter)
+            {
+                nodes.Add(node);
+            }
+
+            nodes.AddRange(node.SelectNodes(keyword, parameter));
+        }
+
+        return nodes;
+    }
+
+    /// <summary>
+    /// Returns all nodes in the list of child nodes of the current node whose keyword is the one given as a parameter.
+    /// </summary>
+    /// <param name="keyword">Keyword searched.</param>
+    /// <returns>Collection of nodes from the list of child nodes of the current node whose keyword is the one given as a parameter.</returns>
+    public RtfNodeCollection SelectChildNodes(string keyword)
+    {
+        var nodes = new RtfNodeCollection();
+
+        if (children == null) return nodes;
+        
+        foreach (RtfTreeNode node in children)
+        {
+            if (node.NodeKey == keyword)
+            {
+                nodes.Add(node);
+            }
+        }
+
+        return nodes;
+    }
+
+    /// <summary>
+    /// Returns all group nodes from the list of child nodes of the current node whose first keyword is the one given as a parameter.
+    /// </summary>
+    /// <param name="keyword">Keyword searched.</param>
+    /// <param name="ignoreSpecial">If enabled, '\*' control nodes before some keywords will be ignored.</param>
+    /// <returns>Collection of nodes group the list of child nodes of the current node whose first keyword is the one given as a parameter.</returns>
+    public RtfNodeCollection SelectChildGroups(string keyword, bool ignoreSpecial = false)
+    {
+        var nodes = new RtfNodeCollection();
+
+        if (children == null) return nodes;
+        
+        foreach (RtfTreeNode node in children)
+        {
+            if (node.NodeType == RtfNodeType.Group && node.HasChildNodes() &&
+                (
+                    (node.FirstChild?.NodeKey == keyword) ||
+                    (ignoreSpecial && node.ChildNodes?[0]?.NodeKey == "*" && node.ChildNodes[1]?.NodeKey == keyword))
+               )
+            {
+                nodes.Add(node);
+            }
+        }
+
+        return nodes;
+    }
+
+    /// <summary>
+    /// Returns all nodes in the list of child nodes of the current node whose type is the one specified as a parameter.
+    /// </summary>
+    /// <param name="nodeType">Type of node searched.</param>
+    /// <returns>Collection of nodes from the list of child nodes of the current node whose type is the one specified as a parameter.</returns>
+    public RtfNodeCollection SelectChildNodes(RtfNodeType nodeType)
+    {
+        var nodes = new RtfNodeCollection();
+
+        if (children == null) return nodes;
+        
+        foreach (RtfTreeNode node in children)
+        {
+            if (node.NodeType == nodeType)
+            {
+                nodes.Add(node);
+            }
+        }
+
+        return nodes;
+    }
+
+    /// <summary>
+    /// Returns all nodes in the child node list of the current node whose keyword and parameter are the given parameter.
+    /// </summary>
+    /// <param name="keyword">Keyword searched.</param>
+    /// <param name="parameter">Parameter searched.</param>
+    /// <returns>Collection of nodes from the list of child nodes of the current node whose keyword and parameter are those given as parameter.</returns>
+    public RtfNodeCollection SelectChildNodes(string keyword, int parameter)
+    {
+        var nodes = new RtfNodeCollection();
+
+        if (children == null) return nodes;
+        
+        foreach (RtfTreeNode node in children)
+        {
+            if (node.NodeKey == keyword && node.Parameter == parameter)
+            {
+                nodes.Add(node);
+            }
+        }
+
+        return nodes;
+    }
+
+    /// <summary>
+    /// Returns the next sibling node of the current node whose keyword is the one given as a parameter.
+    /// </summary>
+    /// <param name="keyword">Keyword searched.</param>
+    /// <returns>First sibling node of the current one whose keyword is the one given as a parameter.</returns>
+    public RtfTreeNode? SelectSibling(string keyword)
+    {
+        RtfTreeNode? node = null;
+        var par = ParentNode;
+
+        if (par == null) return node;
+
+        if (par.ChildNodes == null) return node;
+        
+        var curInd = par.ChildNodes.IndexOf(this);
+
+        var i = curInd + 1;
+        var found = false;
+
+        while (par.children != null && i < par.children.Count && !found)
+        {
+            if (par.children[i]?.NodeKey == keyword)
+            {
+                node = par.children[i];
+                found = true;
+            }
+
+            i++;
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Returns the next sibling node of the current node whose type is the one specified as a parameter.
+    /// </summary>
+    /// <param name="nodeType">Type of node searched.</param>
+    /// <returns>First sibling node of the current one whose type is the one indicated as a parameter.</returns>
+    public RtfTreeNode? SelectSibling(RtfNodeType nodeType)
+    {
+        RtfTreeNode? node = null;
+        var par = ParentNode;
+
+        if (par == null) return node;
+        if (par.ChildNodes == null) return node;
+        
+        var curInd = par.ChildNodes.IndexOf(this);
+
+        var i = curInd + 1;
+        var found = false;
+
+        while (par.children != null && i < par.children.Count && !found)
+        {
+            if (par.children[i]?.NodeType == nodeType)
+            {
+                node = par.children[i];
+                found = true;
+            }
+
+            i++;
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Returns the next sibling node of the current node whose keyword and parameter are the given parameter.
+    /// </summary>
+    /// <param name="keyword">Keyword searched.</param>
+    /// <param name="parameter">Parameter searched.</param>
+    /// <returns>First sibling node of the current one whose keyword and parameter are those indicated as parameter.</returns>
+    public RtfTreeNode? SelectSibling(string keyword, int parameter)
+    {
+        RtfTreeNode? node = null;
+        var par = ParentNode;
+
+        if (par == null) return node;
+        if (par.ChildNodes == null) return node;
+        
+        var curInd = par.ChildNodes.IndexOf(this);
+
+        var i = curInd + 1;
+        var found = false;
+
+        while (par.children != null && i < par.children.Count && !found)
+        {
+            if (par.children[i]?.NodeKey == keyword && par.children[i]?.Parameter == parameter)
+            {
+                node = par.children[i];
+                found = true;
+            }
+
+            i++;
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Finds all nodes of type Text that contain the searched text.
+    /// </summary>
+    /// <param name="text">Text searched for in the document.</param>
+    /// <returns>List of nodes, starting from the current one, that contain the search text.</returns>
+    public RtfNodeCollection FindText(string text)
+    {
+        var list = new RtfNodeCollection();
+
+        if (children == null) return list;
+        
+        foreach (RtfTreeNode node in children)
+        {
+            if (node.NodeType == RtfNodeType.Text && node.NodeKey.Contains(text))
+                list.Add(node);
+            else if(node.NodeType == RtfNodeType.Group)
+                list.AddRange(node.FindText(text));
+        }
+
+        return list;
+    }
+
+    /// <summary>
+    /// Finds and replaces a given text in all nodes of type Text starting from the current one.
+    /// </summary>
+    /// <param name="oldValue">Text searched for in the document.</param>
+    /// <param name="newValue">Text to replace with.</param>
+    public void ReplaceText(string oldValue, string newValue)
+    {
+        if (children == null) return;
+        
+        foreach (RtfTreeNode node in children)
+        {
+            if (node.NodeType == RtfNodeType.Text)
+                node.NodeKey = node.NodeKey.Replace(oldValue, newValue);
+            else if (node.NodeType == RtfNodeType.Group)
+                node.ReplaceText(oldValue, newValue);
+        }
+    }
+
+    /// <summary>
+    /// Returns a representation of the node where its type, key, parameter indicator and parameter value are indicated
+    /// </summary>
+    /// <returns>Character string of type [TYPE, KEY, IND_PARAMETER, VAL_PARAMETER]</returns>
+    public override string ToString()
+    {
+        return $"[{NodeType}, {NodeKey}, {HasParameter}, {Parameter}]";
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    /// <summary>
+    /// Decodes a special character indicated by its decimal code
+    /// </summary>
+    /// <param name="code">Special character code (\')</param>
+    /// <param name="enc">Encoding used to decode the special character.</param>
+    /// <returns>Decoded special character.</returns>
+    private string DecodeControlChar(int code, Encoding enc)
+    {
+        //Contributed by Jan Stuchlík
+        return enc.GetString(new[] { (byte)code });
+    }
+
+    /// <summary>
+    /// Obtains the RTF Text from the tree representation of the current node.
+    /// </summary>
+    /// <returns>RTF text of the node.</returns>
+    private string getRtf()
+    {
+        var enc = Tree?.GetEncoding();
+
+        return getRtfInm(this, null, enc);
+    }
+
+    /// <summary>
+    /// Helper method to obtain the RTF Text of the current node from its tree representation.
+    /// </summary>
+    /// <param name="curNode">Current node of the tree.</param>
+    /// <param name="prevNode">Previous node.</param>
+    /// <param name="enc">Document encoding.</param>
+    /// <returns>Text in RTF format of the node.</returns>
+    private string getRtfInm(RtfTreeNode curNode, RtfTreeNode? prevNode, Encoding? enc)
+    {
+        var res = new StringBuilder("");
+
+        switch (curNode.NodeType)
+        {
+            case RtfNodeType.Root:
+                res.Append("");
+                break;
+            case RtfNodeType.Group:
+                res.Append('{');
+                break;
+            default:
+            {
+                if (curNode.NodeType is RtfNodeType.Control or RtfNodeType.Keyword)
+                {
+                    res.Append('\\');
+                }
+                else  //curNode.NodeType == RtfNodeType.Text
+                {
+                    if (prevNode is { NodeType: RtfNodeType.Keyword })
+                    {
+                        var code = char.ConvertToUtf32(curNode.NodeKey, 0);
+
+                        if (code is >= 32 and < 128)
+                            res.Append(' ');
+                    }
+                }
+
+                AppendEncoded(res, curNode.NodeKey, enc);
+
+                if (curNode.HasParameter)
+                {
+                    if (curNode.NodeType == RtfNodeType.Keyword)
+                    {
+                        res.Append(Convert.ToString(curNode.Parameter));
+                    }
+                    else if (curNode is { NodeType: RtfNodeType.Control, NodeKey: "\'" })
+                        // If it is a special character like accented vowels
+                    {						
+                        res.Append(GetHex(curNode.Parameter));
+                    }
+                }
+
+                break;
+            }
+        }
+
+        // Child nodes are obtained
+        var childrenLocal = curNode.ChildNodes;
+
+        // If the node has children, the RTF code of the children is obtained.
+        if (childrenLocal != null)
+        {
+            for (var i = 0; i < childrenLocal.Count; i++)
+            {
+                var node = childrenLocal[i];
+                if (node == null) continue;
+
+                if (i > 0)
+                    res.Append(getRtfInm(node, childrenLocal[i - 1], enc));
+                else
+                    res.Append(getRtfInm(node, null, enc));
+            }
+        }
+
+        if (curNode.NodeType == RtfNodeType.Group)
+        {
+            res.Append('}');
+        }
+
+        return res.ToString();
+    }
+
+    /// <summary>
+    /// Concatenates two strings using the document encoding.
+    /// </summary>
+    /// <param name="res">Original text.</param>
+    /// <param name="s">Text to append.</param>
+    /// <param name="enc">Encoding of the document.</param>
+    private void AppendEncoded(StringBuilder res, string s, Encoding? enc)
+    {
+        //Contributed by Jan Stuchlík
+        enc ??= Tree?.GetEncoding() ?? Encoding.Default;
+        
+        for (var i = 0; i < s.Length; i++)
+        {
+            var code = char.ConvertToUtf32(s, i);
+
+            if (code is >= 128 or < 32)
+            {
+                res.Append(@"\'");
+                var bytes = enc.GetBytes([s[i]]);
+                res.Append(GetHex(bytes[0]));
+            }
+            else
+            {
+                if ((s[i] == '{') || (s[i] == '}') || (s[i] == '\\'))
+                {
+                    res.Append('\\');
+                }
+
+                res.Append(s[i]);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the hexadecimal code of an integer.
+    /// </summary>
+    /// <param name="code">Integer number.</param>
+    /// <returns>Hexadecimal code of the integer passed as a parameter.</returns>
+    private string GetHex(int code)
+    {
+        //Contributed by Jan Stuchlík
+
+        var hex = Convert.ToString(code, 16);
+
+        if (hex.Length == 1)
+        {
+            hex = "0" + hex;
+        }
+
+        return hex;
+    }
+
+    /// <summary>
+    /// Updates the Root and Tree properties of a node (and its children) with those of the current node.
+    /// </summary>
+    /// <param name="node">Node to update.</param>
+    private void updateNodeRoot(RtfTreeNode node)
+    {
+        // The root node of the document is assigned
+        node.RootNode = RootNode;
+
+        // The node's owner tree is assigned
+        node.Tree = Tree;
+
+        // If the updated node has children, they are updated as well.
+        if (node.children == null) return;
+        // Children of the current node are updated recursively
+        foreach (RtfTreeNode nod in node.children)
+        {
+            updateNodeRoot(nod);
+        }
+    }
+
+    /// <summary>
+    /// Gets the text contained in the current node.
+    /// </summary>
+    /// <param name="raw">If this parameter is enabled, all text contained in the node will be extracted, regardless of whether it is part of the actual text of the document.</param>
+    /// <param name="ignoreNchars">Ignore next N chars following \uN keyword</param>
+    /// <returns>Text extracted from the node.</returns>
+    private string GetText(bool raw, int ignoreNchars = 1)
+    {
+        var res = new StringBuilder("");
+
+        switch (NodeType)
+        {
+            case RtfNodeType.Group:
+            {
+                var indkw = FirstChild is { NodeKey: "*" } ? 1 : 0;
+
+                if (ChildNodes == null || ChildNodes[indkw] != null && (!raw &&
+                                                             (ChildNodes[indkw]!.NodeKey.Equals("fonttbl") ||
+                                                              ChildNodes[indkw]!.NodeKey.Equals("colortbl") ||
+                                                              ChildNodes[indkw]!.NodeKey.Equals("stylesheet") ||
+                                                              ChildNodes[indkw]!.NodeKey.Equals("generator") ||
+                                                              ChildNodes[indkw]!.NodeKey.Equals("info") ||
+                                                              ChildNodes[indkw]!.NodeKey.Equals("pict") ||
+                                                              ChildNodes[indkw]!.NodeKey.Equals("object") ||
+                                                              ChildNodes[indkw]!.NodeKey.Equals("fldinst")))) return res.ToString();
+                if (ChildNodes != null)
+                {
+                    var uc = ignoreNchars;
+                    foreach (RtfTreeNode node in ChildNodes)
+                    {
+                        res.Append(node.GetText(raw, uc));
+
+                        if (node is { NodeType: RtfNodeType.Keyword, NodeKey: "uc" })
+                            uc = node.Parameter;
+                    }
+                }
+
+                break;
+            }
+            case RtfNodeType.Control when NodeKey == "'":
+                res.Append(DecodeControlChar(Parameter, Tree?.GetEncoding() ?? Encoding.Default));
+                break;
+            case RtfNodeType.Control:
+            {
+                if (NodeKey == "~")  // non-breaking space
+                    res.Append(' ');
+                break;
+            }
+            case RtfNodeType.Text:
+            {
+                var newtext = NodeKey;
+
+                // If the previous element was a Unicode character (\uN) we ignore the following N characters
+                // according to the last tag \ucN
+                if (PreviousNode is { NodeType: RtfNodeType.Keyword, NodeKey: "u" })
+                {
+                    newtext = newtext[ignoreNchars..];
+                }
+
+                res.Append(newtext);
+                break;
+            }
+            case RtfNodeType.Keyword when NodeKey.Equals("par"):
+                res.AppendLine("");
+                break;
+            case RtfNodeType.Keyword when NodeKey.Equals("tab"):
+                res.Append('\t');
+                break;
+            case RtfNodeType.Keyword when NodeKey.Equals("line"):
+                res.AppendLine("");
+                break;
+            case RtfNodeType.Keyword when NodeKey.Equals("lquote"):
+            case RtfNodeType.Keyword when NodeKey.Equals("rquote"):
+            case RtfNodeType.Keyword when NodeKey.Equals("ldblquote"):
+            case RtfNodeType.Keyword when NodeKey.Equals("rdblquote"):
+            case RtfNodeType.Keyword when NodeKey.Equals("emdash"):
+                res.Append('\u0091');
+                break;
+            case RtfNodeType.Keyword:
+            {
+                if (NodeKey.Equals("u"))
+                {
+                    res.Append(char.ConvertFromUtf32(Parameter));
+                }
+
+                break;
+            }
+        }
+
+        return res.ToString();
+    }
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// Returns the root node of the document tree.
+    /// </summary>
+    /// <remarks>
+    /// This is not the root node of the tree, but simply a dummy node of type ROOT from which the rest of the RTF tree branches off.
+    /// It will therefore have only one child node of type GROUP, the real root of the tree.
+    /// </remarks>
+    public RtfTreeNode? RootNode { get; set; }
+
+    /// <summary>
+    /// Returns the parent node of the current node.
+    /// </summary>
+    public RtfTreeNode? ParentNode { get; set; }
+
+    /// <summary>
+    /// Returns the Rtf tree to which the node belongs.
+    /// </summary>
+    public RtfTree? Tree { get; set; }
+
+    /// <summary>
+    /// Returns the type of the current node.
+    /// </summary>
+    public RtfNodeType NodeType { get; set; }
+
+    /// <summary>
+    /// Returns the keyword, control symbol, or text of the current node.
+    /// </summary>
+    public string NodeKey { get; set; }
+
+    /// <summary>
+    /// Indicates whether the current node has a parameter assigned.
+    /// </summary>
+    public bool HasParameter { get; set; }
+
+    /// <summary>
+    /// Returns the parameter assigned to the current node.
+    /// </summary>
+    public int Parameter { get; set; }
+
+    /// <summary>
+    /// Returns the collection of child nodes of the current node.
+    /// </summary>
+    public RtfNodeCollection? ChildNodes
+    {
+        get => children;
+        set
+        {
+            children = value;
+
+            if (children == null) return;
+            foreach (RtfTreeNode node in children)
+            {
+                node.ParentNode = this;
+
+                // The Root and Tree properties of the new node and its possible children are updated
+                updateNodeRoot(node);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns the first child node whose keyword is the one given as a parameter.
+    /// </summary>
+    /// <param name="keyword">Keyword searched.</param>
+    /// <returns>First child node whose keyword is the one specified as a parameter. If it does not exist, null is returned.</returns>
+    public RtfTreeNode? this[string keyword] => SelectSingleChildNode(keyword);
+
+    /// <summary>
+    /// Returns the n-th child of the current node.
+    /// </summary>
+    /// <param name="childIndex">Index of the child node to retrieve.</param>
+    /// <returns>Nth child node of the current node. Returns null if it does not exist.</returns>
+    public RtfTreeNode? this[int childIndex]
+    {
+        get
+        { 
+            RtfTreeNode? res = null;
+
+            if (children != null && childIndex >= 0 && childIndex < children.Count)
+                res = children[childIndex];
+
+            return res;
+        }
+    }
+
+    /// <summary>
+    /// Returns the first child node of the current node.
+    /// </summary>
+    public RtfTreeNode? FirstChild
+    {
+        get
+        {
+            RtfTreeNode? res = null;
+
+            if (children is { Count: > 0 })
+                res = children[0];
+
+            return res;
+        }
+    }
+
+    /// <summary>
+    /// Returns the last child node of the current node.
+    /// </summary>
+    public RtfTreeNode? LastChild
+    {
+        get
+        {
+            RtfTreeNode? res = null;
+
+            return children is { Count: > 0 } ? children[^1] : res;
+        }
+    }
+
+    /// <summary>
+    /// Returns the next sibling node of the current node (Two nodes are siblings if they have the same parent node [ParentNode]).
+    /// </summary>
+    public RtfTreeNode? NextSibling
+    {
+        get
+        {
+            RtfTreeNode? res = null;
+
+            if (ParentNode?.children == null) return res;
+            
+            var currentIndex = ParentNode.children.IndexOf(this);
+
+            if (ParentNode.children.Count > currentIndex + 1)
+                res = ParentNode.children[currentIndex + 1];
+
+            return res;
+        }
+    }
+
+    /// <summary>
+    /// Returns the previous sibling node of the current node (Two nodes are siblings if they have the same parent node [ParentNode]).
+    /// </summary>
+    public RtfTreeNode? PreviousSibling
+    {
+        get
+        {
+            RtfTreeNode? res = null;
+
+            if (ParentNode?.children == null) return res;
+            var currentIndex = ParentNode.children.IndexOf(this);
+
+            if (currentIndex > 0)
+                res = ParentNode.children[currentIndex - 1];
+
+            return res;
+        }
+    }
+
+    /// <summary>
+    /// Returns the next node in the tree.
+    /// </summary>
+    public RtfTreeNode? NextNode
+    {
+        get
+        {
+            RtfTreeNode? res = null;
+
+            if (NodeType == RtfNodeType.Root)
+            {
+                res = FirstChild;
+            }
+            else if (ParentNode is { children: not null })
+            {
+                if (NodeType == RtfNodeType.Group && children is { Count: > 0 })
+                {
+                    res = FirstChild;
+                }
                 else
                 {
-                    if (curNode.NodeType == RtfNodeType.Control ||
-                        curNode.NodeType == RtfNodeType.Keyword)
+                    if (Index < (ParentNode.children.Count - 1))
                     {
-                        res.Append("\\");
-                    }
-                    else  //curNode.NodeType == RtfNodeType.Text
-                    {
-                        if (prevNode != null &&
-                            prevNode.NodeType == RtfNodeType.Keyword)
-                        {
-                            int code = Char.ConvertToUtf32(curNode.NodeKey, 0);
-
-                            if (code >= 32 && code < 128)
-                                res.Append(" ");
-                        }
-                    }
-
-                    AppendEncoded(res, curNode.NodeKey, enc);
-
-                    if (curNode.HasParameter)
-                    {
-                        if (curNode.NodeType == RtfNodeType.Keyword)
-                        {
-                            res.Append(Convert.ToString(curNode.Parameter));
-                        }
-                        else if (curNode.NodeType == RtfNodeType.Control)
-                        {
-                            //Si es un caracter especial como las vocales acentuadas
-                            if (curNode.NodeKey == "\'")
-                            {						
-								res.Append(GetHexa(curNode.Parameter));
-                            }
-                        }
-                    }
-                }
-
-                //Se obtienen los nodos hijos
-                RtfNodeCollection children = curNode.ChildNodes;
-
-                //Si el nodo tiene hijos se obtiene el c�digo RTF de los hijos
-                if (children != null)
-                {
-                    for (int i = 0; i < children.Count; i++)
-                    {
-                        RtfTreeNode node = children[i];
-
-                        if (i > 0)
-                            res.Append(getRtfInm(node, children[i - 1], enc));
-                        else
-                            res.Append(getRtfInm(node, null, enc));
-                    }
-                }
-
-                if (curNode.NodeType == RtfNodeType.Group)
-                {
-                    res.Append("}");
-                }
-
-                return res.ToString();
-            }
-
-            /// <summary>
-            /// Concatena dos cadenas utilizando la codificaci�n del documento.
-            /// </summary>
-            /// <param name="res">Cadena original.</param>
-            /// <param name="s">Cadena a a�adir.</param>
-            /// <param name="enc">Codificaci�n del documento.</param>
-            private void AppendEncoded(StringBuilder res, string s, Encoding enc)
-            {
-                //Contributed by Jan Stuchl�k
-
-                for (int i = 0; i < s.Length; i++)
-                {
-                    int code = Char.ConvertToUtf32(s, i);
-
-                    if (code >= 128 || code < 32)
-                    {
-                        res.Append(@"\'");
-                        byte[] bytes = enc.GetBytes(new char[] { s[i] });
-                        res.Append(GetHexa(bytes[0]));
+                        res = NextSibling;
                     }
                     else
                     {
-                        if ((s[i] == '{') || (s[i] == '}') || (s[i] == '\\'))
-                        {
-                            res.Append(@"\");
-                        }
-
-                        res.Append(s[i]);
+                        res = ParentNode.NextSibling;
                     }
                 }
             }
 
-            /// <summary>
-            /// Obtiene el c�digo hexadecimal de un entero.
-            /// </summary>
-            /// <param name="code">N�mero entero.</param>
-            /// <returns>C�digo hexadecimal del entero pasado como par�metro.</returns>
-            private string GetHexa(int code)
-            {
-                //Contributed by Jan Stuchl�k
-
-                string hexa = Convert.ToString(code, 16);
-
-                if (hexa.Length == 1)
-                {
-                    hexa = "0" + hexa;
-                }
-
-                return hexa;
-            }
-
-            /// <summary>
-            /// Actualiza las propiedades Root y Tree de un nodo (y sus hijos) con las del nodo actual.
-            /// </summary>
-            /// <param name="node">Nodo a actualizar.</param>
-            private void updateNodeRoot(RtfTreeNode node)
-            {
-                //Se asigna el nodo ra�z del documento
-                node.root = root;
-
-                //Se asigna el �rbol propietario del nodo
-                node.tree = tree;
-
-                //Si el nodo actualizado tiene hijos se actualizan tambi�n
-                if (node.children != null)
-                {
-                    //Se actualizan recursivamente los hijos del nodo actual
-                    foreach (RtfTreeNode nod in node.children)
-                    {
-                        updateNodeRoot(nod);
-                    }
-                }
-            }
-
-            /// <summary>
-            /// Obtiene el texto contenido en el nodo actual.
-            /// </summary>
-            /// <param name="raw">Si este par�metro est� activado se extraer� todo el texto contenido en el nodo, independientemente de si �ste
-            /// forma parte del texto real del documento.</param>
-            /// <returns>Texto extraido del nodo.</returns>
-            private string GetText(bool raw)
-            {
-                return GetText(raw, 1);
-            }
-
-            /// <summary>
-            /// Obtiene el texto contenido en el nodo actual.
-            /// </summary>
-            /// <param name="raw">Si este par�metro est� activado se extraer� todo el texto contenido en el nodo, independientemente de si �ste
-            /// forma parte del texto real del documento.</param>
-            /// <param name="ignoreNchars">Ignore next N chars following \uN keyword</param>
-            /// <returns>Texto extraido del nodo.</returns>
-            private string GetText(bool raw, int ignoreNchars)
-            {
-                StringBuilder res = new StringBuilder("");
-
-                if (NodeType == RtfNodeType.Group)
-                {
-                    int indkw = FirstChild.NodeKey.Equals("*") ? 1 : 0;
-
-                    if (raw ||
-                       (!ChildNodes[indkw].NodeKey.Equals("fonttbl") &&
-                        !ChildNodes[indkw].NodeKey.Equals("colortbl") &&
-                        !ChildNodes[indkw].NodeKey.Equals("stylesheet") &&
-                        !ChildNodes[indkw].NodeKey.Equals("generator") &&
-                        !ChildNodes[indkw].NodeKey.Equals("info") &&
-                        !ChildNodes[indkw].NodeKey.Equals("pict") &&
-                        !ChildNodes[indkw].NodeKey.Equals("object") &&
-                        !ChildNodes[indkw].NodeKey.Equals("fldinst")))
-                    {
-                        if (ChildNodes != null)
-                        {
-                            int uc = ignoreNchars;
-                            foreach (RtfTreeNode node in ChildNodes)
-                            {
-                                res.Append(node.GetText(raw, uc));
-
-                                if (node.NodeType == RtfNodeType.Keyword && node.NodeKey.Equals("uc"))
-                                    uc = node.Parameter;
-                            }
-                        }
-                    }
-                }
-                else if (NodeType == RtfNodeType.Control)
-                {
-                    if (NodeKey == "'")
-                        res.Append(DecodeControlChar(Parameter, tree.GetEncoding()));
-                    else if (NodeKey == "~")  // non-breaking space
-                        res.Append(" ");
-                }
-                else if (NodeType == RtfNodeType.Text)
-                {
-                    string newtext = NodeKey;
-
-                    //Si el elemento anterior era un caracater Unicode (\uN) ignoramos los siguientes N caracteres
-                    //seg�n la �ltima etiqueta \ucN
-                    if (PreviousNode.NodeType == RtfNodeType.Keyword &&
-                        PreviousNode.NodeKey.Equals("u"))
-                    {
-                        newtext = newtext.Substring(ignoreNchars);
-                    }
-
-                    res.Append(newtext);
-                }
-                else if (NodeType == RtfNodeType.Keyword)
-                {
-                    if (NodeKey.Equals("par"))
-                        res.AppendLine("");
-                    else if (NodeKey.Equals("tab"))
-                        res.Append("\t");
-                    else if (NodeKey.Equals("line"))
-                        res.AppendLine("");
-                    else if (NodeKey.Equals("lquote"))
-                        res.Append("�");
-                    else if (NodeKey.Equals("rquote"))
-                        res.Append("�");
-                    else if (NodeKey.Equals("ldblquote"))
-                        res.Append("�");
-                    else if (NodeKey.Equals("rdblquote"))
-                        res.Append("�");
-                    else if (NodeKey.Equals("emdash"))
-                        res.Append("�");
-                    else if (NodeKey.Equals("u"))
-                    {
-                        res.Append(Char.ConvertFromUtf32(Parameter));
-                    }
-                }
-
-                return res.ToString();
-            }
-
-            #endregion
-
-            #region Propiedades
-
-            /// <summary>
-            /// Devuelve el nodo ra�z del �rbol del documento.
-            /// </summary>
-            /// <remarks>
-            /// �ste no es el nodo ra�z del �rbol, sino que se trata simplemente de un nodo ficticio  de tipo ROOT del que parte el resto del �rbol RTF.
-            /// Tendr� por tanto un solo nodo hijo de tipo GROUP, raiz real del �rbol.
-			/// </remarks>
-            public RtfTreeNode RootNode
-            {
-                get
-                {
-                    return root;
-                }
-				set
-				{
-					root = value;
-				}
-            }
-
-            /// <summary>
-            /// Devuelve el nodo padre del nodo actual.
-            /// </summary>
-            public RtfTreeNode ParentNode
-            {
-                get
-                {
-                    return parent;
-                }
-				set
-				{
-					parent = value;
-				}
-            }
-
-            /// <summary>
-            /// Devuelve el �rbol Rtf al que pertenece el nodo.
-            /// </summary>
-            public RtfTree Tree
-            {
-                get
-                {
-                    return tree;
-                }
-                set
-                {
-                    tree = value;
-                }
-            }
-
-            /// <summary>
-            /// Devuelve el tipo del nodo actual.
-            /// </summary>
-            public RtfNodeType NodeType
-            {
-                get
-                {
-                    return type;
-                }
-				set
-				{
-					type = value;
-				}
-            }
-
-            /// <summary>
-            /// Devuelve la palabra clave, s�mbolo de Control o Texto del nodo actual.
-            /// </summary>
-            public string NodeKey
-            {
-                get
-                {
-                    return key;
-                }
-                set
-                {
-                    key = value;
-                }
-            }
-
-            /// <summary>
-            /// Indica si el nodo actual tiene par�metro asignado.
-            /// </summary>
-            public bool HasParameter
-            {
-                get
-                {
-                    return hasParam;
-                }
-                set
-                {
-                    hasParam = value;
-                }
-            }
-
-            /// <summary>
-            /// Devuelve el par�metro asignado al nodo actual.
-            /// </summary>
-            public int Parameter
-            {
-                get
-                {
-                    return param;
-                }
-                set
-                {
-                    param = value;
-                }
-            }
-
-            /// <summary>
-            /// Devuelve la colecci�n de nodos hijo del nodo actual.
-            /// </summary>
-            public RtfNodeCollection ChildNodes
-            {
-                get
-                {
-                    return children;
-                }
-                set
-                {
-                    children = value;
-
-                    foreach (RtfTreeNode node in children)
-                    {
-                        node.parent = this;
-
-                        //Se actualizan las propiedades Root y Tree del nuevo nodo y sus posibles hijos
-                        updateNodeRoot(node);
-                    }
-                }
-            }
-
-            /// <summary>
-            /// Devuelve el primer nodo hijo cuya palabra clave sea la indicada como par�metro.
-            /// </summary>
-            /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Primer nodo hijo cuya palabra clave sea la indicada como par�metro. En caso de no existir se devuelve null.</returns>
-            public RtfTreeNode this[string keyword]
-            {
-                get
-                {
-                    return SelectSingleChildNode(keyword);
-                }
-            }
-
-            /// <summary>
-            /// Devuelve el hijo n-�simo del nodo actual.
-            /// </summary>
-            /// <param name="childIndex">�ndice del nodo hijo a recuperar.</param>
-            /// <returns>Nodo hijo n-�simo del nodo actual. Devuelve null en caso de no existir.</returns>
-            public RtfTreeNode this[int childIndex]
-            {
-                get
-                { 
-                    RtfTreeNode res = null;
-
-                    if (children != null && childIndex >= 0 && childIndex < children.Count)
-                        res = children[childIndex];
-
-                    return res;
-                }
-            }
-
-            /// <summary>
-            /// Devuelve el primer nodo hijo del nodo actual.
-            /// </summary>
-            public RtfTreeNode FirstChild
-            {
-                get
-                {
-                    RtfTreeNode res = null;
-
-                    if (children != null && children.Count > 0)
-                        res = children[0];
-
-                    return res;
-                }
-            }
-
-            /// <summary>
-            /// Devuelve el �ltimo nodo hijo del nodo actual.
-            /// </summary>
-            public RtfTreeNode LastChild
-            {
-                get
-                {
-                    RtfTreeNode res = null;
-
-                    if (children != null && children.Count > 0)
-                        return children[children.Count - 1];
-
-                    return res;
-                }
-            }
-
-            /// <summary>
-            /// Devuelve el nodo hermano siguiente del nodo actual (Dos nodos son hermanos si tienen el mismo nodo padre [ParentNode]).
-            /// </summary>
-            public RtfTreeNode NextSibling
-            {
-                get
-                {
-                    RtfTreeNode res = null;
-
-                    if (parent != null && parent.children != null)
-                    {
-                        int currentIndex = parent.children.IndexOf(this);
-
-                        if (parent.children.Count > currentIndex + 1)
-                            res = parent.children[currentIndex + 1];
-                    }
-
-                    return res;
-                }
-            }
-
-            /// <summary>
-            /// Devuelve el nodo hermano anterior del nodo actual (Dos nodos son hermanos si tienen el mismo nodo padre [ParentNode]).
-            /// </summary>
-            public RtfTreeNode PreviousSibling
-            {
-                get
-                {
-                    RtfTreeNode res = null;
-
-                    if (parent != null && parent.children != null)
-                    {
-                        int currentIndex = parent.children.IndexOf(this);
-
-                        if (currentIndex > 0)
-                            res = parent.children[currentIndex - 1];
-                    }
-
-                    return res;
-                }
-            }
-
-            /// <summary>
-            /// Devuelve el siguiente nodo del �rbol. 
-            /// </summary>
-            public RtfTreeNode NextNode
-            {
-                get
-                {
-                    RtfTreeNode res = null;
-
-                    if (NodeType == RtfNodeType.Root)
-                    {
-                        res = FirstChild;
-                    }
-                    else if (parent != null && parent.children != null)
-                    {
-                        if (NodeType == RtfNodeType.Group && children.Count > 0)
-                        {
-                            res = FirstChild;
-                        }
-                        else
-                        {
-                            if (Index < (parent.children.Count - 1))
-                            {
-                                res = NextSibling;
-                            }
-                            else
-                            {
-                                res = parent.NextSibling;
-                            }
-                        }
-                    }
-
-                    return res;
-                }
-            }
-
-            /// <summary>
-            /// Devuelve el nodo anterior del �rbol.
-            /// </summary>
-            public RtfTreeNode PreviousNode
-            {
-                get
-                {
-                    RtfTreeNode res = null;
-
-                    if (NodeType == RtfNodeType.Root)
-                    {
-                        res = null;
-                    }
-                    else if (parent != null && parent.children != null)
-                    {
-                        if (Index > 0)
-                        {
-                            if (PreviousSibling.NodeType == RtfNodeType.Group)
-                            {
-                                res = PreviousSibling.LastChild;
-                            }
-                            else
-                            {
-                                res = PreviousSibling;
-                            }
-                        }
-                        else
-                        {
-                            res = parent;
-                        }
-                    }
-
-                    return res;
-                }
-            }
-
-            /// <summary>
-            /// Devuelve el c�digo RTF del nodo actual y todos sus nodos hijos.
-            /// </summary>
-            public string Rtf
-            {
-                get
-                {
-                    return getRtf();
-                }
-            }
-
-            /// <summary>
-            /// Devuelve el �ndice del nodo actual dentro de la lista de hijos de su nodo padre.
-            /// </summary>
-            public int Index
-            {
-                get
-                {
-                    int res = -1;
-
-                    if(parent != null)
-                        res = parent.children.IndexOf(this);
-
-                    return res;
-                }
-            }
-
-            /// <summary>
-            /// Devuelve el fragmento de texto del documento contenido en el nodo actual.
-            /// </summary>
-            public string Text
-            {
-                get
-                {
-                    return GetText(false);
-                }
-            }
-
-            /// <summary>
-            /// Devuelve todo el texto contenido en el nodo actual.
-            /// </summary>
-            public string RawText
-            {
-                get
-                {
-                    return GetText(true);
-                }
-            }
-
-            #endregion
+            return res;
         }
     }
+
+    /// <summary>
+    /// Returns the previous node in the tree.
+    /// </summary>
+    public RtfTreeNode? PreviousNode
+    {
+        get
+        {
+            RtfTreeNode? res = null;
+
+            if (NodeType == RtfNodeType.Root)
+            {
+                res = null;
+            }
+            else if (ParentNode is { children: not null })
+            {
+                if (Index > 0)
+                {
+                    if (PreviousSibling is { NodeType: RtfNodeType.Group })
+                    {
+                        res = PreviousSibling.LastChild;
+                    }
+                    else
+                    {
+                        res = PreviousSibling;
+                    }
+                }
+                else
+                {
+                    res = ParentNode;
+                }
+            }
+
+            return res;
+        }
+    }
+
+    /// <summary>
+    /// Returns the RTF code of the current node and all its child nodes.
+    /// </summary>
+    public string Rtf => getRtf();
+
+    /// <summary>
+    /// Returns the index of the current node within the list of children of its parent node.
+    /// </summary>
+    public int Index
+    {
+        get
+        {
+            var res = -1;
+
+            if(ParentNode is { children: not null }) 
+                res = ParentNode.children.IndexOf(this);
+
+            return res;
+        }
+    }
+
+    /// <summary>
+    /// Returns the text fragment of the document contained in the current node.
+    /// </summary>
+    public string Text => GetText(false);
+
+    /// <summary>
+    /// Returns all text contained in the current node.
+    /// </summary>
+    public string RawText => GetText(true);
+
+    #endregion
 }

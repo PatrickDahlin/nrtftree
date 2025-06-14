@@ -93,7 +93,7 @@ namespace Net.Sgoliver.NRtfTree
 
             private string translateAnsiCode(int cod)
             {
-                string res = "";
+                var res = "";
 
                 switch (cod)
                 {

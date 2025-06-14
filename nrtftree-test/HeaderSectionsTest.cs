@@ -52,7 +52,7 @@ public class HeaderSectionsTest
     [Test]
     public void FontTableTest()
     {
-        RtfFontTable fontTable = tree.GetFontTable();
+        var fontTable = tree.GetFontTable();
 
         Assert.That(fontTable.Count, Is.EqualTo(3));
         Assert.That(fontTable[0], Is.EqualTo("Times New Roman"));
@@ -67,7 +67,7 @@ public class HeaderSectionsTest
     [Test]
     public void ColorTableTest()
     {
-        RtfColorTable colorTable = tree.GetColorTable();
+        var colorTable = tree.GetColorTable();
 
         Assert.That(colorTable.Count, Is.EqualTo(3));
         Assert.That(colorTable[0], Is.EqualTo(Color.FromArgb(0,0,0)));
@@ -82,7 +82,7 @@ public class HeaderSectionsTest
     [Test]
     public void StyleSheetTableTest()
     {
-        RtfStyleSheetTable styleTable = tree.GetStyleSheetTable();
+        var styleTable = tree.GetStyleSheetTable();
 
         Assert.That(styleTable.Count, Is.EqualTo(7));
 
@@ -118,7 +118,7 @@ public class HeaderSectionsTest
     [Test]
     public void InfoGroupTest()
     {
-        InfoGroup infoGroup = tree.GetInfoGroup();
+        var infoGroup = tree.GetInfoGroup();
         
         // Since dates and time are culture sensitive, set to the invariant culture
         Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
@@ -153,8 +153,8 @@ public class HeaderSectionsTest
         //sw.Flush();
         //sw.Close();
 
-        StreamReader sr = new StreamReader(@"..\..\..\testdocs\infogroup.txt");
-        string infoString = sr.ReadToEnd();
+        var sr = new StreamReader(@"..\..\..\testdocs\infogroup.txt");
+        var infoString = sr.ReadToEnd();
         sr.Close();
 
         Assert.That(infoGroup.ToString(), Is.EqualTo(infoString));

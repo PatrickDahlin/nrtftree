@@ -26,58 +26,57 @@
  * Description:	Abstract processor used by the RTF Reader class.
  * ******************************************************************************/
 
-namespace Net.Sgoliver.NRtfTree.Core
+namespace Net.Sgoliver.NRtfTree.Core;
+
+/// <summary>
+/// This class, used by RTFReader, contains all the necessary
+/// methods to treat each of the types of elements present in an RTF
+/// document. These methods will be automatically called during the
+/// analysis of the RTF document made by the RTF Reader class.
+/// </summary>
+public abstract class SarParser
 {
     /// <summary>
-    /// This class, used by RTFReader, contains all the necessary
-    /// methods to treat each of the types of elements present in an RTF
-    /// document. These methods will be automatically called during the
-    /// analysis of the RTF document made by the RTF Reader class.
+    /// This method is called a single time at the beginning of the analysis of the RTF document.
     /// </summary>
-    public abstract class SarParser
-    {
-        /// <summary>
-        /// This method is called a single time at the beginning of the analysis of the RTF document.
-        /// </summary>
-        public abstract void StartRtfDocument();
-        /// <summary>
-        /// This method is called a only time at the end of the RTF document analysis.
-        /// </summary>
-        public abstract void EndRtfDocument();
-        /// <summary>
-        /// This method is called every time an RTF group start key is read.
-        /// </summary>
-        public abstract void StartRtfGroup();
-        /// <summary>
-        /// This method is called every time an RTF Group end key is read.
-        /// </summary>
-        public abstract void EndRtfGroup();
-        /// <summary>
-        /// This method is called every time an RTF keyword is read.
-        /// </summary>
-        /// <param name="key">Keyword read from the document.</param>
-        /// <param name="hasParameter">Indicate if the keyword is accompanied by a parameter.</param>
-        /// <param name="parameter">
-        /// Parameter that accompanies the keyword. In the event that the
-        /// keyword is not accompanied by any parameter, that is, the
-        /// hasParam field is 'false', this field will contain 0 value.
-        /// </param>
-        public abstract void RtfKeyword(string key, bool hasParameter, int parameter);
-        /// <summary>
-        /// This method is called every time a RTF control symbol is read.
-        /// </summary>
-        /// <param name="key">Control symbol read of the document.</param>
-        /// <param name="hasParameter">Indicate if the control symbol is accompanied by a parameter.</param>
-        /// <param name="parameter">
-        /// Parameter that accompanies the control symbol. In the event that
-        /// the control symbol is not accompanied by any parameter, that is,
-        /// the hasParam field is 'False', this field will contain the value 0.
-        /// </param>
-        public abstract void RtfControl(string key, bool hasParameter, int parameter);
-        /// <summary>
-        /// This method is called every time a text fragment of the RTF document is read.
-        /// </summary>
-        /// <param name="text">Text read from the document.</param>
-        public abstract void RtfText(string text);
-    }
+    public abstract void StartRtfDocument();
+    /// <summary>
+    /// This method is called a only time at the end of the RTF document analysis.
+    /// </summary>
+    public abstract void EndRtfDocument();
+    /// <summary>
+    /// This method is called every time an RTF group start key is read.
+    /// </summary>
+    public abstract void StartRtfGroup();
+    /// <summary>
+    /// This method is called every time an RTF Group end key is read.
+    /// </summary>
+    public abstract void EndRtfGroup();
+    /// <summary>
+    /// This method is called every time an RTF keyword is read.
+    /// </summary>
+    /// <param name="key">Keyword read from the document.</param>
+    /// <param name="hasParameter">Indicate if the keyword is accompanied by a parameter.</param>
+    /// <param name="parameter">
+    /// Parameter that accompanies the keyword. In the event that the
+    /// keyword is not accompanied by any parameter, that is, the
+    /// hasParam field is 'false', this field will contain 0 value.
+    /// </param>
+    public abstract void RtfKeyword(string key, bool hasParameter, int parameter);
+    /// <summary>
+    /// This method is called every time a RTF control symbol is read.
+    /// </summary>
+    /// <param name="key">Control symbol read of the document.</param>
+    /// <param name="hasParameter">Indicate if the control symbol is accompanied by a parameter.</param>
+    /// <param name="parameter">
+    /// Parameter that accompanies the control symbol. In the event that
+    /// the control symbol is not accompanied by any parameter, that is,
+    /// the hasParam field is 'False', this field will contain the value 0.
+    /// </param>
+    public abstract void RtfControl(string key, bool hasParameter, int parameter);
+    /// <summary>
+    /// This method is called every time a text fragment of the RTF document is read.
+    /// </summary>
+    /// <param name="text">Text read from the document.</param>
+    public abstract void RtfText(string text);
 }

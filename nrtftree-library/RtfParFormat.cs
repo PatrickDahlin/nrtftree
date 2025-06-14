@@ -23,47 +23,28 @@
  * Home Page:	http://www.sgoliver.net
  * GitHub:	    https://github.com/sgolivernet/nrtftree
  * Class:		RtfParFormat
- * Description:	Representa un formato de párrafo.
+ * Description:	Represents a paragraph format.
  * ******************************************************************************/
 
-namespace Net.Sgoliver.NRtfTree.Util
-{
+namespace Net.Sgoliver.NRtfTree.Util;
     
+/// <summary>
+/// Represents a paragraph format.
+/// </summary>
+public class RtfParFormat
+{
     /// <summary>
-    /// Representa un formato de párrafo.
+    /// Alignment of paragraph.
     /// </summary>
-    public class RtfParFormat
-    {
-        private TextAlignment alignment = TextAlignment.Left;
-        private float leftIndentation = 0;
-        private float rightIndentation = 0;
+    public TextAlignment Alignment { get; set; } = TextAlignment.Left;
 
-        /// <summary>
-        /// Alineación del párrafo.
-        /// </summary>
-        public TextAlignment Alignment
-        {
-            get { return alignment; }
-            set { alignment = value; }
-        }
+    /// <summary>
+    /// Left indent of the paragraph
+    /// </summary>
+    public float LeftIndentation { get; set; }
 
-        /// <summary>
-        /// Sangría izquierda del párrafo.
-        /// </summary>
-        public float LeftIndentation
-        {
-            get { return leftIndentation; }
-            set { leftIndentation = value; }
-        }
-
-        /// <summary>
-        /// Sangría derecha del párrafo.
-        /// </summary>
-        public float RightIndentation
-        {
-            get { return rightIndentation; }
-            set { rightIndentation = value; }
-        }
-    }
-
+    /// <summary>
+    /// Right indent of the paragraph
+    /// </summary>
+    public float RightIndentation { get; set; }
 }

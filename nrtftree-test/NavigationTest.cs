@@ -46,7 +46,7 @@ public class NavigationTest
     [Test]
     public void EmptyNodeNavigation()
     {
-        RtfTreeNode node = new RtfTreeNode();
+        var node = new RtfTreeNode();
 
         Assert.That(node.Tree, Is.Null);
         Assert.That(node.RootNode, Is.Null);
@@ -64,7 +64,7 @@ public class NavigationTest
     [Test]
     public void TypeNodeNavigation()
     {
-        RtfTreeNode node = new RtfTreeNode(RtfNodeType.Keyword);
+        var node = new RtfTreeNode(RtfNodeType.Keyword);
 
         Assert.That(node.Tree, Is.Null);
         Assert.That(node.RootNode, Is.Null);
@@ -82,7 +82,7 @@ public class NavigationTest
     [Test]
     public void InitNodeNavigation()
     {
-        RtfTreeNode node = new RtfTreeNode(RtfNodeType.Keyword, "rtf", true, 99);
+        var node = new RtfTreeNode(RtfNodeType.Keyword, "rtf", true, 99);
 
         Assert.That(node.Tree, Is.Null);
         Assert.That(node.RootNode, Is.Null);
@@ -100,7 +100,7 @@ public class NavigationTest
     [Test]
     public void EmptyTreeNavigation()
     {
-        RtfTree tree = new RtfTree();
+        var tree = new RtfTree();
 
         Assert.That(tree.RootNode, Is.Not.Null);
         Assert.That(tree.RootNode.Tree, Is.SameAs(tree));
@@ -112,16 +112,16 @@ public class NavigationTest
     {
         //Creación de un árbol sencillo
 
-        RtfTree tree = new RtfTree();
+        var tree = new RtfTree();
 
-        RtfTreeNode mainGroup = new RtfTreeNode(RtfNodeType.Group);
-        RtfTreeNode rtfNode = new RtfTreeNode(RtfNodeType.Keyword, "rtf", true, 0);
+        var mainGroup = new RtfTreeNode(RtfNodeType.Group);
+        var rtfNode = new RtfTreeNode(RtfNodeType.Keyword, "rtf", true, 0);
         mainGroup.AppendChild(rtfNode);
 
-        RtfTreeNode newGroup = new RtfTreeNode(RtfNodeType.Group);
-        RtfTreeNode node1 = new RtfTreeNode(RtfNodeType.Keyword, "ul", false, 0);
-        RtfTreeNode node2 = new RtfTreeNode(RtfNodeType.Text, "Test", false, 0);
-        RtfTreeNode node3 = new RtfTreeNode(RtfNodeType.Text, "ulnone", false, 0);
+        var newGroup = new RtfTreeNode(RtfNodeType.Group);
+        var node1 = new RtfTreeNode(RtfNodeType.Keyword, "ul", false, 0);
+        var node2 = new RtfTreeNode(RtfNodeType.Text, "Test", false, 0);
+        var node3 = new RtfTreeNode(RtfNodeType.Text, "ulnone", false, 0);
 
         newGroup.AppendChild(node1);
         newGroup.AppendChild(node2);
@@ -168,16 +168,16 @@ public class NavigationTest
     {
         //Creación de un árbol sencillo
 
-        RtfTree tree = new RtfTree();
+        var tree = new RtfTree();
 
-        RtfTreeNode mainGroup = new RtfTreeNode(RtfNodeType.Group);
-        RtfTreeNode rtfNode = new RtfTreeNode(RtfNodeType.Keyword, "rtf", true, 0);
+        var mainGroup = new RtfTreeNode(RtfNodeType.Group);
+        var rtfNode = new RtfTreeNode(RtfNodeType.Keyword, "rtf", true, 0);
         mainGroup.AppendChild(rtfNode);
 
-        RtfTreeNode newGroup = new RtfTreeNode(RtfNodeType.Group);
-        RtfTreeNode node1 = new RtfTreeNode(RtfNodeType.Keyword, "ul", false, 0);
-        RtfTreeNode node2 = new RtfTreeNode(RtfNodeType.Text, "Test", false, 0);
-        RtfTreeNode node3 = new RtfTreeNode(RtfNodeType.Keyword, "ulnone", false, 0);
+        var newGroup = new RtfTreeNode(RtfNodeType.Group);
+        var node1 = new RtfTreeNode(RtfNodeType.Keyword, "ul", false, 0);
+        var node2 = new RtfTreeNode(RtfNodeType.Text, "Test", false, 0);
+        var node3 = new RtfTreeNode(RtfNodeType.Keyword, "ulnone", false, 0);
 
         newGroup.AppendChild(node1);
         newGroup.AppendChild(node2);
@@ -187,7 +187,7 @@ public class NavigationTest
 
         tree.RootNode.AppendChild(mainGroup);
 
-        RtfTreeNode node4 = new RtfTreeNode(RtfNodeType.Text, "fin", false, 0);
+        var node4 = new RtfTreeNode(RtfNodeType.Text, "fin", false, 0);
 
         mainGroup.AppendChild(node4);
 

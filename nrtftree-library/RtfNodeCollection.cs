@@ -23,147 +23,135 @@
  * Home Page:	http://www.sgoliver.net
  * GitHub:	    https://github.com/sgolivernet/nrtftree
  * Class:		RtfNodeCollection
- * Description:	Colecci�n de nodos de un �rbol RTF.
+ * Description:	Collection of nodes in an RTF document.
  * ******************************************************************************/
 
 using System.Collections;
 
-namespace Net.Sgoliver.NRtfTree.Core
+namespace Net.Sgoliver.NRtfTree.Core;
+
+/// <summary>
+/// Collection of nodes in an RTF document.
+/// </summary>
+public class RtfNodeCollection : CollectionBase
 {
+    #region Public Methods
+
     /// <summary>
-    /// Colecci�n de nodos de un documento RTF.
+    /// Adds a new node to the current collection.
     /// </summary>
-    public class RtfNodeCollection : CollectionBase
+    /// <param name="node">New node to add.</param>
+    /// <returns>Position of the node in the collection.</returns>
+    public int Add(RtfTreeNode node)
     {
-        #region M�todos Publicos
+        InnerList.Add(node);
 
-        /// <summary>
-        /// A�ade un nuevo nodo a la colecci�n actual.
-        /// </summary>
-        /// <param name="node">Nuevo nodo a a�adir.</param>
-        /// <returns>Posici�n en la que se ha insertado el nuevo nodo.</returns>
-        public int Add(RtfTreeNode node)
-        {
-            InnerList.Add(node);
-
-            return (InnerList.Count - 1);
-        }
-
-        /// <summary>
-        /// Inserta un nuveo nodo en una posici�n determinada de la colecci�n.
-        /// </summary>
-        /// <param name="index">Posici�n en la que insertar el nodo.</param>
-        /// <param name="node">Nuevo nodo a insertar.</param>
-        public void Insert(int index, RtfTreeNode node)
-        {
-            InnerList.Insert(index, node);
-        }
-
-        /// <summary>
-        /// Indizador de la clase RtfNodeCollection. 
-        /// Devuelve el nodo que ocupa la posici�n 'index' dentro de la colecci�n.
-        /// </summary>
-        public RtfTreeNode this[int index]
-        {
-            get
-            {
-                return (RtfTreeNode)InnerList[index];
-            }
-            set
-            {
-                InnerList[index] = value;
-            }
-        }
-
-        /// <summary>
-        /// Devuelve el �ndice del nodo pasado como par�metro dentro de la lista de nodos de la colecci�n.
-        /// </summary>
-        /// <param name="node">Nodo a buscar en la colecci�n.</param>
-        /// <returns>Indice del nodo buscado. Devolver� el valor -1 en caso de no encontrarse el nodo dentro de la colecci�n.</returns>
-        public int IndexOf(RtfTreeNode node)
-        {
-            return InnerList.IndexOf(node);
-        }
-
-        /// <summary>
-        /// Devuelve el �ndice del nodo pasado como par�metro dentro de la lista de nodos de la colecci�n.
-        /// </summary>
-        /// <param name="node">Nodo a buscar en la colecci�n.</param>
-        /// <param name="startIndex">Posici�n dentro de la colecci�n a partir del que se buscar�.</param>
-        /// <returns>Indice del nodo buscado. Devolver� el valor -1 en caso de no encontrarse el nodo dentro de la colecci�n.</returns>
-        public int IndexOf(RtfTreeNode node, int startIndex)
-        {
-            return InnerList.IndexOf(node, startIndex);
-        }
-
-        /// <summary>
-        /// Devuelve el �ndice del primer nodo de la colecci�n cuya clave sea la pasada como par�metro.
-        /// </summary>
-        /// <param name="key">Clave a buscar en la colecci�n.</param>
-        /// <returns>Indice del nodo buscado. Devolver� el valor -1 en caso de no encontrarse el nodo dentro de la colecci�n.</returns>
-        public int IndexOf(string key)
-        {
-            int intFoundAt = -1;
-
-            if (InnerList.Count > 0)
-            {
-                for (int intIndex = 0; intIndex < InnerList.Count; intIndex++)
-                {
-                    if (((RtfTreeNode)InnerList[intIndex]).NodeKey == key)
-                    {
-                        intFoundAt = intIndex;
-                        break;
-                    }
-                }
-            }
-
-            return intFoundAt;
-        }
-
-        /// <summary>
-        /// Devuelve el �ndice del primer nodo de la colecci�n cuya clave sea la pasada como par�metro.
-        /// </summary>
-        /// <param name="key">Clave a buscar en la colecci�n.</param>
-        /// <param name="startIndex">Posici�n dentro de la colecci�n a partir del que se buscar�.</param>
-        /// <returns>Indice del nodo buscado. Devolver� el valor -1 en caso de no encontrarse el nodo dentro de la colecci�n.</returns>
-        public int IndexOf(string key, int startIndex)
-        {
-            int intFoundAt = -1;
-
-            if (InnerList.Count > 0)
-            {
-                for (int intIndex = startIndex; intIndex < InnerList.Count; intIndex++)
-                {
-                    if (((RtfTreeNode)InnerList[intIndex]).NodeKey == key)
-                    {
-                        intFoundAt = intIndex;
-                        break;
-                    }
-                }
-            }
-
-            return intFoundAt;
-        }
-
-        /// <summary>
-        /// A�ade al final de la colecci�n una nueva lista de nodos.
-        /// </summary>
-        /// <param name="collection">Nueva lista de nodos a a�adir a la colecci�n actual.</param>
-        public void AddRange(RtfNodeCollection collection)
-        {
-            InnerList.AddRange(collection);
-        }
-
-        /// <summary>
-        /// Elimina un conjunto de nodos adyacentes de la colecci�n.
-        /// </summary>
-        /// <param name="index">�ndice del primer nodo del conjunto a eliminar.</param>
-        /// <param name="count">N�mero de nodos a eliminar.</param>
-        public void RemoveRange(int index, int count)
-        {
-            InnerList.RemoveRange(index, count);
-        }
-
-        #endregion
+        return (InnerList.Count - 1);
     }
+
+    /// <summary>
+    /// Insert new node at a specific position in the collection
+    /// </summary>
+    /// <param name="index">Position at which to insert new node.</param>
+    /// <param name="node">Node to insert.</param>
+    public void Insert(int index, RtfTreeNode node)
+    {
+        InnerList.Insert(index, node);
+    }
+
+    /// <summary>
+    /// Indexer to get node at specific index
+    /// </summary>
+    public RtfTreeNode? this[int index]
+    {
+        get => (RtfTreeNode?)InnerList[index];
+        set => InnerList[index] = value;
+    }
+
+    /// <summary>
+    /// Returns the index of the node given in this collection
+    /// </summary>
+    /// <param name="node">Node to look for in the collection.</param>
+    /// <returns>Index of the node, -1 if the node was not found in the collection.</returns>
+    public int IndexOf(RtfTreeNode node)
+    {
+        return InnerList.IndexOf(node);
+    }
+
+    /// <summary>
+    /// Returns the index of the node passed as a parameter within the list of nodes in the collection.
+    /// </summary>
+    /// <param name="node">Node to search for in the collection.</param>
+    /// <param name="startIndex">Position within the collection from which the search will be performed.</param>
+    /// <returns>Index of the node being searched for. Returns -1 if the node is not found in the collection.</returns>
+    public int IndexOf(RtfTreeNode node, int startIndex)
+    {
+        return InnerList.IndexOf(node, startIndex);
+    }
+
+    /// <summary>
+    /// Returns the index of the first node in the collection whose key is the one passed as a parameter.
+    /// </summary>
+    /// <param name="key">Key to search in the collection.</param>
+    /// <returns>Index of the node being searched for. Returns -1 if the node is not found in the collection.</returns>
+    public int IndexOf(string key)
+    {
+        var intFoundAt = -1;
+
+        if (InnerList.Count <= 0) return intFoundAt;
+        
+        for (var intIndex = 0; intIndex < InnerList.Count; intIndex++)
+        {
+            if (((RtfTreeNode?)InnerList[intIndex])?.NodeKey != key) continue;
+            
+            intFoundAt = intIndex;
+            break;
+        }
+
+        return intFoundAt;
+    }
+
+    /// <summary>
+    /// Returns the index of the first node in the collection whose key is the one passed as a parameter.
+    /// </summary>
+    /// <param name="key">Key to search in the collection.</param>
+    /// <param name="startIndex">Position within the collection from which the search will be performed.</param>
+    /// <returns>Index of the node being searched for. Returns -1 if the node is not found in the collection.</returns>
+    public int IndexOf(string key, int startIndex)
+    {
+        var intFoundAt = -1;
+
+        if (InnerList.Count <= 0) return intFoundAt;
+        
+        for (var intIndex = startIndex; intIndex < InnerList.Count; intIndex++)
+        {
+            if (((RtfTreeNode?)InnerList[intIndex])?.NodeKey != key) continue;
+            
+            intFoundAt = intIndex;
+            break;
+        }
+
+        return intFoundAt;
+    }
+
+    /// <summary>
+    /// Adds a new list of nodes to the end of the collection.
+    /// </summary>
+    /// <param name="collection">New list of nodes to add to the current collection.</param>
+    public void AddRange(RtfNodeCollection collection)
+    {
+        InnerList.AddRange(collection);
+    }
+
+    /// <summary>
+    /// Removes a set of adjacent nodes from the collection.
+    /// </summary>
+    /// <param name="index">Index of the first node in the set to be removed.</param>
+    /// <param name="count">Number of nodes to remove.</param>
+    public void RemoveRange(int index, int count)
+    {
+        InnerList.RemoveRange(index, count);
+    }
+
+    #endregion
 }

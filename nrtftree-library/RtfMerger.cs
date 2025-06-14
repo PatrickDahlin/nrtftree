@@ -23,485 +23,453 @@
  * Home Page:	http://www.sgoliver.net
  * GitHub:	    https://github.com/sgolivernet/nrtftree
  * Class:		RtfMerger
- * Description:	Clase para combinar varios documentos RTF.
+ * Description:	Class to combine multiple RTF documents.
  * Notes:       Originally contributed by Fabio Borghi.
  * ******************************************************************************/
 
 using Net.Sgoliver.NRtfTree.Util;
 using System.Drawing;
 
-namespace Net.Sgoliver.NRtfTree.Core
+namespace Net.Sgoliver.NRtfTree.Core;
+
+/// <summary>
+/// Class to combine multiple RTF documents.
+/// </summary>
+public class RtfMerger
 {
+    private bool removeLastPar;
+
+    #region Constructors
+
     /// <summary>
-    /// Clase para combinar varios documentos RTF.
+    /// Constructor. 
     /// </summary>
-    public class RtfMerger
+    /// <param name="templatePath">Template document path.</param>
+    public RtfMerger(string templatePath)
     {
-        #region Atributos privados
-
-        private RtfTree baseRtfDoc = null;
-        private bool removeLastPar;
-
-        private Dictionary<string, RtfTree> placeHolder = null;
-
-        #endregion
-
-        #region Constructores
-
-        /// <summary>
-        /// Constructor de la clase RtfMerger. 
-        /// </summary>
-        /// <param name="templatePath">Ruta del documento plantilla.</param>
-        public RtfMerger(string templatePath)
-        {
-            //Se carga el documento origen
-            baseRtfDoc = new RtfTree();
-            baseRtfDoc.LoadRtfFile(templatePath);
-
-            //Se crea la lista de par�metros de sustituci�n (placeholders)
-            placeHolder = new Dictionary<string, RtfTree>();
-        }
-
-        /// <summary>
-        /// Constructor de la clase RtfMerger. 
-        /// </summary>
-        /// <param name="templateTree">Ruta del documento plantilla.</param>
-        public RtfMerger(RtfTree templateTree)
-        {
-            //Se carga el documento origen
-            baseRtfDoc = templateTree;
-
-            //Se crea la lista de par�metros de sustituci�n (placeholders)
-            placeHolder = new Dictionary<string, RtfTree>();
-        }
-
-        /// <summary>
-        /// Constructor de la clase RtfMerger. 
-        /// </summary>
-        public RtfMerger()
-        {
-            //Se crea la lista de par�metros de sustituci�n (placeholders)
-            placeHolder = new Dictionary<string, RtfTree>();
-        }
-
-        #endregion
-
-        #region M�todos P�blicos
-
-        /// <summary>
-        /// Asocia un nuevo par�metro de sustituci�n (placeholder) con la ruta del documento a insertar.
-        /// </summary>
-        /// <param name="ph">Nombre del placeholder.</param>
-        /// <param name="path">Ruta del documento a insertar.</param>
-        public void AddPlaceHolder(string ph, string path)
-        {
-            RtfTree tree = new RtfTree();
-
-            int res = tree.LoadRtfFile(path);
-
-            if (res == 0)
-            {
-                placeHolder.Add(ph, tree);
-            }
-        }
-
-        /// <summary>
-        /// Asocia un nuevo par�metro de sustituci�n (placeholder) con la ruta del documento a insertar.
-        /// </summary>
-        /// <param name="ph">Nombre del placeholder.</param>
-        /// <param name="docTree">�rbol RTF del documento a insertar.</param>
-        public void AddPlaceHolder(string ph, RtfTree docTree)
-        {
-            placeHolder.Add(ph, docTree);
-        }
-
-        /// <summary>
-        /// Desasocia un par�metro de sustituci�n (placeholder) con la ruta del documento a insertar.
-        /// </summary>
-        /// <param name="ph">Nombre del placeholder.</param>
-        public void RemovePlaceHolder(string ph)
-        {
-            placeHolder.Remove(ph);
-        }
-
-        /// <summary>
-        /// Realiza la combinaci�n de los documentos RTF.
-        /// <param name="removeLastPar">Indica si se debe eliminar el �ltimo nodo \par de los documentos insertados en la plantilla.</param>
-        /// <returns>Devuelve el �rbol RTF resultado de la fusi�n.</returns>
-        /// </summary>
-        public RtfTree Merge(bool removeLastPar)
-        {
-            //Indicativo de eliminaci�n del �ltimo nodo \par para documentos insertados
-            this.removeLastPar = removeLastPar;
-
-            //Se obtiene el grupo principal del �rbol
-            RtfTreeNode parentNode = baseRtfDoc.MainGroup;
-
-            //Si el documento tiene grupo principal
-            if (parentNode != null)
-            {
-                //Se analiza el texto del documento en busca de par�metros de reemplazo y se combinan los documentos
-                analizeTextContent(parentNode);
-            }
-
-            return baseRtfDoc;
-        }
-
-        /// <summary>
-        /// Realiza la combinaci�n de los documentos RTF.
-        /// <returns>Devuelve el �rbol RTF resultado de la fusi�n.</returns>
-        /// </summary>
-        public RtfTree Merge()
-        {
-            return Merge(true);
-        }
-
-        #endregion
-
-        #region Propiedades
-
-        /// <summary>
-        /// Devuelve la lista de par�metros de sustituci�n con el formato: [string, RtfTree]
-        /// </summary>
-        public Dictionary<string, RtfTree> Placeholders
-        {
-            get
-            {
-                return placeHolder;
-            }
-        }
-
-        /// <summary>
-        /// Obtiene o establece el �rbol RTF del documento plantilla.
-        /// </summary>
-        public RtfTree Template
-        {
-            get
-            {
-                return baseRtfDoc;
-            }
-            set
-            {
-                baseRtfDoc = value;
-            }
-        }
-
-        #endregion
-
-        #region M�todos Privados
-
-        /// <summary>
-        /// Analiza el texto del documento en busca de par�metros de reemplazo y combina los documentos.
-        /// </summary>
-        /// <param name="parentNode">Nodo del �rbol a procesar.</param>
-        private void analizeTextContent(RtfTreeNode parentNode)
-        {
-            RtfTree docToInsert = null;
-            int indPH;
-
-            //Si el nodo es de tipo grupo y contiene nodos hijos
-            if (parentNode != null && parentNode.HasChildNodes())
-            {
-                //Se recorren todos los nodos hijos
-                for (int iNdIndex = 0; iNdIndex < parentNode.ChildNodes.Count; iNdIndex++)
-                {
-                    //Nodo actual
-                    RtfTreeNode currNode = parentNode.ChildNodes[iNdIndex];
-
-                    //Si el nodo actual es de tipo Texto se buscan etiquetas a reemplazar
-                    if (currNode.NodeType == RtfNodeType.Text)
-                    {
-                        docToInsert = null;
-
-                        //Se recorren todas las etiquetas configuradas
-                        foreach (string ph in placeHolder.Keys)
-                        {
-                            //Se busca la siguiente ocurrencia de la etiqueta actual
-                            indPH = currNode.NodeKey.IndexOf(ph);
-
-                            //Si se ha encontrado una etiqueta
-                            if (indPH != -1)
-                            {
-                                //Se recupera el �rbol a insertar en la etiqueta actual
-                                docToInsert = placeHolder[ph].CloneTree();
-
-                                //Se inserta el nuevo �rbol en el �rbol base
-                                mergeCore(parentNode, iNdIndex, docToInsert, ph, indPH);
-
-                                //Como puede que el nodo actual haya cambiado decrementamos el �ndice
-                                //y salimos del bucle para analizarlo de nuevo
-                                iNdIndex--;
-                                break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //Si el nodo actual tiene hijos se analizan los nodos hijos
-                        if (currNode.HasChildNodes())
-                        {
-                            analizeTextContent(currNode);
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Inserta un nuevo �rbol en el lugar de una etiqueta de texto del �rbol base.
-        /// </summary>
-        /// <param name="parentNode">Nodo de tipo grupo que se est� procesando.</param>
-        /// <param name="iNdIndex">�ndice (dentro del grupo padre) del nodo texto que se est� procesando.</param>
-        /// <param name="docToInsert">Nuevo �rbol RTF a insertar.</param>
-        /// <param name="strCompletePlaceholder">Texto del la etiqueta que se va a reemplazar.</param>
-        /// <param name="intPlaceHolderNodePos">Posici�n de la etiqueta que se va a reemplazar dentro del nodo texto que se est� procesando.</param>
-        private void mergeCore(RtfTreeNode parentNode, int iNdIndex, RtfTree docToInsert, string strCompletePlaceholder, int intPlaceHolderNodePos)
-        {
-            //Si el documento a insertar no est� vac�o
-            if (docToInsert.RootNode.HasChildNodes())
-            {
-                int currentIndex = iNdIndex + 1;
-
-                //Se combinan las tablas de colores y se ajustan los colores del documento a insertar
-                mainAdjustColor(docToInsert);
-
-                //Se combinan las tablas de fuentes y se ajustan las fuentes del documento a insertar
-                mainAdjustFont(docToInsert);
-
-                //Se elimina la informaci�n de cabecera del documento a insertar (colores, fuentes, info, ...)
-                cleanToInsertDoc(docToInsert);
-
-                //Si el documento a insertar tiene contenido
-                if (docToInsert.RootNode.FirstChild.HasChildNodes())
-                {
-                    //Se inserta el documento nuevo en el �rbol base
-                    execMergeDoc(parentNode, docToInsert, currentIndex);
-                }
-
-                //Si la etiqueta no est� al final del nodo texto:
-                //Se inserta un nodo de texto con el resto del texto original (eliminando la etiqueta)
-                if (parentNode.ChildNodes[iNdIndex].NodeKey.Length != (intPlaceHolderNodePos + strCompletePlaceholder.Length))
-                {
-                    //Se inserta un nodo de texto con el resto del texto original (eliminando la etiqueta)
-                    string remText = 
-                        parentNode.ChildNodes[iNdIndex].NodeKey.Substring(
-                            parentNode.ChildNodes[iNdIndex].NodeKey.IndexOf(strCompletePlaceholder) + strCompletePlaceholder.Length);
-
-                    parentNode.InsertChild(currentIndex + 1, new RtfTreeNode(RtfNodeType.Text, remText, false, 0));
-                }
-
-                //Si la etiqueta reemplazada estaba al principio del nodo de texto eliminamos el nodo
-                //original porque ya no es necesario
-                if (intPlaceHolderNodePos == 0)
-                {
-                    parentNode.RemoveChild(iNdIndex);
-                }
-                //En otro caso lo sustituimos por el texto previo a la etiqueta
-                else  
-                {
-                    parentNode.ChildNodes[iNdIndex].NodeKey = 
-                        parentNode.ChildNodes[iNdIndex].NodeKey.Substring(0, intPlaceHolderNodePos);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Obtiene el c�digo de la fuente pasada como par�metro, insert�ndola en la tabla de fuentes si es necesario.
-        /// </summary>
-        /// <param name="fontDestTbl">Tabla de fuentes resultante.</param>
-        /// <param name="sFontName">Fuente buscada.</param>
-        /// <returns></returns>
-        private int getFontID(ref RtfFontTable fontDestTbl, string sFontName)
-        {
-            int iExistingFontID = -1;
-
-            if ((iExistingFontID = fontDestTbl.IndexOf(sFontName)) == -1)
-            {
-                fontDestTbl.AddFont(sFontName);
-                iExistingFontID = fontDestTbl.IndexOf(sFontName);
-
-                RtfNodeCollection nodeListToInsert = baseRtfDoc.RootNode.SelectNodes("fonttbl");
-
-                RtfTreeNode ftFont = new RtfTreeNode(RtfNodeType.Group);
-                ftFont.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "f", true, iExistingFontID));
-                ftFont.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "fnil", false, 0));
-                ftFont.AppendChild(new RtfTreeNode(RtfNodeType.Text, sFontName + ";", false, 0));
-                
-                nodeListToInsert[0].ParentNode.AppendChild(ftFont);
-            }
-
-            return iExistingFontID;
-        }
-
-        /// <summary>
-        /// Obtiene el c�digo del color pasado como par�metro, insert�ndolo en la tabla de colores si es necesario.
-        /// </summary>
-        /// <param name="colorDestTbl">Tabla de colores resultante.</param>
-        /// <param name="iColorName">Color buscado.</param>
-        /// <returns></returns>
-        private int getColorID(RtfColorTable colorDestTbl, Color iColorName)
-        {
-            int iExistingColorID;
-
-            if ((iExistingColorID = colorDestTbl.IndexOf(iColorName)) == -1)
-            {
-                iExistingColorID = colorDestTbl.Count;
-                colorDestTbl.AddColor(iColorName);
-
-                RtfNodeCollection nodeListToInsert = baseRtfDoc.RootNode.SelectNodes("colortbl");
-
-                nodeListToInsert[0].ParentNode.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "red", true, iColorName.R));
-                nodeListToInsert[0].ParentNode.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "green", true, iColorName.G));
-                nodeListToInsert[0].ParentNode.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "blue", true, iColorName.B));
-                nodeListToInsert[0].ParentNode.AppendChild(new RtfTreeNode(RtfNodeType.Text, ";", false, 0));
-            }
-
-            return iExistingColorID;
-        }
-
-        /// <summary>
-        /// Ajusta las fuentes del documento a insertar.
-        /// </summary>
-        /// <param name="docToInsert">Documento a insertar.</param>
-        private void mainAdjustFont(RtfTree docToInsert)
-        {
-            RtfFontTable fontDestTbl = baseRtfDoc.GetFontTable();
-            RtfFontTable fontToCopyTbl = docToInsert.GetFontTable();
-
-            adjustFontRecursive(docToInsert.RootNode, fontDestTbl, fontToCopyTbl);
-        }
-
-        /// <summary>
-        /// Ajusta las fuentes del documento a insertar.
-        /// </summary>
-        /// <param name="parentNode">Nodo grupo que se est� procesando.</param>
-        /// <param name="fontDestTbl">Tabla de fuentes resultante.</param>
-        /// <param name="fontToCopyTbl">Tabla de fuentes del documento a insertar.</param>
-        private void adjustFontRecursive(RtfTreeNode parentNode, RtfFontTable fontDestTbl, RtfFontTable fontToCopyTbl)
-        {
-            if (parentNode != null && parentNode.HasChildNodes())
-            {
-                for (int iNdIndex = 0; iNdIndex < parentNode.ChildNodes.Count; iNdIndex++)
-                {
-                    if (parentNode.ChildNodes[iNdIndex].NodeType == RtfNodeType.Keyword &&
-                        (parentNode.ChildNodes[iNdIndex].NodeKey == "f" ||
-                        parentNode.ChildNodes[iNdIndex].NodeKey == "stshfdbch" ||
-                        parentNode.ChildNodes[iNdIndex].NodeKey == "stshfloch" ||
-                        parentNode.ChildNodes[iNdIndex].NodeKey == "stshfhich" ||
-                        parentNode.ChildNodes[iNdIndex].NodeKey == "stshfbi" ||
-                        parentNode.ChildNodes[iNdIndex].NodeKey == "deff" ||
-                        parentNode.ChildNodes[iNdIndex].NodeKey == "af") &&
-                        parentNode.ChildNodes[iNdIndex].HasParameter)
-                    {
-                        parentNode.ChildNodes[iNdIndex].Parameter = getFontID(ref fontDestTbl, fontToCopyTbl[parentNode.ChildNodes[iNdIndex].Parameter]);
-                    }
-
-                    adjustFontRecursive(parentNode.ChildNodes[iNdIndex], fontDestTbl, fontToCopyTbl);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Ajusta los colores del documento a insertar.
-        /// </summary>
-        /// <param name="docToInsert">Documento a insertar.</param>
-        private void mainAdjustColor(RtfTree docToInsert)
-        {
-            RtfColorTable colorDestTbl = baseRtfDoc.GetColorTable();
-            RtfColorTable colorToCopyTbl = docToInsert.GetColorTable();
-
-            adjustColorRecursive(docToInsert.RootNode, colorDestTbl, colorToCopyTbl);
-        }
-
-        /// <summary>
-        /// Ajusta los colores del documento a insertar.
-        /// </summary>
-        /// <param name="parentNode">Nodo grupo que se est� procesando.</param>
-        /// <param name="colorDestTbl">Tabla de colores resultante.</param>
-        /// <param name="colorToCopyTbl">Tabla de colores del documento a insertar.</param>
-        private void adjustColorRecursive(RtfTreeNode parentNode, RtfColorTable colorDestTbl, RtfColorTable colorToCopyTbl)
-        {
-            if (parentNode != null && parentNode.HasChildNodes())
-            {
-                for (int iNdIndex = 0; iNdIndex < parentNode.ChildNodes.Count; iNdIndex++)
-                {
-                    if (parentNode.ChildNodes[iNdIndex].NodeType == RtfNodeType.Keyword &&
-                        (parentNode.ChildNodes[iNdIndex].NodeKey == "cf" ||
-                         parentNode.ChildNodes[iNdIndex].NodeKey == "cb" ||
-                         parentNode.ChildNodes[iNdIndex].NodeKey == "pncf" ||
-                         parentNode.ChildNodes[iNdIndex].NodeKey == "brdrcf" ||
-                         parentNode.ChildNodes[iNdIndex].NodeKey == "cfpat" ||
-                         parentNode.ChildNodes[iNdIndex].NodeKey == "cbpat" ||
-                         parentNode.ChildNodes[iNdIndex].NodeKey == "clcfpatraw" ||
-                         parentNode.ChildNodes[iNdIndex].NodeKey == "clcbpatraw" ||
-                         parentNode.ChildNodes[iNdIndex].NodeKey == "ulc" ||
-                         parentNode.ChildNodes[iNdIndex].NodeKey == "chcfpat" ||
-                         parentNode.ChildNodes[iNdIndex].NodeKey == "chcbpat" ||
-                         parentNode.ChildNodes[iNdIndex].NodeKey == "highlight" ||
-                         parentNode.ChildNodes[iNdIndex].NodeKey == "clcbpat" ||
-                         parentNode.ChildNodes[iNdIndex].NodeKey == "clcfpat") &&
-                         parentNode.ChildNodes[iNdIndex].HasParameter)
-                    {
-                        parentNode.ChildNodes[iNdIndex].Parameter = getColorID(colorDestTbl, colorToCopyTbl[parentNode.ChildNodes[iNdIndex].Parameter]);
-                    }
-
-                    adjustColorRecursive(parentNode.ChildNodes[iNdIndex], colorDestTbl, colorToCopyTbl);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Inserta el nuevo �rbol en el �rbol base (como un nuevo grupo) eliminando toda la cabecera del documento insertado.
-        /// </summary>
-        /// <param name="parentNode">Grupo base en el que se insertar� el nuevo arbol.</param>
-        /// <param name="treeToCopyParent">Nuevo �rbol a insertar.</param>
-        /// <param name="intCurrIndex">�ndice en el que se insertar� el nuevo �rbol dentro del grupo base.</param>
-        private void execMergeDoc(RtfTreeNode parentNode, RtfTree treeToCopyParent, int intCurrIndex)
-        {
-            //Se busca el primer "\pard" del documento (comienzo del texto)
-            RtfTreeNode nodePard = treeToCopyParent.RootNode.FirstChild.SelectSingleChildNode("pard");
-
-            //Se obtiene el �ndice del nodo dentro del principal
-            int indPard = treeToCopyParent.RootNode.FirstChild.ChildNodes.IndexOf(nodePard);
-
-            //Se crea el nuevo grupo
-            RtfTreeNode newGroup = new RtfTreeNode(RtfNodeType.Group);
-
-            //Se resetean las opciones de p�rrafo y fuente
-            newGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "pard", false, 0));
-            newGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "plain", false, 0));
-
-            //Se inserta cada nodo hijo del documento nuevo en el documento base
-            for (int i = indPard + 1; i < treeToCopyParent.RootNode.FirstChild.ChildNodes.Count; i++)
-            {
-                RtfTreeNode newNode = 
-                    treeToCopyParent.RootNode.FirstChild.ChildNodes[i].CloneNode();
-
-                newGroup.AppendChild(newNode);
-            }
-
-            //Se inserta el nuevo grupo con el nuevo documento
-            parentNode.InsertChild(intCurrIndex, newGroup);
-        }
-
-        /// <summary>
-        /// Elimina los elementos no deseados del documento a insertar, por ejemplo los nodos "\par" finales.
-        /// </summary>
-        /// <param name="docToInsert">Documento a insertar.</param>
-        private void cleanToInsertDoc(RtfTree docToInsert)
-        {
-            //Borra el �ltimo "\par" del documento si existe
-            RtfTreeNode lastNode = docToInsert.RootNode.FirstChild.LastChild;
-
-            if (removeLastPar)
-            {
-                if (lastNode.NodeType == RtfNodeType.Keyword && lastNode.NodeKey == "par")
-                {
-                    docToInsert.RootNode.FirstChild.RemoveChild(lastNode);
-                }
-            }
-        }
-
-        #endregion
+        // The source document is loaded
+        Template = new RtfTree();
+        Template.LoadRtfFile(templatePath);
+
+        // The list of replacement parameters (placeholders) is created
+        Placeholders = new Dictionary<string, RtfTree>();
     }
+
+    /// <summary>
+    /// Constructor. 
+    /// </summary>
+    /// <param name="templateTree">Template document path.</param>
+    public RtfMerger(RtfTree templateTree)
+    {
+        // The source document is loaded
+        Template = templateTree;
+        
+        // The list of replacement parameters (placeholders) is created
+        Placeholders = new Dictionary<string, RtfTree>();
+    }
+
+    /// <summary>
+    /// Constructor. 
+    /// </summary>
+    public RtfMerger()
+    {
+        // The list of replacement parameters (placeholders) is created
+        Placeholders = new Dictionary<string, RtfTree>();
+    }
+
+    #endregion
+
+    #region Public Methods
+
+    /// <summary>
+    /// Associates a new placeholder with the path of the document to be inserted.
+    /// </summary>
+    /// <param name="ph">Name of the placeholder.</param>
+    /// <param name="path">Path of the document to be inserted.</param>
+    public void AddPlaceHolder(string ph, string path)
+    {
+        var tree = new RtfTree();
+
+        var res = tree.LoadRtfFile(path);
+
+        if (res == 0)
+        {
+            Placeholders.Add(ph, tree);
+        }
+    }
+
+    /// <summary>
+    /// Associates a new placeholder with the path of the document to be inserted.
+    /// </summary>
+    /// <param name="ph">Name of the placeholder.</param>
+    /// <param name="docTree">RTF tree of the document to be inserted.</param>
+    public void AddPlaceHolder(string ph, RtfTree docTree)
+    {
+        Placeholders.Add(ph, docTree);
+    }
+
+    /// <summary>
+    /// Disassociates a placeholder parameter with the path of the document to be inserted.
+    /// </summary>
+    /// <param name="ph">Name of the placeholder.</param>
+    public void RemovePlaceHolder(string ph)
+    {
+        Placeholders.Remove(ph);
+    }
+
+    /// <summary>
+    /// Performs the combination of RTF documents.
+    /// <param name="removeLastParagraph">Indicates whether the last \par node should be removed from documents inserted into the template.</param>
+    /// <returns>Returns the RTF tree resulting from the merge.</returns>
+    /// </summary>
+    public RtfTree? Merge(bool removeLastParagraph = true)
+    {
+        this.removeLastPar = removeLastParagraph;
+
+        // The main group of the tree is obtained
+        var parentNode = Template?.MainGroup;
+
+        // If the document has a main group
+        if (parentNode != null)
+        {
+            // The document text is analyzed for replacement parameters and the documents are combined
+            analyzeTextContent(parentNode);
+        }
+
+        return Template;
+    }
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// Returns the list of replacement parameters in the format: [string, RtfTree]
+    /// </summary>
+    public Dictionary<string, RtfTree> Placeholders { get; }
+
+    /// <summary>
+    /// Gets or sets the RTF tree of the template document.
+    /// </summary>
+    public RtfTree? Template { get; set; }
+
+    #endregion
+
+    #region Private Methods
+
+    /// <summary>
+    /// Analyzes the document text for replacement parameters and merges the documents.
+    /// </summary>
+    /// <param name="parentNode">Tree node to be processed.</param>
+    private void analyzeTextContent(RtfTreeNode? parentNode)
+    {
+        int indPH;
+
+        // If the node is of type group and contains child nodes
+        if (parentNode == null || !parentNode.HasChildNodes()) return;
+        if (parentNode.ChildNodes == null) return;
+        
+        //All child nodes are traversed
+        for (var iNdIndex = 0; iNdIndex < parentNode.ChildNodes.Count; iNdIndex++)
+        {
+            var currNode = parentNode.ChildNodes[iNdIndex];
+
+            // If the current node is of type Text, labels to replace are searched for.
+            if (currNode is { NodeType: RtfNodeType.Text })
+            {
+                // All configured tags are traversed
+                foreach (var ph in Placeholders.Keys)
+                {
+                    // Search for the next occurrence of the current tag
+                    indPH = currNode.NodeKey.IndexOf(ph, StringComparison.Ordinal);
+
+                    // If a tag has been found
+                    if (indPH == -1) continue;
+                    // The tree to be inserted into the current tag is retrieved
+                    var docToInsert = Placeholders[ph].CloneTree();
+
+                    // The new tree is inserted into the base tree
+                    mergeCore(parentNode, iNdIndex, docToInsert, ph, indPH);
+
+                    // Since the current node may have changed, we decrement the index.
+                    // and we exit the loop to analyze it again
+                    iNdIndex--;
+                    break;
+                }
+            }
+            else
+            {
+                // If the current node has children, the child nodes are analyzed.
+                if (currNode != null && currNode.HasChildNodes())
+                {
+                    analyzeTextContent(currNode);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Inserts a new tree in place of a text label in the base tree.
+    /// </summary>
+    /// <param name="parentNode">Group type node being processed.</param>
+    /// <param name="iNdIndex">Index (within the parent group) of the text node being processed</param>
+    /// <param name="docToInsert">New RTF tree to insert.</param>
+    /// <param name="strCompletePlaceholder">Text of the label to be replaced.</param>
+    /// <param name="intPlaceHolderNodePos">Position of the label to be replaced within the text node being processed</param>
+    private void mergeCore(RtfTreeNode? parentNode, int iNdIndex, RtfTree docToInsert, string strCompletePlaceholder, int intPlaceHolderNodePos)
+    {
+        // If the document to be inserted is not empty
+        if (!docToInsert.RootNode.HasChildNodes()) return;
+        
+        var currentIndex = iNdIndex + 1;
+
+        // The color tables are combined and the colors of the document to be inserted are adjusted.
+        mainAdjustColor(docToInsert);
+
+        // The font tables are combined and the fonts of the document to be inserted are adjusted.
+        mainAdjustFont(docToInsert);
+
+        // The header information of the document to be inserted is removed (colors, fonts, info, ...)
+        cleanToInsertDoc(docToInsert);
+
+        // If the document to be inserted has content
+        if (docToInsert.RootNode.FirstChild != null && docToInsert.RootNode.FirstChild.HasChildNodes())
+        {
+            // The new document is inserted into the base tree
+            execMergeDoc(parentNode, docToInsert, currentIndex);
+        }
+
+        // If the label is not at the end of the text node:
+        // A text node is inserted with the rest of the original text (removing the label)
+        if (parentNode != null && parentNode.ChildNodes?[iNdIndex]?.NodeKey.Length != (intPlaceHolderNodePos + strCompletePlaceholder.Length))
+        {
+            //A text node is inserted with the rest of the original text (removing the label)
+            var remText = 
+                (parentNode.ChildNodes?[iNdIndex]
+                    ?.NodeKey)?[(parentNode.ChildNodes[iNdIndex]!.NodeKey.IndexOf(strCompletePlaceholder, StringComparison.Ordinal) + strCompletePlaceholder.Length)..];
+            
+            if (remText == null) throw new NullReferenceException();
+            parentNode.InsertChild(currentIndex + 1, new RtfTreeNode(RtfNodeType.Text, remText, false, 0));
+        }
+
+        // If the replaced tag was at the beginning of the text node we delete the
+        // original node because it is no longer necessary
+        if (intPlaceHolderNodePos == 0)
+        {
+            parentNode?.RemoveChild(iNdIndex);
+        }
+        // Otherwise we replace it with the text before the label
+        else
+        {
+            if (parentNode == null) return;
+            if (parentNode.ChildNodes != null)
+                parentNode.ChildNodes[iNdIndex]!.NodeKey =
+                    (parentNode.ChildNodes[iNdIndex]?.NodeKey)?[..intPlaceHolderNodePos] ?? throw new InvalidOperationException();
+        }
+    }
+
+    /// <summary>
+    /// Obtains the source code passed as a parameter, inserting it into the source table if necessary.
+    /// </summary>
+    /// <param name="fontDestTbl">Resulting font table.</param>
+    /// <param name="sFontName">Font name.</param>
+    /// <returns></returns>
+    private int getFontID(ref RtfFontTable fontDestTbl, string sFontName)
+    {
+        var iExistingFontID = -1;
+
+        if ((iExistingFontID = fontDestTbl.IndexOf(sFontName)) != -1) return iExistingFontID;
+
+        fontDestTbl.AddFont(sFontName);
+        iExistingFontID = fontDestTbl.IndexOf(sFontName);
+
+        var nodeListToInsert = Template?.RootNode.SelectNodes("fonttbl");
+
+        var ftFont = new RtfTreeNode(RtfNodeType.Group);
+        ftFont.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "f", true, iExistingFontID));
+        ftFont.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "fnil", false, 0));
+        ftFont.AppendChild(new RtfTreeNode(RtfNodeType.Text, sFontName + ";", false, 0));
+            
+        nodeListToInsert?[0]?.ParentNode?.AppendChild(ftFont);
+
+        return iExistingFontID;
+    }
+
+    /// <summary>
+    /// Obtains the code of the color passed as a parameter, inserting it into the color table if necessary.
+    /// </summary>
+    /// <param name="colorDestTbl">Table of resulting colors.</param>
+    /// <param name="iColorName">Color name.</param>
+    /// <returns></returns>
+    private int getColorID(RtfColorTable colorDestTbl, Color iColorName)
+    {
+        int iExistingColorID;
+
+        if ((iExistingColorID = colorDestTbl.IndexOf(iColorName)) != -1) return iExistingColorID;
+        
+        iExistingColorID = colorDestTbl.Count;
+        colorDestTbl.AddColor(iColorName);
+
+        var nodeListToInsert = Template?.RootNode.SelectNodes("colortbl");
+
+        nodeListToInsert?[0]?.ParentNode?.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "red", true, iColorName.R));
+        nodeListToInsert?[0]?.ParentNode?.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "green", true, iColorName.G));
+        nodeListToInsert?[0]?.ParentNode?.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "blue", true, iColorName.B));
+        nodeListToInsert?[0]?.ParentNode?.AppendChild(new RtfTreeNode(RtfNodeType.Text, ";", false, 0));
+
+        return iExistingColorID;
+    }
+
+    /// <summary>
+    /// Adjusts the fonts of the document to be inserted.
+    /// </summary>
+    /// <param name="docToInsert">Document to insert.</param>
+    private void mainAdjustFont(RtfTree docToInsert)
+    {
+        if(Template == null) return;
+        var fontDestTbl = Template.GetFontTable();
+        var fontToCopyTbl = docToInsert.GetFontTable();
+
+        adjustFontRecursive(docToInsert.RootNode, fontDestTbl, fontToCopyTbl);
+    }
+
+    /// <summary>
+    /// Adjusts the fonts of the document to be inserted.
+    /// </summary>
+    /// <param name="parentNode">Group node being processed.</param>
+    /// <param name="fontDestTbl">Table of resulting fonts.</param>
+    /// <param name="fontToCopyTbl">Table of fonts of the document to be inserted.</param>
+    private void adjustFontRecursive(RtfTreeNode parentNode, RtfFontTable fontDestTbl, RtfFontTable fontToCopyTbl)
+    {
+        if (!parentNode.HasChildNodes()) return;
+        if (parentNode.ChildNodes == null) return;
+        
+        for (var iNdIndex = 0; iNdIndex < parentNode.ChildNodes.Count; iNdIndex++)
+        {
+            if (parentNode.ChildNodes[iNdIndex] == null) continue;
+            if (parentNode.ChildNodes[iNdIndex]!.NodeType == RtfNodeType.Keyword &&
+                (parentNode.ChildNodes[iNdIndex]!.NodeKey == "f" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "stshfdbch" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "stshfloch" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "stshfhich" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "stshfbi" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "deff" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "af") &&
+                parentNode.ChildNodes[iNdIndex]!.HasParameter)
+            {
+                parentNode.ChildNodes[iNdIndex]!.Parameter = getFontID(ref fontDestTbl,
+                    fontToCopyTbl[parentNode.ChildNodes[iNdIndex]!.Parameter]);
+            }
+
+            adjustFontRecursive(parentNode.ChildNodes[iNdIndex]!, fontDestTbl, fontToCopyTbl);
+        }
+    }
+
+    /// <summary>
+    /// Adjusts the colors of the document to be inserted.
+    /// </summary>
+    /// <param name="docToInsert">Document to insert.</param>
+    private void mainAdjustColor(RtfTree docToInsert)
+    {
+        if(Template == null) return;
+        var colorDestTbl = Template.GetColorTable();
+        var colorToCopyTbl = docToInsert.GetColorTable();
+
+        adjustColorRecursive(docToInsert.RootNode, colorDestTbl, colorToCopyTbl);
+    }
+
+    /// <summary>
+    /// Adjusts the colors of the document to be inserted.
+    /// </summary>
+    /// <param name="parentNode">Group node being processed.</param>
+    /// <param name="colorDestTbl">Table of resulting colors.</param>
+    /// <param name="colorToCopyTbl">Table of colors of the document to be inserted.</param>
+    private void adjustColorRecursive(RtfTreeNode parentNode, RtfColorTable colorDestTbl, RtfColorTable colorToCopyTbl)
+    {
+        if (!parentNode.HasChildNodes()) return;
+        if (parentNode.ChildNodes == null) return;
+
+        for (var iNdIndex = 0; iNdIndex < parentNode.ChildNodes.Count; iNdIndex++)
+        {
+            if (parentNode.ChildNodes[iNdIndex] == null) continue;
+            if (parentNode.ChildNodes[iNdIndex]!.NodeType == RtfNodeType.Keyword &&
+                (parentNode.ChildNodes[iNdIndex]!.NodeKey == "cf" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "cb" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "pncf" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "brdrcf" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "cfpat" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "cbpat" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "clcfpatraw" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "clcbpatraw" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "ulc" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "chcfpat" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "chcbpat" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "highlight" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "clcbpat" ||
+                 parentNode.ChildNodes[iNdIndex]!.NodeKey == "clcfpat") &&
+                parentNode.ChildNodes[iNdIndex]!.HasParameter)
+            {
+                parentNode.ChildNodes[iNdIndex]!.Parameter = getColorID(colorDestTbl,
+                    colorToCopyTbl[parentNode.ChildNodes[iNdIndex]!.Parameter]);
+            }
+
+            adjustColorRecursive(parentNode.ChildNodes[iNdIndex]!, colorDestTbl, colorToCopyTbl);
+        }
+    }
+
+    /// <summary>
+    /// Inserts the new tree into the base tree (as a new group) by removing all headers from the inserted document.
+    /// </summary>
+    /// <param name="parentNode">Base group in which the new tree will be inserted.</param>
+    /// <param name="treeToCopyParent">New tree to insert.</param>
+    /// <param name="intCurrIndex">Index at which the new tree will be inserted into the base group.</param>
+    private void execMergeDoc(RtfTreeNode? parentNode, RtfTree treeToCopyParent, int intCurrIndex)
+    {
+        // Search for the first "\pard" in the document (beginning of text)
+        var nodePard = treeToCopyParent.RootNode.FirstChild?.SelectSingleChildNode("pard");
+        if(nodePard == null) return;
+
+        // The index of the node within the main node is obtained
+        if (treeToCopyParent.RootNode.FirstChild?.ChildNodes == null) return;
+        
+        var indPard = treeToCopyParent.RootNode.FirstChild.ChildNodes.IndexOf(nodePard);
+
+        // The new group is created
+        var newGroup = new RtfTreeNode(RtfNodeType.Group);
+
+        // Paragraph and font options are reset
+        newGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "pard", false, 0));
+        newGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "plain", false, 0));
+
+        //Each child node of the new document is inserted into the base document
+        for (var i = indPard + 1; i < treeToCopyParent.RootNode.FirstChild.ChildNodes.Count; i++)
+        {
+            var newNode = 
+                treeToCopyParent.RootNode.FirstChild.ChildNodes[i]?.CloneNode();
+
+            newGroup.AppendChild(newNode);
+        }
+
+        // The new group is inserted with the new document
+        parentNode?.InsertChild(intCurrIndex, newGroup);
+    }
+
+    /// <summary>
+    /// Removes unwanted elements from the document to be inserted, for example trailing "\par" nodes.
+    /// </summary>
+    /// <param name="docToInsert">Document to insert.</param>
+    private void cleanToInsertDoc(RtfTree docToInsert)
+    {
+        // Deletes the last "\par" from the document if it exists
+        var lastNode = docToInsert.RootNode.FirstChild?.LastChild;
+
+        if (!removeLastPar) return;
+        if (lastNode is { NodeType: RtfNodeType.Keyword, NodeKey: "par" })
+        {
+            docToInsert.RootNode.FirstChild?.RemoveChild(lastNode);
+        }
+    }
+
+    #endregion
 }
+

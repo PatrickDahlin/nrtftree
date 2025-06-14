@@ -28,112 +28,96 @@
 
 using System.Collections;
 
-namespace Net.Sgoliver.NRtfTree
+namespace Net.Sgoliver.NRtfTree.Util;
+
+/// <summary>
+/// Table of Fonts of an RTF document.
+/// </summary>
+public class RtfFontTable
 {
-    namespace Util
+    /// <summary>
+    /// Internal list of fonts.
+    /// </summary>
+    private Dictionary<int,string> fonts;
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    public RtfFontTable()
     {
-        /// <summary>
-        /// Table of Fonts of an RTF document.
-        /// </summary>
-        public class RtfFontTable
+        fonts = new Dictionary<int,string>();
+    }
+
+    /// <summary>
+    /// Insert a new font to the table.
+    /// </summary>
+    /// <param name="name">New font to insert.</param>
+    public void AddFont(string name)
+    {
+        fonts.Add(newFontIndex(),name);
+    }
+
+    /// <summary>
+    /// Insert a new font to the table.
+    /// </summary>
+    /// <param name="index">Index to insert font to.</param>
+    /// <param name="name">New font to insert.</param>
+    public void AddFont(int index, string name)
+    {
+        fonts.Add(index, name);
+    }
+
+    /// <summary>
+    /// Obtain the font at index.
+    /// </summary>
+    /// <param name="index">Index of the font to retrieve.</param>
+    /// <returns>Font at the n-th position in the table.</returns>
+    public string this[int index] => fonts[index];
+
+    /// <summary>
+    /// Number of fonts in the table.
+    /// </summary>
+    public int Count => fonts.Count;
+
+    /// <summary>
+    /// Obtain the index of a specific font.
+    /// </summary>
+    /// <param name="name">Font to find.</param>
+    /// <returns>Index of font in the table.</returns>
+    public int IndexOf(string name)
+    {
+        var intIndex = -1;
+        IEnumerator fntIndex = fonts.GetEnumerator();
+
+        fntIndex.Reset();
+        while (fntIndex.MoveNext())
         {
-            /// <summary>
-            /// Internal list of fonts.
-            /// </summary>
-            private Dictionary<int,string> fonts;
-
-            /// <summary>
-            /// Constructor
-            /// </summary>
-            public RtfFontTable()
-            {
-                fonts = new Dictionary<int,string>();
-            }
-
-            /// <summary>
-            /// Insert a new font to the table.
-            /// </summary>
-            /// <param name="name">New font to insert.</param>
-            public void AddFont(string name)
-            {
-                fonts.Add(newFontIndex(),name);
-            }
-
-            /// <summary>
-            /// Insert a new font to the table.
-            /// </summary>
-            /// <param name="index">Index to insert font to.</param>
-            /// <param name="name">New font to insert.</param>
-            public void AddFont(int index, string name)
-            {
-                fonts.Add(index, name);
-            }
-
-            /// <summary>
-            /// Obtain the font at index.
-            /// </summary>
-            /// <param name="index">Index of the font to retrieve.</param>
-            /// <returns>Font at the n-th position in the table.</returns>
-            public string this[int index]
-            {
-                get
-                {
-                    return fonts[index];
-                }
-            }
-
-            /// <summary>
-            /// Number of fonts in the table.
-            /// </summary>
-            public int Count
-            {
-                get 
-                {
-                    return fonts.Count;
-                }
-            }
-
-            /// <summary>
-            /// Obtain the index of a specific font.
-            /// </summary>
-            /// <param name="name">Font to find.</param>
-            /// <returns>Index of font in the table.</returns>
-            public int IndexOf(string name)
-            {
-                int intIndex = -1;
-                IEnumerator fntIndex = fonts.GetEnumerator();
-
-                fntIndex.Reset();
-                while (fntIndex.MoveNext())
-                {
-                    if (((KeyValuePair<int,string>)fntIndex.Current).Value.Equals(name))
-                    {
-                        intIndex = (int)((KeyValuePair<int, string>)fntIndex.Current).Key;
-                        break;
-                    }
-                }
-
-                return intIndex;
-            }
-
-            /// <summary>
-            /// Get next free font index in the table.
-            /// </summary>
-            /// <returns>Next free index.</returns>
-            private int newFontIndex()
-            {
-                int intIndex = -1;
-                IEnumerator fntIndex = fonts.GetEnumerator();
-
-                fntIndex.Reset();
-                while (fntIndex.MoveNext())
-                {
-                    if ((int)((KeyValuePair<int, string>)fntIndex.Current).Key > intIndex)
-                        intIndex = (int)((KeyValuePair<int, string>)fntIndex.Current).Key;
-                }
-
-                return (intIndex + 1);
-            }
+            if (!((KeyValuePair<int, string>)fntIndex.Current).Value.Equals(name)) continue;
+            
+            intIndex = (int)((KeyValuePair<int, string>)fntIndex.Current).Key;
+            break;
         }
+
+        return intIndex;
+    }
+
+    /// <summary>
+    /// Get next free font index in the table.
+    /// </summary>
+    /// <returns>Next free index.</returns>
+    private int newFontIndex()
+    {
+        var intIndex = -1;
+        IEnumerator fntIndex = fonts.GetEnumerator();
+
+        fntIndex.Reset();
+        while (fntIndex.MoveNext())
+        {
+            if ((int)((KeyValuePair<int, string>)fntIndex.Current).Key > intIndex)
+                intIndex = (int)((KeyValuePair<int, string>)fntIndex.Current).Key;
+        }
+
+        return (intIndex + 1);
     }
 }
+
