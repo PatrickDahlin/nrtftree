@@ -23,34 +23,31 @@
  * Home Page:	http://www.sgoliver.net
  * GitHub:	    https://github.com/sgolivernet/nrtftree
  * Class:		TextAlignment
- * Description:	Tipos de alineación de texto.
+ * Description:	Types of text alignment.
  * ******************************************************************************/
 
-namespace Net.Sgoliver.NRtfTree
+namespace Net.Sgoliver.NRtfTree.Util
 {
-    namespace Util
+    /// <summary>
+    /// Types of text alignment.
+    /// </summary>
+    public enum TextAlignment
     {
         /// <summary>
-        /// Tipos de alineación de texto.
+        /// Text aligned to the left.
         /// </summary>
-        public enum TextAlignment
-        {
-            /// <summary>
-            /// Texto alineado a la izquierda.
-            /// </summary>
-            Left = 0,
-            /// <summary>
-            /// Texto alineado a la derecha.
-            /// </summary>
-            Right = 1,
-            /// <summary>
-            /// Texto centrado.
-            /// </summary>
-            Centered = 2,
-            /// <summary>
-            /// Texto justificado.
-            /// </summary>
-            Justified = 3
-        }
+        Left = 0,
+        /// <summary>
+        /// Text aligned to the right.
+        /// </summary>
+        Right = 1,
+        /// <summary>
+        /// Centered text.
+        /// </summary>
+        Centered = 2,
+        /// <summary>
+        /// Justified text.
+        /// </summary>
+        Justified = 3
     }
 }

@@ -16,14 +16,14 @@
  ********************************************************************************/
 
 /********************************************************************************
- * Library:		NRtfTree
+ * Library:     NRtfTree
  * Version:     v0.4
- * Date:		29/06/2013
+ * Date:        29/06/2013
  * Copyright:   2006-2013 Salvador Gomez
- * Home Page:	http://www.sgoliver.net
- * GitHub:	    https://github.com/sgolivernet/nrtftree
- * Class:		RtfToken
- * Description:	Token leido por el analizador léxico para documentos RTF.
+ * Home Page:   http://www.sgoliver.net
+ * GitHub:      https://github.com/sgolivernet/nrtftree
+ * Class:       RtfToken
+ * Description: Token read by the lexical analyzer for RTF documents.
  * ******************************************************************************/
 
 namespace Net.Sgoliver.NRtfTree
@@ -31,108 +31,104 @@ namespace Net.Sgoliver.NRtfTree
     namespace Core
     {
         /// <summary>
-        /// Token leido por el analizador léxico para documentos RTF.
+        /// Token read by the lexical analyzer for RTF documents.
         /// </summary>
         public class RtfToken
         {
-            #region Atributos Públicos
+            #region Public attributes
 
             /// <summary>
-            /// Tipo del token.
+            /// Token type.
             /// </summary>
             private RtfTokenType type;
             /// <summary>
-            /// Palabra clave / Símbolo de Control / Caracter.
+            /// Keyword / Control symbol / character.
             /// </summary>
             private string key;
             /// <summary>
-            /// Indica si el token tiene parámetro asociado.
+            /// Indicate if the token has an associated parameter.
             /// </summary>
             private bool hasParam;
             /// <summary>
-            /// Parámetro de la palabra clave o símbolo de Control.
+            /// Key word parameter or control symbol.
             /// </summary>
             private int param;
 
             #endregion
 
-			#region Propiedades
-
-			/// <summary>
-			/// Tipo del token.
-			/// </summary>
-			public RtfTokenType Type
-			{
-				get
-				{
-					return type;
-				}
-				set
-				{
-					type = value;
-				}
-			}
-
-			/// <summary>
-			/// Palabra clave / Símbolo de Control / Caracter.
-			/// </summary>
-			public string Key
-			{
-				get
-				{
-					return key;
-				}
-				set 
-				{
-					key = value;
-				}
-			}
-
-			/// <summary>
-			/// Indica si el token tiene parámetro asociado.
-			/// </summary>
-			public bool HasParameter
-			{
-				get
-				{
-					return hasParam;
-				}
-				set
-				{
-					hasParam = value;
-				}
-			}
-
-			/// <summary>
-			/// Parámetro de la palabra clave o símbolo de Control.
-			/// </summary>
-			public int Parameter
-			{
-				get
-				{
-					return param;
-				}
-				set
-				{
-					param = value;
-				}
-			}
-
-			#endregion
-
-            #region Constructor Público
+            #region Properties
 
             /// <summary>
-            /// Constructor de la clase RtfToken. Crea un token vacío.
+            /// Token type.
+            /// </summary>
+            public RtfTokenType Type
+            {
+                get
+                {
+                    return type;
+                }
+                set
+                {
+                    type = value;
+                }
+            }
+
+            /// <summary>
+            /// Keyword / Control symbol / character.
+            /// </summary>
+            public string Key
+            {
+                get
+                {
+                    return key;
+                }
+                set 
+                {
+                    key = value;
+                }
+            }
+
+            /// <summary>
+            /// Indicate if the token has an associated parameter.
+            /// </summary>
+            public bool HasParameter
+            {
+                get
+                {
+                    return hasParam;
+                }
+                set
+                {
+                    hasParam = value;
+                }
+            }
+
+            /// <summary>
+            /// Keyword parameter or control symbol.
+            /// </summary>
+            public int Parameter
+            {
+                get
+                {
+                    return param;
+                }
+                set
+                {
+                    param = value;
+                }
+            }
+
+            #endregion
+
+            #region Constructor
+
+            /// <summary>
+            /// RtfToken class builder. Create an empty token.
             /// </summary>
             public RtfToken()
             {
                 type = RtfTokenType.None;
                 key = "";
-                
-				/* Inicializados por defecto */
-				//hasParam = false;
-				//param = 0;
             }
 
             #endregion

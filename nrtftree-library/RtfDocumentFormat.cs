@@ -26,78 +26,77 @@
  * Description:	Representa un formato de documento.
  * ******************************************************************************/
 
-namespace Net.Sgoliver.NRtfTree
+namespace Net.Sgoliver.NRtfTree.Util
 {
-    namespace Util
+
+    /// <summary>
+    /// Representa un formato de documento.
+    /// </summary>
+    public class RtfDocumentFormat
     {
+        #region Atributos Privados
+
         /// <summary>
-        /// Representa un formato de documento.
+        /// Margen izquierdo (en cm.)
         /// </summary>
-        public class RtfDocumentFormat
+        private float marginl = 2;
+
+        /// <summary>
+        /// Margen derecho (en cm.)
+        /// </summary>
+        private float marginr = 2;
+
+        /// <summary>
+        /// Margen superior (en cm.)
+        /// </summary>
+        private float margint = 2;
+
+        /// <summary>
+        /// Margen inferior (en cm.)
+        /// </summary>
+        private float marginb = 2;
+
+        #endregion
+
+        #region Propiedades
+
+        /// <summary>
+        /// Margen Izquierdo en centímetros.
+        /// </summary>
+        public float MarginL
         {
-            #region Atributos Privados
-
-            /// <summary>
-            /// Margen izquierdo (en cm.)
-            /// </summary>
-            private float marginl = 2;
-
-            /// <summary>
-            /// Margen derecho (en cm.)
-            /// </summary>
-            private float marginr = 2;
-
-            /// <summary>
-            /// Margen superior (en cm.)
-            /// </summary>
-            private float margint = 2;
-
-            /// <summary>
-            /// Margen inferior (en cm.)
-            /// </summary>
-            private float marginb = 2;
-
-            #endregion
-
-            #region Propiedades
-
-            /// <summary>
-            /// Margen Izquierdo en centímetros.
-            /// </summary>
-            public float MarginL
-            {
-                get { return marginl; }
-                set { marginl = value; }
-            }
-
-            /// <summary>
-            /// Margen Derecho en centímetros.
-            /// </summary>
-            public float MarginR
-            {
-                get { return marginr; }
-                set { marginr = value; }
-            }
-
-            /// <summary>
-            /// Margen Superior en centímetros.
-            /// </summary>
-            public float MarginT
-            {
-                get { return margint; }
-                set { margint = value; }
-            }
-
-            /// <summary>
-            /// Margen Inferior en centímetros.
-            /// </summary>
-            public float MarginB
-            {
-                get { return marginb; }
-                set { marginb = value; }
-            }
-
-            #endregion
+            get { return marginl; }
+            set { marginl = value; }
         }
+
+        /// <summary>
+        /// Margen Derecho en centímetros.
+        /// </summary>
+        public float MarginR
+        {
+            get { return marginr; }
+            set { marginr = value; }
+        }
+
+        /// <summary>
+        /// Margen Superior en centímetros.
+        /// </summary>
+        public float MarginT
+        {
+            get { return margint; }
+            set { margint = value; }
+        }
+
+        /// <summary>
+        /// Margen Inferior en centímetros.
+        /// </summary>
+        public float MarginB
+        {
+            get { return marginb; }
+            set { marginb = value; }
+        }
+
+        #endregion
     }
+
 }

@@ -23,7 +23,7 @@
  * Home Page:	http://www.sgoliver.net
  * GitHub:	    https://github.com/sgolivernet/nrtftree
  * Class:		RtfNodeType
- * Description:	Tipos de nodo de un árbol RTF.
+ * Description:	Types of node of an RTF document.
  * ******************************************************************************/
 
 namespace Net.Sgoliver.NRtfTree
@@ -31,32 +31,32 @@ namespace Net.Sgoliver.NRtfTree
     namespace Core
     {
         /// <summary>
-        /// Tipos de nodo de un documento RTF.
+        /// Types of node of an RTF document.
         /// </summary>
         public enum RtfNodeType
         {
             /// <summary>
-            /// Nodo raíz.
+            /// Root node
             /// </summary>
             Root = 0,
             /// <summary>
-            /// Palabra clave.
+            /// Keyword.
             /// </summary>
             Keyword = 1,
             /// <summary>
-            /// Símbolo de Control.
+            /// Control symbol.
             /// </summary>
             Control = 2,
             /// <summary>
-            /// Texto del documento.
+            /// Document text.
             /// </summary>
             Text = 3,
             /// <summary>
-            /// Grupo RTF
+            /// RTF Group
             /// </summary>
             Group = 4,
             /// <summary>
-            /// No se ha inicializado el nodo
+            /// Uninitialized node
             /// </summary>
             None = 5
         }

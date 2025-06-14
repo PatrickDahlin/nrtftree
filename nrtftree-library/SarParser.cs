@@ -23,63 +23,61 @@
  * Home Page:	http://www.sgoliver.net
  * GitHub:	    https://github.com/sgolivernet/nrtftree
  * Class:		SarParser
- * Description:	Procesador abstracto utilizado por la clase RtfReader.
+ * Description:	Abstract processor used by the RTF Reader class.
  * ******************************************************************************/
 
-namespace Net.Sgoliver.NRtfTree
+namespace Net.Sgoliver.NRtfTree.Core
 {
-    namespace Core
+    /// <summary>
+    /// This class, used by RTFReader, contains all the necessary
+    /// methods to treat each of the types of elements present in an RTF
+    /// document. These methods will be automatically called during the
+    /// analysis of the RTF document made by the RTF Reader class.
+    /// </summary>
+    public abstract class SarParser
     {
         /// <summary>
-        /// Esta clase, utilizada por RtfReader, contiene todos los métodos necesarios para tratar cada uno de 
-        /// los tipos de elementos presentes en un documento RTF. Estos métodos serán llamados automáticamente 
-        /// durante el análisis del documento RTF realizado por la clase RtfReader.
+        /// This method is called a single time at the beginning of the analysis of the RTF document.
         /// </summary>
-        public abstract class SarParser
-        {
-            /// <summary>
-            /// Este método se llama una sóla vez al comienzo del análisis del documento RTF.
-            /// </summary>
-            public abstract void StartRtfDocument();
-            /// <summary>
-            /// Este método se llama una sóla vez al final del análisis del documento RTF.
-            /// </summary>
-            public abstract void EndRtfDocument();
-            /// <summary>
-            /// Este método se llama cada vez que se lee una llave de comienzo de grupo RTF.
-            /// </summary>
-            public abstract void StartRtfGroup();
-            /// <summary>
-            /// Este método se llama cada vez que se lee una llave de fin de grupo RTF.
-            /// </summary>
-            public abstract void EndRtfGroup();
-            /// <summary>
-            /// Este método se llama cada vez que se lee una palabra clave RTF.
-            /// </summary>
-            /// <param name="key">Palabra clave leida del documento.</param>
-            /// <param name="hasParameter">Indica si la palabra clave va acompañada de un parámetro.</param>
-            /// <param name="parameter">
-            /// Parámetro que acompaña a la palabra clave. En caso de que la palabra clave no vaya acompañada
-            /// de ningún parámetro, es decir, que el campo hasParam sea 'false', 
-            /// este campo contendrá el valor 0.
-            /// </param>
-            public abstract void RtfKeyword(string key, bool hasParameter, int parameter);
-            /// <summary>
-            /// Este método se llama cada vez que se lee un símbolo de Control RTF.
-            /// </summary>
-            /// <param name="key">Símbolo de Control leido del documento.</param>
-            /// <param name="hasParameter">Indica si el símbolo de Control va acompañado de un parámetro.</param>
-            /// <param name="parameter">
-            /// Parámetro que acompaña al símbolo de Control. En caso de que el símbolo de Control no vaya acompañado
-            /// de ningún parámetro, es decir, que el campo hasParam sea 'false', 
-            /// este campo contendrá el valor 0.
-            /// </param>
-            public abstract void RtfControl(string key, bool hasParameter, int parameter);
-            /// <summary>
-            /// Este método se llama cada vez que se lee un fragmento de Texto del documento RTF.
-            /// </summary>
-            /// <param name="text">Texto leido del documento.</param>
-            public abstract void RtfText(string text);
-        }
+        public abstract void StartRtfDocument();
+        /// <summary>
+        /// This method is called a only time at the end of the RTF document analysis.
+        /// </summary>
+        public abstract void EndRtfDocument();
+        /// <summary>
+        /// This method is called every time an RTF group start key is read.
+        /// </summary>
+        public abstract void StartRtfGroup();
+        /// <summary>
+        /// This method is called every time an RTF Group end key is read.
+        /// </summary>
+        public abstract void EndRtfGroup();
+        /// <summary>
+        /// This method is called every time an RTF keyword is read.
+        /// </summary>
+        /// <param name="key">Keyword read from the document.</param>
+        /// <param name="hasParameter">Indicate if the keyword is accompanied by a parameter.</param>
+        /// <param name="parameter">
+        /// Parameter that accompanies the keyword. In the event that the
+        /// keyword is not accompanied by any parameter, that is, the
+        /// hasParam field is 'false', this field will contain 0 value.
+        /// </param>
+        public abstract void RtfKeyword(string key, bool hasParameter, int parameter);
+        /// <summary>
+        /// This method is called every time a RTF control symbol is read.
+        /// </summary>
+        /// <param name="key">Control symbol read of the document.</param>
+        /// <param name="hasParameter">Indicate if the control symbol is accompanied by a parameter.</param>
+        /// <param name="parameter">
+        /// Parameter that accompanies the control symbol. In the event that
+        /// the control symbol is not accompanied by any parameter, that is,
+        /// the hasParam field is 'False', this field will contain the value 0.
+        /// </param>
+        public abstract void RtfControl(string key, bool hasParameter, int parameter);
+        /// <summary>
+        /// This method is called every time a text fragment of the RTF document is read.
+        /// </summary>
+        /// <param name="text">Text read from the document.</param>
+        public abstract void RtfText(string text);
     }
 }

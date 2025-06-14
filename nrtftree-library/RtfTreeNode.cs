@@ -23,10 +23,9 @@
  * Home Page:	http://www.sgoliver.net
  * GitHub:	    https://github.com/sgolivernet/nrtftree
  * Class:		RtfTreeNode
- * Description:	Nodo RTF de la representación en árbol de un documento.
+ * Description:	RTF node of the tree representation of a document.
  * ******************************************************************************/
 
-using System;
 using System.Text;
 
 namespace Net.Sgoliver.NRtfTree
@@ -34,26 +33,26 @@ namespace Net.Sgoliver.NRtfTree
     namespace Core
     {
         /// <summary>
-        /// Nodo RTF de la representación en árbol de un documento.
+        /// RTF node of the tree representation of a document.
         /// </summary>
         public class RtfTreeNode
         {
-            #region Atributos Privados
+            #region Private Fields
 
             /// <summary>
             /// Tipo de nodo.
             /// </summary>
             private RtfNodeType type;
             /// <summary>
-            /// Palabra clave / Símbolo de Control / Texto.
+            /// Palabra clave / Sï¿½mbolo de Control / Texto.
             /// </summary>
             private string key;
             /// <summary>
-            /// Indica si la palabra clave o símbolo de Control tiene parámetro.
+            /// Indica si la palabra clave o sï¿½mbolo de Control tiene parï¿½metro.
             /// </summary>
             private bool hasParam;
             /// <summary>
-            /// Parámetro de la palabra clave o símbolo de Control.
+            /// Parï¿½metro de la palabra clave o sï¿½mbolo de Control.
             /// </summary>
             private int param;
             /// <summary>
@@ -65,17 +64,17 @@ namespace Net.Sgoliver.NRtfTree
             /// </summary>
             private RtfTreeNode parent;
             /// <summary>
-            /// Nodo raíz del documento.
+            /// Nodo raï¿½z del documento.
             /// </summary>
             private RtfTreeNode root;
             /// <summary>
-            /// Árbol Rtf al que pertenece el nodo
+            /// ï¿½rbol Rtf al que pertenece el nodo
             /// </summary>
             private RtfTree tree;
 
             #endregion
 
-            #region Constructores Públicos
+            #region Constructores Pï¿½blicos
 
             /// <summary>
             /// Constructor de la clase RtfTreeNode. Crea un nodo sin inicializar.
@@ -119,12 +118,12 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Constructor de la clase RtfTreeNode. Crea un nodo especificando su tipo, palabra clave y parámetro.
+            /// Constructor de la clase RtfTreeNode. Crea un nodo especificando su tipo, palabra clave y parï¿½metro.
             /// </summary>
             /// <param name="type">Tipo del nodo.</param>
-            /// <param name="key">Palabra clave o símbolo de Control.</param>
-            /// <param name="hasParameter">Indica si la palabra clave o el símbolo de Control va acompañado de un parámetro.</param>
-            /// <param name="parameter">Parámetro del la palabra clave o símbolo de Control.</param>
+            /// <param name="key">Palabra clave o sï¿½mbolo de Control.</param>
+            /// <param name="hasParameter">Indica si la palabra clave o el sï¿½mbolo de Control va acompaï¿½ado de un parï¿½metro.</param>
+            /// <param name="parameter">Parï¿½metro del la palabra clave o sï¿½mbolo de Control.</param>
             public RtfTreeNode(RtfNodeType type, string key, bool hasParameter, int parameter)
             {
                 this.type = type;
@@ -150,9 +149,9 @@ namespace Net.Sgoliver.NRtfTree
             #region Constructor Privado
 
             /// <summary>
-            /// Constructor privado de la clase RtfTreeNode. Crea un nodo a partir de un token del analizador léxico.
+            /// Constructor privado de la clase RtfTreeNode. Crea un nodo a partir de un token del analizador lï¿½xico.
             /// </summary>
-            /// <param name="token">Token RTF devuelto por el analizador léxico.</param>
+            /// <param name="token">Token RTF devuelto por el analizador lï¿½xico.</param>
             internal RtfTreeNode(RtfToken token)
             {
                 type = (RtfNodeType)token.Type;
@@ -169,17 +168,17 @@ namespace Net.Sgoliver.NRtfTree
 
             #endregion
 
-            #region Métodos Públicos
+            #region Mï¿½todos Pï¿½blicos
 
             /// <summary>
-            /// Añade un nodo al final de la lista de hijos.
+            /// Aï¿½ade un nodo al final de la lista de hijos.
             /// </summary>
-            /// <param name="newNode">Nuevo nodo a añadir.</param>
+            /// <param name="newNode">Nuevo nodo a aï¿½adir.</param>
             public void AppendChild(RtfTreeNode newNode)
             {
 				if(newNode != null)
 				{
-                    //Si aún no tenía hijos se inicializa la colección
+                    //Si aï¿½n no tenï¿½a hijos se inicializa la colecciï¿½n
                     if (children == null)
                         children = new RtfNodeCollection();
 
@@ -189,21 +188,21 @@ namespace Net.Sgoliver.NRtfTree
                     //Se actualizan las propiedades Root y Tree del nuevo nodo y sus posibles hijos
                     updateNodeRoot(newNode);
 
-					//Se añade el nuevo nodo al final de la lista de nodos hijo
+					//Se aï¿½ade el nuevo nodo al final de la lista de nodos hijo
 					children.Add(newNode);
 				}
             }
 
             /// <summary>
-            /// Inserta un nuevo nodo en una posición determinada de la lista de hijos.
+            /// Inserta un nuevo nodo en una posiciï¿½n determinada de la lista de hijos.
             /// </summary>
-            /// <param name="index">Posición en la que se insertará el nodo.</param>
+            /// <param name="index">Posiciï¿½n en la que se insertarï¿½ el nodo.</param>
             /// <param name="newNode">Nuevo nodo a insertar.</param>
             public void InsertChild(int index, RtfTreeNode newNode)
             {
                 if (newNode != null)
                 {
-                    //Si aún no tenía hijos se inicializa la colección
+                    //Si aï¿½n no tenï¿½a hijos se inicializa la colecciï¿½n
                     if (children == null)
                         children = new RtfNodeCollection();
 
@@ -215,7 +214,7 @@ namespace Net.Sgoliver.NRtfTree
                         //Se actualizan las propiedades Root y Tree del nuevo nodo y sus posibles hijos
                         updateNodeRoot(newNode);
 
-                        //Se añade el nuevo nodo al final de la lista de nodos hijo
+                        //Se aï¿½ade el nuevo nodo al final de la lista de nodos hijo
                         children.Insert(index, newNode);
                     }
                 }
@@ -232,7 +231,7 @@ namespace Net.Sgoliver.NRtfTree
                 {
                     if (index >= 0 && index < children.Count)
                     {
-                        //Se elimina el i-ésimo hijo
+                        //Se elimina el i-ï¿½simo hijo
                         children.RemoveAt(index);
                     }
                 }
@@ -253,7 +252,7 @@ namespace Net.Sgoliver.NRtfTree
                     //Si lo encontramos
                     if (index != -1)
                     {
-                        //Se elimina el i-ésimo hijo
+                        //Se elimina el i-ï¿½simo hijo
                         children.RemoveAt(index);
                     }
                 }
@@ -275,7 +274,7 @@ namespace Net.Sgoliver.NRtfTree
                 clon.tree = null;
                 clon.type = type;
 
-                //Se clonan también cada uno de los hijos
+                //Se clonan tambiï¿½n cada uno de los hijos
                 clon.children = null;
 
                 if (children != null)
@@ -297,7 +296,7 @@ namespace Net.Sgoliver.NRtfTree
             /// <summary>
             /// Indica si el nodo actual tiene nodos hijos.
             /// </summary>
-            /// <returns>Devuelve true si el nodo actual tiene algún nodo hijo.</returns>
+            /// <returns>Devuelve true si el nodo actual tiene algï¿½n nodo hijo.</returns>
             public bool HasChildNodes()
             {
                 bool res = false;
@@ -309,10 +308,10 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el primer nodo de la lista de nodos hijos del nodo actual cuya palabra clave es la indicada como parámetro.
+            /// Devuelve el primer nodo de la lista de nodos hijos del nodo actual cuya palabra clave es la indicada como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Primer nodo de la lista de nodos hijos del nodo actual cuya palabra clave es la indicada como parámetro.</returns>
+            /// <returns>Primer nodo de la lista de nodos hijos del nodo actual cuya palabra clave es la indicada como parï¿½metro.</returns>
             public RtfTreeNode SelectSingleChildNode(string keyword)
             {
                 int i = 0;
@@ -337,10 +336,10 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el primer nodo de la lista de nodos hijos del nodo actual cuyo tipo es el indicado como parámetro.
+            /// Devuelve el primer nodo de la lista de nodos hijos del nodo actual cuyo tipo es el indicado como parï¿½metro.
             /// </summary>
             /// <param name="nodeType">Tipo de nodo buscado.</param>
-            /// <returns>Primer nodo de la lista de nodos hijos del nodo actual cuyo tipo es el indicado como parámetro.</returns>
+            /// <returns>Primer nodo de la lista de nodos hijos del nodo actual cuyo tipo es el indicado como parï¿½metro.</returns>
             public RtfTreeNode SelectSingleChildNode(RtfNodeType nodeType)
             {
                 int i = 0;
@@ -365,11 +364,11 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el primer nodo de la lista de nodos hijos del nodo actual cuya palabra clave y parámetro son los indicados como parámetros.
+            /// Devuelve el primer nodo de la lista de nodos hijos del nodo actual cuya palabra clave y parï¿½metro son los indicados como parï¿½metros.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="param">Parámetro buscado.</param>
-            /// <returns>Primer nodo de la lista de nodos hijos del nodo actual cuya palabra clave y parámetro son los indicados como parámetros.</returns>
+            /// <param name="param">Parï¿½metro buscado.</param>
+            /// <returns>Primer nodo de la lista de nodos hijos del nodo actual cuya palabra clave y parï¿½metro son los indicados como parï¿½metros.</returns>
             public RtfTreeNode SelectSingleChildNode(string keyword, int param)
             {
                 int i = 0;
@@ -394,21 +393,21 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el primer nodo grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como parámetro.
+            /// Devuelve el primer nodo grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Primer nodo grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como parámetro.</returns>
+            /// <returns>Primer nodo grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como parï¿½metro.</returns>
             public RtfTreeNode SelectSingleChildGroup(string keyword)
             {
                 return SelectSingleChildGroup(keyword, false);
             }
 
             /// <summary>
-            /// Devuelve el primer nodo grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como parámetro.
+            /// Devuelve el primer nodo grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="ignoreSpecial">Si está activo se ignorarán los nodos de control '\*' previos a algunas palabras clave.</param>
-            /// <returns>Primer nodo grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como parámetro.</returns>
+            /// <param name="ignoreSpecial">Si estï¿½ activo se ignorarï¿½n los nodos de control '\*' previos a algunas palabras clave.</param>
+            /// <returns>Primer nodo grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como parï¿½metro.</returns>
             public RtfTreeNode SelectSingleChildGroup(string keyword, bool ignoreSpecial)
             {
                 int i = 0;
@@ -437,10 +436,10 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el primer nodo del árbol, a partir del nodo actual, cuyo tipo es el indicado como parámetro.
+            /// Devuelve el primer nodo del ï¿½rbol, a partir del nodo actual, cuyo tipo es el indicado como parï¿½metro.
             /// </summary>
             /// <param name="nodeType">Tipo del nodo buscado.</param>
-            /// <returns>Primer nodo del árbol, a partir del nodo actual, cuyo tipo es el indicado como parámetro.</returns>
+            /// <returns>Primer nodo del ï¿½rbol, a partir del nodo actual, cuyo tipo es el indicado como parï¿½metro.</returns>
             public RtfTreeNode SelectSingleNode(RtfNodeType nodeType)
             {
                 int i = 0;
@@ -474,10 +473,10 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el primer nodo del árbol, a partir del nodo actual, cuya palabra clave es la indicada como parámetro.
+            /// Devuelve el primer nodo del ï¿½rbol, a partir del nodo actual, cuya palabra clave es la indicada como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Primer nodo del árbol, a partir del nodo actual, cuya palabra clave es la indicada como parámetro.</returns>
+            /// <returns>Primer nodo del ï¿½rbol, a partir del nodo actual, cuya palabra clave es la indicada como parï¿½metro.</returns>
             public RtfTreeNode SelectSingleNode(string keyword)
             {
                 int i = 0;
@@ -511,21 +510,21 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el primer nodo grupo del árbol, a partir del nodo actual, cuya primera palabra clave es la indicada como parámetro.
+            /// Devuelve el primer nodo grupo del ï¿½rbol, a partir del nodo actual, cuya primera palabra clave es la indicada como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Primer nodo grupo del árbol, a partir del nodo actual, cuya primera palabra clave es la indicada como parámetro.</returns>
+            /// <returns>Primer nodo grupo del ï¿½rbol, a partir del nodo actual, cuya primera palabra clave es la indicada como parï¿½metro.</returns>
             public RtfTreeNode SelectSingleGroup(string keyword)
             {
                 return SelectSingleGroup(keyword, false);
             }
 
             /// <summary>
-            /// Devuelve el primer nodo grupo del árbol, a partir del nodo actual, cuya primera palabra clave es la indicada como parámetro.
+            /// Devuelve el primer nodo grupo del ï¿½rbol, a partir del nodo actual, cuya primera palabra clave es la indicada como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="ignoreSpecial">Si está activo se ignorarán los nodos de control '\*' previos a algunas palabras clave.</param>
-            /// <returns>Primer nodo grupo del árbol, a partir del nodo actual, cuya primera palabra clave es la indicada como parámetro.</returns>
+            /// <param name="ignoreSpecial">Si estï¿½ activo se ignorarï¿½n los nodos de control '\*' previos a algunas palabras clave.</param>
+            /// <returns>Primer nodo grupo del ï¿½rbol, a partir del nodo actual, cuya primera palabra clave es la indicada como parï¿½metro.</returns>
             public RtfTreeNode SelectSingleGroup(string keyword, bool ignoreSpecial)
             {
                 int i = 0;
@@ -563,11 +562,11 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el primer nodo del árbol, a partir del nodo actual, cuya palabra clave y parámetro son los indicados como parámetro.
+            /// Devuelve el primer nodo del ï¿½rbol, a partir del nodo actual, cuya palabra clave y parï¿½metro son los indicados como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="param">Parámetro buscado.</param>
-            /// <returns>Primer nodo del árbol, a partir del nodo actual, cuya palabra clave y parámetro son ls indicados como parámetro.</returns>
+            /// <param name="param">Parï¿½metro buscado.</param>
+            /// <returns>Primer nodo del ï¿½rbol, a partir del nodo actual, cuya palabra clave y parï¿½metro son ls indicados como parï¿½metro.</returns>
             public RtfTreeNode SelectSingleNode(string keyword, int param)
             {
                 int i = 0;
@@ -601,10 +600,10 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve todos los nodos, a partir del nodo actual, cuya palabra clave es la indicada como parámetro.
+            /// Devuelve todos los nodos, a partir del nodo actual, cuya palabra clave es la indicada como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Colección de nodos, a partir del nodo actual, cuya palabra clave es la indicada como parámetro.</returns>
+            /// <returns>Colecciï¿½n de nodos, a partir del nodo actual, cuya palabra clave es la indicada como parï¿½metro.</returns>
             public RtfNodeCollection SelectNodes(string keyword)
             {
                 RtfNodeCollection nodes = new RtfNodeCollection();
@@ -626,21 +625,21 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve todos los nodos grupo, a partir del nodo actual, cuya primera palabra clave es la indicada como parámetro.
+            /// Devuelve todos los nodos grupo, a partir del nodo actual, cuya primera palabra clave es la indicada como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Colección de nodos grupo, a partir del nodo actual, cuya primera palabra clave es la indicada como parámetro.</returns>
+            /// <returns>Colecciï¿½n de nodos grupo, a partir del nodo actual, cuya primera palabra clave es la indicada como parï¿½metro.</returns>
             public RtfNodeCollection SelectGroups(string keyword)
             {
                 return SelectGroups(keyword, false);
             }
 
             /// <summary>
-            /// Devuelve todos los nodos grupo, a partir del nodo actual, cuya primera palabra clave es la indicada como parámetro.
+            /// Devuelve todos los nodos grupo, a partir del nodo actual, cuya primera palabra clave es la indicada como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="ignoreSpecial">Si está activo se ignorarán los nodos de control '\*' previos a algunas palabras clave.</param>
-            /// <returns>Colección de nodos grupo, a partir del nodo actual, cuya primera palabra clave es la indicada como parámetro.</returns>
+            /// <param name="ignoreSpecial">Si estï¿½ activo se ignorarï¿½n los nodos de control '\*' previos a algunas palabras clave.</param>
+            /// <returns>Colecciï¿½n de nodos grupo, a partir del nodo actual, cuya primera palabra clave es la indicada como parï¿½metro.</returns>
             public RtfNodeCollection SelectGroups(string keyword, bool ignoreSpecial)
             {
                 RtfNodeCollection nodes = new RtfNodeCollection();
@@ -666,10 +665,10 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve todos los nodos, a partir del nodo actual, cuyo tipo es el indicado como parámetro.
+            /// Devuelve todos los nodos, a partir del nodo actual, cuyo tipo es el indicado como parï¿½metro.
             /// </summary>
             /// <param name="nodeType">Tipo del nodo buscado.</param>
-            /// <returns>Colección de nodos, a partir del nodo actual, cuyo tipo es la indicado como parámetro.</returns>
+            /// <returns>Colecciï¿½n de nodos, a partir del nodo actual, cuyo tipo es la indicado como parï¿½metro.</returns>
             public RtfNodeCollection SelectNodes(RtfNodeType nodeType)
             {
                 RtfNodeCollection nodes = new RtfNodeCollection();
@@ -691,11 +690,11 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve todos los nodos, a partir del nodo actual, cuya palabra clave y parámetro son los indicados como parámetro.
+            /// Devuelve todos los nodos, a partir del nodo actual, cuya palabra clave y parï¿½metro son los indicados como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="param">Parámetro buscado.</param>
-            /// <returns>Colección de nodos, a partir del nodo actual, cuya palabra clave y parámetro son los indicados como parámetro.</returns>
+            /// <param name="param">Parï¿½metro buscado.</param>
+            /// <returns>Colecciï¿½n de nodos, a partir del nodo actual, cuya palabra clave y parï¿½metro son los indicados como parï¿½metro.</returns>
             public RtfNodeCollection SelectNodes(string keyword, int param)
             {
                 RtfNodeCollection nodes = new RtfNodeCollection();
@@ -717,10 +716,10 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve todos los nodos de la lista de nodos hijos del nodo actual cuya palabra clave es la indicada como parámetro.
+            /// Devuelve todos los nodos de la lista de nodos hijos del nodo actual cuya palabra clave es la indicada como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Colección de nodos de la lista de nodos hijos del nodo actual cuya palabra clave es la indicada como parámetro.</returns>
+            /// <returns>Colecciï¿½n de nodos de la lista de nodos hijos del nodo actual cuya palabra clave es la indicada como parï¿½metro.</returns>
             public RtfNodeCollection SelectChildNodes(string keyword)
             {
                 RtfNodeCollection nodes = new RtfNodeCollection();
@@ -740,21 +739,21 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve todos los nodos grupos de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como parámetro.
+            /// Devuelve todos los nodos grupos de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Colección de nodos grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como parámetro.</returns>
+            /// <returns>Colecciï¿½n de nodos grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como parï¿½metro.</returns>
             public RtfNodeCollection SelectChildGroups(string keyword)
             {
                 return SelectChildGroups(keyword, false);
             }
 
             /// <summary>
-            /// Devuelve todos los nodos grupos de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como parámetro.
+            /// Devuelve todos los nodos grupos de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="ignoreSpecial">Si está activo se ignorarán los nodos de control '\*' previos a algunas palabras clave.</param>
-            /// <returns>Colección de nodos grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como parámetro.</returns>
+            /// <param name="ignoreSpecial">Si estï¿½ activo se ignorarï¿½n los nodos de control '\*' previos a algunas palabras clave.</param>
+            /// <returns>Colecciï¿½n de nodos grupo de la lista de nodos hijos del nodo actual cuya primera palabra clave es la indicada como parï¿½metro.</returns>
             public RtfNodeCollection SelectChildGroups(string keyword, bool ignoreSpecial)
             {
                 RtfNodeCollection nodes = new RtfNodeCollection();
@@ -778,10 +777,10 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve todos los nodos de la lista de nodos hijos del nodo actual cuyo tipo es el indicado como parámetro.
+            /// Devuelve todos los nodos de la lista de nodos hijos del nodo actual cuyo tipo es el indicado como parï¿½metro.
             /// </summary>
             /// <param name="nodeType">Tipo del nodo buscado.</param>
-            /// <returns>Colección de nodos de la lista de nodos hijos del nodo actual cuyo tipo es el indicado como parámetro.</returns>
+            /// <returns>Colecciï¿½n de nodos de la lista de nodos hijos del nodo actual cuyo tipo es el indicado como parï¿½metro.</returns>
             public RtfNodeCollection SelectChildNodes(RtfNodeType nodeType)
             {
                 RtfNodeCollection nodes = new RtfNodeCollection();
@@ -801,11 +800,11 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve todos los nodos de la lista de nodos hijos del nodo actual cuya palabra clave y parámetro son los indicados como parámetro.
+            /// Devuelve todos los nodos de la lista de nodos hijos del nodo actual cuya palabra clave y parï¿½metro son los indicados como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="param">Parámetro buscado.</param>
-            /// <returns>Colección de nodos de la lista de nodos hijos del nodo actual cuya palabra clave y parámetro son los indicados como parámetro.</returns>
+            /// <param name="param">Parï¿½metro buscado.</param>
+            /// <returns>Colecciï¿½n de nodos de la lista de nodos hijos del nodo actual cuya palabra clave y parï¿½metro son los indicados como parï¿½metro.</returns>
             public RtfNodeCollection SelectChildNodes(string keyword, int param)
             {
                 RtfNodeCollection nodes = new RtfNodeCollection();
@@ -825,10 +824,10 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el siguiente nodo hermano del actual cuya palabra clave es la indicada como parámetro.
+            /// Devuelve el siguiente nodo hermano del actual cuya palabra clave es la indicada como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Primer nodo hermano del actual cuya palabra clave es la indicada como parámetro.</returns>
+            /// <returns>Primer nodo hermano del actual cuya palabra clave es la indicada como parï¿½metro.</returns>
             public RtfTreeNode SelectSibling(string keyword)
             {
                 RtfTreeNode node = null;
@@ -857,10 +856,10 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el siguiente nodo hermano del actual cuyo tipo es el indicado como parámetro.
+            /// Devuelve el siguiente nodo hermano del actual cuyo tipo es el indicado como parï¿½metro.
             /// </summary>
             /// <param name="nodeType">Tpo de nodo buscado.</param>
-            /// <returns>Primer nodo hermano del actual cuyo tipo es el indicado como parámetro.</returns>
+            /// <returns>Primer nodo hermano del actual cuyo tipo es el indicado como parï¿½metro.</returns>
             public RtfTreeNode SelectSibling(RtfNodeType nodeType)
             {
                 RtfTreeNode node = null;
@@ -889,11 +888,11 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el siguiente nodo hermano del actual cuya palabra clave y parámetro son los indicados como parámetro.
+            /// Devuelve el siguiente nodo hermano del actual cuya palabra clave y parï¿½metro son los indicados como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <param name="param">Parámetro buscado.</param>
-            /// <returns>Primer nodo hermano del actual cuya palabra clave y parámetro son los indicados como parámetro.</returns>
+            /// <param name="param">Parï¿½metro buscado.</param>
+            /// <returns>Primer nodo hermano del actual cuya palabra clave y parï¿½metro son los indicados como parï¿½metro.</returns>
             public RtfTreeNode SelectSibling(string keyword, int param)
             {
                 RtfTreeNode node = null;
@@ -966,7 +965,7 @@ namespace Net.Sgoliver.NRtfTree
             }
 
 			/// <summary>
-			/// Devuelve una representación del nodo donde se indica su tipo, clave, indicador de parámetro y valor de parámetro
+			/// Devuelve una representaciï¿½n del nodo donde se indica su tipo, clave, indicador de parï¿½metro y valor de parï¿½metro
 			/// </summary>
 			/// <returns>Cadena de caracteres del tipo [TIPO, CLAVE, IND_PARAMETRO, VAL_PARAMETRO]</returns>
 			public override string ToString()
@@ -979,19 +978,19 @@ namespace Net.Sgoliver.NRtfTree
             #region Metodos Privados
 
             /// <summary>
-            /// Decodifica un caracter especial indicado por su código decimal
+            /// Decodifica un caracter especial indicado por su cï¿½digo decimal
             /// </summary>
-            /// <param name="code">Código del caracter especial (\')</param>
-            /// <param name="enc">Codificación utilizada para decodificar el caracter especial.</param>
+            /// <param name="code">Cï¿½digo del caracter especial (\')</param>
+            /// <param name="enc">Codificaciï¿½n utilizada para decodificar el caracter especial.</param>
             /// <returns>Caracter especial decodificado.</returns>
             private string DecodeControlChar(int code, Encoding enc)
             {
-                //Contributed by Jan Stuchlík
+                //Contributed by Jan Stuchlï¿½k
                 return enc.GetString(new byte[] { (byte)code });
             }
 
             /// <summary>
-            /// Obtiene el Texto RTF a partir de la representación en árbol del nodo actual.
+            /// Obtiene el Texto RTF a partir de la representaciï¿½n en ï¿½rbol del nodo actual.
             /// </summary>
             /// <returns>Texto RTF del nodo.</returns>
             private string getRtf()
@@ -1006,11 +1005,11 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Método auxiliar para obtener el Texto RTF del nodo actual a partir de su representación en árbol.
+            /// Mï¿½todo auxiliar para obtener el Texto RTF del nodo actual a partir de su representaciï¿½n en ï¿½rbol.
             /// </summary>
-            /// <param name="curNode">Nodo actual del árbol.</param>
+            /// <param name="curNode">Nodo actual del ï¿½rbol.</param>
             /// <param name="prevNode">Nodo anterior tratado.</param>
-            /// <param name="enc">Codificación del documento.</param>
+            /// <param name="enc">Codificaciï¿½n del documento.</param>
             /// <returns>Texto en formato RTF del nodo.</returns>
             private string getRtfInm(RtfTreeNode curNode, RtfTreeNode prevNode, Encoding enc)
             {
@@ -1061,7 +1060,7 @@ namespace Net.Sgoliver.NRtfTree
                 //Se obtienen los nodos hijos
                 RtfNodeCollection children = curNode.ChildNodes;
 
-                //Si el nodo tiene hijos se obtiene el código RTF de los hijos
+                //Si el nodo tiene hijos se obtiene el cï¿½digo RTF de los hijos
                 if (children != null)
                 {
                     for (int i = 0; i < children.Count; i++)
@@ -1084,14 +1083,14 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Concatena dos cadenas utilizando la codificación del documento.
+            /// Concatena dos cadenas utilizando la codificaciï¿½n del documento.
             /// </summary>
             /// <param name="res">Cadena original.</param>
-            /// <param name="s">Cadena a añadir.</param>
-            /// <param name="enc">Codificación del documento.</param>
+            /// <param name="s">Cadena a aï¿½adir.</param>
+            /// <param name="enc">Codificaciï¿½n del documento.</param>
             private void AppendEncoded(StringBuilder res, string s, Encoding enc)
             {
-                //Contributed by Jan Stuchlík
+                //Contributed by Jan Stuchlï¿½k
 
                 for (int i = 0; i < s.Length; i++)
                 {
@@ -1116,13 +1115,13 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Obtiene el código hexadecimal de un entero.
+            /// Obtiene el cï¿½digo hexadecimal de un entero.
             /// </summary>
-            /// <param name="code">Número entero.</param>
-            /// <returns>Código hexadecimal del entero pasado como parámetro.</returns>
+            /// <param name="code">Nï¿½mero entero.</param>
+            /// <returns>Cï¿½digo hexadecimal del entero pasado como parï¿½metro.</returns>
             private string GetHexa(int code)
             {
-                //Contributed by Jan Stuchlík
+                //Contributed by Jan Stuchlï¿½k
 
                 string hexa = Convert.ToString(code, 16);
 
@@ -1140,13 +1139,13 @@ namespace Net.Sgoliver.NRtfTree
             /// <param name="node">Nodo a actualizar.</param>
             private void updateNodeRoot(RtfTreeNode node)
             {
-                //Se asigna el nodo raíz del documento
+                //Se asigna el nodo raï¿½z del documento
                 node.root = root;
 
-                //Se asigna el árbol propietario del nodo
+                //Se asigna el ï¿½rbol propietario del nodo
                 node.tree = tree;
 
-                //Si el nodo actualizado tiene hijos se actualizan también
+                //Si el nodo actualizado tiene hijos se actualizan tambiï¿½n
                 if (node.children != null)
                 {
                     //Se actualizan recursivamente los hijos del nodo actual
@@ -1160,7 +1159,7 @@ namespace Net.Sgoliver.NRtfTree
             /// <summary>
             /// Obtiene el texto contenido en el nodo actual.
             /// </summary>
-            /// <param name="raw">Si este parámetro está activado se extraerá todo el texto contenido en el nodo, independientemente de si éste
+            /// <param name="raw">Si este parï¿½metro estï¿½ activado se extraerï¿½ todo el texto contenido en el nodo, independientemente de si ï¿½ste
             /// forma parte del texto real del documento.</param>
             /// <returns>Texto extraido del nodo.</returns>
             private string GetText(bool raw)
@@ -1171,7 +1170,7 @@ namespace Net.Sgoliver.NRtfTree
             /// <summary>
             /// Obtiene el texto contenido en el nodo actual.
             /// </summary>
-            /// <param name="raw">Si este parámetro está activado se extraerá todo el texto contenido en el nodo, independientemente de si éste
+            /// <param name="raw">Si este parï¿½metro estï¿½ activado se extraerï¿½ todo el texto contenido en el nodo, independientemente de si ï¿½ste
             /// forma parte del texto real del documento.</param>
             /// <param name="ignoreNchars">Ignore next N chars following \uN keyword</param>
             /// <returns>Texto extraido del nodo.</returns>
@@ -1218,7 +1217,7 @@ namespace Net.Sgoliver.NRtfTree
                     string newtext = NodeKey;
 
                     //Si el elemento anterior era un caracater Unicode (\uN) ignoramos los siguientes N caracteres
-                    //según la última etiqueta \ucN
+                    //segï¿½n la ï¿½ltima etiqueta \ucN
                     if (PreviousNode.NodeType == RtfNodeType.Keyword &&
                         PreviousNode.NodeKey.Equals("u"))
                     {
@@ -1236,15 +1235,15 @@ namespace Net.Sgoliver.NRtfTree
                     else if (NodeKey.Equals("line"))
                         res.AppendLine("");
                     else if (NodeKey.Equals("lquote"))
-                        res.Append("‘");
+                        res.Append("ï¿½");
                     else if (NodeKey.Equals("rquote"))
-                        res.Append("’");
+                        res.Append("ï¿½");
                     else if (NodeKey.Equals("ldblquote"))
-                        res.Append("“");
+                        res.Append("ï¿½");
                     else if (NodeKey.Equals("rdblquote"))
-                        res.Append("”");
+                        res.Append("ï¿½");
                     else if (NodeKey.Equals("emdash"))
-                        res.Append("—");
+                        res.Append("ï¿½");
                     else if (NodeKey.Equals("u"))
                     {
                         res.Append(Char.ConvertFromUtf32(Parameter));
@@ -1259,11 +1258,11 @@ namespace Net.Sgoliver.NRtfTree
             #region Propiedades
 
             /// <summary>
-            /// Devuelve el nodo raíz del árbol del documento.
+            /// Devuelve el nodo raï¿½z del ï¿½rbol del documento.
             /// </summary>
             /// <remarks>
-            /// Éste no es el nodo raíz del árbol, sino que se trata simplemente de un nodo ficticio  de tipo ROOT del que parte el resto del árbol RTF.
-            /// Tendrá por tanto un solo nodo hijo de tipo GROUP, raiz real del árbol.
+            /// ï¿½ste no es el nodo raï¿½z del ï¿½rbol, sino que se trata simplemente de un nodo ficticio  de tipo ROOT del que parte el resto del ï¿½rbol RTF.
+            /// Tendrï¿½ por tanto un solo nodo hijo de tipo GROUP, raiz real del ï¿½rbol.
 			/// </remarks>
             public RtfTreeNode RootNode
             {
@@ -1293,7 +1292,7 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el árbol Rtf al que pertenece el nodo.
+            /// Devuelve el ï¿½rbol Rtf al que pertenece el nodo.
             /// </summary>
             public RtfTree Tree
             {
@@ -1323,7 +1322,7 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve la palabra clave, símbolo de Control o Texto del nodo actual.
+            /// Devuelve la palabra clave, sï¿½mbolo de Control o Texto del nodo actual.
             /// </summary>
             public string NodeKey
             {
@@ -1338,7 +1337,7 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Indica si el nodo actual tiene parámetro asignado.
+            /// Indica si el nodo actual tiene parï¿½metro asignado.
             /// </summary>
             public bool HasParameter
             {
@@ -1353,7 +1352,7 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el parámetro asignado al nodo actual.
+            /// Devuelve el parï¿½metro asignado al nodo actual.
             /// </summary>
             public int Parameter
             {
@@ -1368,7 +1367,7 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve la colección de nodos hijo del nodo actual.
+            /// Devuelve la colecciï¿½n de nodos hijo del nodo actual.
             /// </summary>
             public RtfNodeCollection ChildNodes
             {
@@ -1391,10 +1390,10 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el primer nodo hijo cuya palabra clave sea la indicada como parámetro.
+            /// Devuelve el primer nodo hijo cuya palabra clave sea la indicada como parï¿½metro.
             /// </summary>
             /// <param name="keyword">Palabra clave buscada.</param>
-            /// <returns>Primer nodo hijo cuya palabra clave sea la indicada como parámetro. En caso de no existir se devuelve null.</returns>
+            /// <returns>Primer nodo hijo cuya palabra clave sea la indicada como parï¿½metro. En caso de no existir se devuelve null.</returns>
             public RtfTreeNode this[string keyword]
             {
                 get
@@ -1404,10 +1403,10 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el hijo n-ésimo del nodo actual.
+            /// Devuelve el hijo n-ï¿½simo del nodo actual.
             /// </summary>
-            /// <param name="childIndex">Índice del nodo hijo a recuperar.</param>
-            /// <returns>Nodo hijo n-ésimo del nodo actual. Devuelve null en caso de no existir.</returns>
+            /// <param name="childIndex">ï¿½ndice del nodo hijo a recuperar.</param>
+            /// <returns>Nodo hijo n-ï¿½simo del nodo actual. Devuelve null en caso de no existir.</returns>
             public RtfTreeNode this[int childIndex]
             {
                 get
@@ -1438,7 +1437,7 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el último nodo hijo del nodo actual.
+            /// Devuelve el ï¿½ltimo nodo hijo del nodo actual.
             /// </summary>
             public RtfTreeNode LastChild
             {
@@ -1496,7 +1495,7 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el siguiente nodo del árbol. 
+            /// Devuelve el siguiente nodo del ï¿½rbol. 
             /// </summary>
             public RtfTreeNode NextNode
             {
@@ -1532,7 +1531,7 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el nodo anterior del árbol.
+            /// Devuelve el nodo anterior del ï¿½rbol.
             /// </summary>
             public RtfTreeNode PreviousNode
             {
@@ -1568,7 +1567,7 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el código RTF del nodo actual y todos sus nodos hijos.
+            /// Devuelve el cï¿½digo RTF del nodo actual y todos sus nodos hijos.
             /// </summary>
             public string Rtf
             {
@@ -1579,7 +1578,7 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Devuelve el índice del nodo actual dentro de la lista de hijos de su nodo padre.
+            /// Devuelve el ï¿½ndice del nodo actual dentro de la lista de hijos de su nodo padre.
             /// </summary>
             public int Index
             {

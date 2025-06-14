@@ -1,3 +1,6 @@
+# This is a fork of the original library at sgolivernet/nrtftree
+It is updated to the more modern .NET Framework 4.8.1 and .NET 8.0 for the tests
+
 NRtfTree Library is a set of classes written entirely in C# that may be used to manage RTF documents in your own applications. 
 
 NRtfTree is licensed under The GNU Lesser General Public License (LGPLv3).

@@ -23,76 +23,72 @@
  * Home Page:	http://www.sgoliver.net
  * GitHub:	    https://github.com/sgolivernet/nrtftree
  * Class:		RtfColorTable
- * Description:	Tabla de Colores de un documento RTF.
+ * Description:	Table of colors in a RTF document.
  * ******************************************************************************/
 
-using System.Collections.Generic;
 using System.Drawing;
 
-namespace Net.Sgoliver.NRtfTree
+namespace Net.Sgoliver.NRtfTree.Util
 {
-    namespace Util
+    /// <summary>
+    /// Table of colors in a RTF document.
+    /// </summary>
+    public class RtfColorTable
     {
         /// <summary>
-        /// Tabla de colores de un documento RTF.
+        /// Internal list of colors
         /// </summary>
-        public class RtfColorTable
+        private List<int> colors;
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public RtfColorTable()
         {
-            /// <summary>
-            /// Lista interna de colores.
-            /// </summary>
-            private List<int> colors;
+            colors = new List<int>();
+        }
 
-            /// <summary>
-            /// Constructor de la clase RtfColorTable.
-            /// </summary>
-            public RtfColorTable()
-            {
-                colors = new List<int>();
-            }
+        /// <summary>
+        /// Insert new color to the list.
+        /// </summary>
+        /// <param name="color">New color to insert.</param>
+        public void AddColor(Color color)
+        {
+            colors.Add(color.ToArgb());
+        }
 
-            /// <summary>
-            /// Inserta un nuevo color en la tabla de colores.
-            /// </summary>
-            /// <param name="color">Nuevo color a insertar.</param>
-            public void AddColor(Color color)
+        /// <summary>
+        /// Get color at index.
+        /// </summary>
+        /// <param name="index">Index of the color.</param>
+        /// <returns>Color at the index in the table.</returns>
+        public Color this[int index]
+        {
+            get
             {
-                colors.Add(color.ToArgb());
+                return Color.FromArgb(colors[index]);
             }
+        }
 
-            /// <summary>
-            /// Obtiene el color n-ésimo de la tabla de colores.
-            /// </summary>
-            /// <param name="index">Indice del color a recuperar.</param>
-            /// <returns>Color n-ésimo de la tabla de colores.</returns>
-            public Color this[int index]
+        /// <summary>
+        /// Number of colors in the table
+        /// </summary>
+        public int Count
+        {
+            get
             {
-                get
-                {
-                    return Color.FromArgb(colors[index]);
-                }
+                return colors.Count;
             }
+        }
 
-            /// <summary>
-            /// Número de colores en la tabla.
-            /// </summary>
-            public int Count
-            {
-                get
-                {
-                    return colors.Count;
-                }
-            }
-
-            /// <summary>
-            /// Obtiene el índice de un color determinado en la tabla.
-            /// </summary>
-            /// <param name="color">Color a consultar.</param>
-            /// <returns>Indice del color consultado.</returns>
-            public int IndexOf(Color color)
-            {
-                return colors.IndexOf(color.ToArgb());
-            }
+        /// <summary>
+        /// Get the index of a color in the table.
+        /// </summary>
+        /// <param name="color">Color to get the index of.</param>
+        /// <returns>Index of the color.</returns>
+        public int IndexOf(Color color)
+        {
+            return colors.IndexOf(color.ToArgb());
         }
     }
 }

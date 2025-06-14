@@ -23,10 +23,9 @@
  * Home Page:	http://www.sgoliver.net
  * GitHub:	    https://github.com/sgolivernet/nrtftree
  * Class:		RtfFontTable
- * Description:	Tabla de Fuentes de un documento RTF.
+ * Description:	Table of Fonts of an RTF document.
  * ******************************************************************************/
 
-using System.Collections.Generic;
 using System.Collections;
 
 namespace Net.Sgoliver.NRtfTree
@@ -34,17 +33,17 @@ namespace Net.Sgoliver.NRtfTree
     namespace Util
     {
         /// <summary>
-        /// Tabla de fuentes de un documento RTF.
+        /// Table of Fonts of an RTF document.
         /// </summary>
         public class RtfFontTable
         {
             /// <summary>
-            /// Lista interna de fuentes.
+            /// Internal list of fonts.
             /// </summary>
             private Dictionary<int,string> fonts;
 
             /// <summary>
-            /// Constructor de la clase RtfFontTable.
+            /// Constructor
             /// </summary>
             public RtfFontTable()
             {
@@ -52,29 +51,29 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Inserta un nueva fuente en la tabla de fuentes.
+            /// Insert a new font to the table.
             /// </summary>
-            /// <param name="name">Nueva fuente a insertar.</param>
+            /// <param name="name">New font to insert.</param>
             public void AddFont(string name)
             {
                 fonts.Add(newFontIndex(),name);
             }
 
             /// <summary>
-            /// Inserta un nueva fuente en la tabla de fuentes.
+            /// Insert a new font to the table.
             /// </summary>
-            /// <param name="index">Indice de la fuente a insertar.</param>
-            /// <param name="name">Nueva fuente a insertar.</param>
+            /// <param name="index">Index to insert font to.</param>
+            /// <param name="name">New font to insert.</param>
             public void AddFont(int index, string name)
             {
                 fonts.Add(index, name);
             }
 
             /// <summary>
-            /// Obtiene la fuente n-ésima de la tabla de fuentes.
+            /// Obtain the font at index.
             /// </summary>
-            /// <param name="index">Indice de la fuente a recuperar.</param>
-            /// <returns>Fuente n-ésima de la tabla de fuentes.</returns>
+            /// <param name="index">Index of the font to retrieve.</param>
+            /// <returns>Font at the n-th position in the table.</returns>
             public string this[int index]
             {
                 get
@@ -84,7 +83,7 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Número de fuentes en la tabla.
+            /// Number of fonts in the table.
             /// </summary>
             public int Count
             {
@@ -95,10 +94,10 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Obtiene el índice de una fuente determinado en la tabla.
+            /// Obtain the index of a specific font.
             /// </summary>
-            /// <param name="name">Fuente a consultar.</param>
-            /// <returns>Indice de la fuente consultada.</returns>
+            /// <param name="name">Font to find.</param>
+            /// <returns>Index of font in the table.</returns>
             public int IndexOf(string name)
             {
                 int intIndex = -1;
@@ -118,9 +117,9 @@ namespace Net.Sgoliver.NRtfTree
             }
 
             /// <summary>
-            /// Obtiene un índice que no se esté usando en la tabla.
+            /// Get next free font index in the table.
             /// </summary>
-            /// <returns>Obtiene un índice que no se esté usando en la tabla.</returns>
+            /// <returns>Next free index.</returns>
             private int newFontIndex()
             {
                 int intIndex = -1;

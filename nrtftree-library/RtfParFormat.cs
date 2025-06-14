@@ -26,45 +26,44 @@
  * Description:	Representa un formato de párrafo.
  * ******************************************************************************/
 
-namespace Net.Sgoliver.NRtfTree
+namespace Net.Sgoliver.NRtfTree.Util
 {
-    namespace Util
+    
+    /// <summary>
+    /// Representa un formato de párrafo.
+    /// </summary>
+    public class RtfParFormat
     {
+        private TextAlignment alignment = TextAlignment.Left;
+        private float leftIndentation = 0;
+        private float rightIndentation = 0;
+
         /// <summary>
-        /// Representa un formato de párrafo.
+        /// Alineación del párrafo.
         /// </summary>
-        public class RtfParFormat
+        public TextAlignment Alignment
         {
-            private TextAlignment alignment = TextAlignment.Left;
-            private float leftIndentation = 0;
-            private float rightIndentation = 0;
+            get { return alignment; }
+            set { alignment = value; }
+        }
 
-            /// <summary>
-            /// Alineación del párrafo.
-            /// </summary>
-            public TextAlignment Alignment
-            {
-                get { return alignment; }
-                set { alignment = value; }
-            }
+        /// <summary>
+        /// Sangría izquierda del párrafo.
+        /// </summary>
+        public float LeftIndentation
+        {
+            get { return leftIndentation; }
+            set { leftIndentation = value; }
+        }
 
-            /// <summary>
-            /// Sangría izquierda del párrafo.
-            /// </summary>
-            public float LeftIndentation
-            {
-                get { return leftIndentation; }
-                set { leftIndentation = value; }
-            }
-
-            /// <summary>
-            /// Sangría derecha del párrafo.
-            /// </summary>
-            public float RightIndentation
-            {
-                get { return rightIndentation; }
-                set { rightIndentation = value; }
-            }
+        /// <summary>
+        /// Sangría derecha del párrafo.
+        /// </summary>
+        public float RightIndentation
+        {
+            get { return rightIndentation; }
+            set { rightIndentation = value; }
         }
     }
+
 }

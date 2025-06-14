@@ -26,35 +26,32 @@
  * Description:	Tipos de hojas de estilo de documento RTF.
  * ******************************************************************************/
 
-namespace Net.Sgoliver.NRtfTree
+namespace Net.Sgoliver.NRtfTree.Util
 {
-    namespace Util
+    /// <summary>
+    /// Tipos de hojas de estilo de un documento RTF.
+    /// </summary>
+    public enum RtfStyleSheetType
     {
         /// <summary>
-        /// Tipos de hojas de estilo de un documento RTF.
+        /// Hoja de estilo sin definir.
         /// </summary>
-        public enum RtfStyleSheetType
-        {
-            /// <summary>
-            /// Hoja de estilo sin definir.
-            /// </summary>
-            None = 0,
-            /// <summary>
-            /// Hoja de estilo de caracter.
-            /// </summary>
-            Character = 1,
-            /// <summary>
-            /// Hoja de estilo de párrafo.
-            /// </summary>
-            Paragraph = 2,
-            /// <summary>
-            /// Hoja de estilo de sección.
-            /// </summary>
-            Section = 3,
-            /// <summary>
-            /// Hoja de estilo de tabla.
-            /// </summary>
-            Table = 4
-        }
+        None = 0,
+        /// <summary>
+        /// Hoja de estilo de caracter.
+        /// </summary>
+        Character = 1,
+        /// <summary>
+        /// Hoja de estilo de párrafo.
+        /// </summary>
+        Paragraph = 2,
+        /// <summary>
+        /// Hoja de estilo de sección.
+        /// </summary>
+        Section = 3,
+        /// <summary>
+        /// Hoja de estilo de tabla.
+        /// </summary>
+        Table = 4
     }
 }

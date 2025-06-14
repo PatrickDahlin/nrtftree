@@ -28,106 +28,103 @@
 
 using System.Drawing;
 
-namespace Net.Sgoliver.NRtfTree
+namespace Net.Sgoliver.NRtfTree.Util
 {
-    namespace Util
+    /// <summary>
+    /// Representa un formato de texto.
+    /// </summary>
+    public class RtfCharFormat
     {
+        #region Atributos Privados
+
         /// <summary>
-        /// Representa un formato de texto.
+        /// Negrita.
         /// </summary>
-        public class RtfCharFormat
+        private bool bold = false;
+
+        /// <summary>
+        /// Cursiva.
+        /// </summary>
+        private bool italic = false;
+
+        /// <summary>
+        /// Subrayado.
+        /// </summary>
+        private bool underline = false;
+
+        /// <summary>
+        /// Nombre de la fuente.
+        /// </summary>
+        private string font = "Arial";
+
+        /// <summary>
+        /// Tamaï¿½o de la fuente.
+        /// </summary>
+        private int size = 10;
+
+        /// <summary>
+        /// Color de la fuente.
+        /// </summary>
+        private Color color = Color.Black;
+
+        #endregion
+
+        #region Propiedades
+
+        /// <summary>
+        /// Fuente negrita.
+        /// </summary>
+        public bool Bold
         {
-            #region Atributos Privados
-
-            /// <summary>
-            /// Negrita.
-            /// </summary>
-            private bool bold = false;
-
-            /// <summary>
-            /// Cursiva.
-            /// </summary>
-            private bool italic = false;
-
-            /// <summary>
-            /// Subrayado.
-            /// </summary>
-            private bool underline = false;
-
-            /// <summary>
-            /// Nombre de la fuente.
-            /// </summary>
-            private string font = "Arial";
-
-            /// <summary>
-            /// Tamaño de la fuente.
-            /// </summary>
-            private int size = 10;
-
-            /// <summary>
-            /// Color de la fuente.
-            /// </summary>
-            private Color color = Color.Black;
-
-            #endregion
-
-            #region Propiedades
-
-            /// <summary>
-            /// Fuente negrita.
-            /// </summary>
-            public bool Bold
-            {
-                get { return bold; }
-                set { bold = value; }
-            }
-
-            /// <summary>
-            /// Fuente cursiva.
-            /// </summary>
-            public bool Italic
-            {
-                get { return italic; }
-                set { italic = value; }
-            }
-
-            /// <summary>
-            /// Fuente subrayada.
-            /// </summary>
-            public bool Underline
-            {
-                get { return underline; }
-                set { underline = value; }
-            }
-
-            /// <summary>
-            /// Tipo de fuente.
-            /// </summary>
-            public string Font
-            {
-                get { return font; }
-                set { font = value; }
-            }
-
-            /// <summary>
-            /// Tamaño de fuente.
-            /// </summary>
-            public int Size
-            {
-                get { return size; }
-                set { size = value; }
-            }
-
-            /// <summary>
-            /// Color de fuente.
-            /// </summary>
-            public Color Color
-            {
-                get { return color; }
-                set { color = value; }
-            }
-
-            #endregion
+            get { return bold; }
+            set { bold = value; }
         }
+
+        /// <summary>
+        /// Fuente cursiva.
+        /// </summary>
+        public bool Italic
+        {
+            get { return italic; }
+            set { italic = value; }
+        }
+
+        /// <summary>
+        /// Fuente subrayada.
+        /// </summary>
+        public bool Underline
+        {
+            get { return underline; }
+            set { underline = value; }
+        }
+
+        /// <summary>
+        /// Tipo de fuente.
+        /// </summary>
+        public string Font
+        {
+            get { return font; }
+            set { font = value; }
+        }
+
+        /// <summary>
+        /// Tamaï¿½o de fuente.
+        /// </summary>
+        public int Size
+        {
+            get { return size; }
+            set { size = value; }
+        }
+
+        /// <summary>
+        /// Color de fuente.
+        /// </summary>
+        public Color Color
+        {
+            get { return color; }
+            set { color = value; }
+        }
+
+        #endregion
     }
 }

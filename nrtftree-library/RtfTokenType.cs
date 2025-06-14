@@ -16,14 +16,14 @@
  ********************************************************************************/
 
 /********************************************************************************
- * Library:		NRtfTree
+ * Library:     NRtfTree
  * Version:     v0.4
- * Date:		29/06/2013
+ * Date:        29/06/2013
  * Copyright:   2006-2013 Salvador Gomez
- * Home Page:	http://www.sgoliver.net
- * GitHub:	    https://github.com/sgolivernet/nrtftree
- * Class:		RtfTokenType
- * Description:	Tipos de token de un árbol de documento RTF.
+ * Home Page:   http://www.sgoliver.net
+ * GitHub:      https://github.com/sgolivernet/nrtftree
+ * Class:       RtfTokenType
+ * Description: Token types of an RTF document tree.
  * ******************************************************************************/
 
 namespace Net.Sgoliver.NRtfTree
@@ -31,36 +31,36 @@ namespace Net.Sgoliver.NRtfTree
     namespace Core
     {
         /// <summary>
-        /// Tipos de token de un árbol de documento RTF.
+        /// Token types of an RTF document tree.
         /// </summary>
         public enum RtfTokenType
         {
             /// <summary>
-            /// Indica que el token sólo se ha inicializado.
+            /// Indication that the Token has only just been initialized.
             /// </summary>
             None = 0,
             /// <summary>
-            /// Palabra clave sin parámetro.
+            /// Keyword without parameter.
             /// </summary>
             Keyword = 1,
             /// <summary>
-            /// Símbolo de Control sin parámetro.
+            /// Control symbol without parameter.
             /// </summary>
             Control = 2,
             /// <summary>
-            /// Texto del documento.
+            /// Document text.
             /// </summary>
             Text = 3,
             /// <summary>
-            /// Marca de fin de fichero.
+            /// Marker for end of file.
             /// </summary>
             Eof = 4,
             /// <summary>
-            ///	Inicio de grupo: '{'
+            ///	Start of group: '{'
             /// </summary>
             GroupStart = 5,
             /// <summary>
-            /// Fin de grupo: '}'
+            /// End of group: '}'
             /// </summary>
             GroupEnd = 6
         }
