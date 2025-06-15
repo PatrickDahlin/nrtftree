@@ -689,7 +689,7 @@ public class RtfTree
         
         for (var i = pardNode.Index; i < MainGroup.ChildNodes.Count; i++)
         {
-            res.Append(MainGroup.ChildNodes[i].Text);
+            res.Append(MainGroup.ChildNodes[i]?.Text);
         }
 
         return res.ToString();
@@ -765,13 +765,13 @@ public class RtfTree
                 default:
                 {
                     if (node.NodeType == RtfNodeType.Group &&
-                        (node.ChildNodes?[0].NodeKey == "*" && node.ChildNodes[1].NodeKey == "keycode"))
+                        (node.ChildNodes?[0]?.NodeKey == "*" && node.ChildNodes[1]?.NodeKey == "keycode"))
                     {
                         rss.KeyCode = new RtfNodeCollection();
 
                         for (var i = 2; i < node.ChildNodes.Count; i++)
                         {
-                            rss.KeyCode.Add(node.ChildNodes[i].CloneNode());
+                            rss.KeyCode.Add(node.ChildNodes[i]?.CloneNode());
                         }
                     }
                     else if (node.NodeType == RtfNodeType.Text)
@@ -781,7 +781,7 @@ public class RtfTree
                     else
                     {
                         if (node.NodeKey != "*")
-                            rss.Formatting.Add(node);
+                            rss.Formatting?.Add(node);
                     }
 
                     break;

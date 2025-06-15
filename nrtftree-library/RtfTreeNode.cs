@@ -1092,11 +1092,19 @@ public class RtfTreeNode
                 res.AppendLine("");
                 break;
             case RtfNodeType.Keyword when NodeKey.Equals("lquote"):
+                res.Append('‘');
+                break;
             case RtfNodeType.Keyword when NodeKey.Equals("rquote"):
+                res.Append('’');
+                break;
             case RtfNodeType.Keyword when NodeKey.Equals("ldblquote"):
+                res.Append('“');
+                break;
             case RtfNodeType.Keyword when NodeKey.Equals("rdblquote"):
+                res.Append('”');
+                break;
             case RtfNodeType.Keyword when NodeKey.Equals("emdash"):
-                res.Append('\u0091');
+                res.Append('—');
                 break;
             case RtfNodeType.Keyword:
             {
