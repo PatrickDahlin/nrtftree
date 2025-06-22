@@ -26,7 +26,7 @@
  * Description:	Representation of formatted text.
  * ******************************************************************************/
 
-using System.Drawing;
+using SkiaSharp;
 
 namespace Net.Sgoliver.NRtfTree.Util;
 
@@ -64,6 +64,6 @@ public class RtfCharFormat
     /// <summary>
     /// Font color.
     /// </summary>
-    public Color Color { get; set; } = Color.Black;
+    public SKColor Color { get; set; } = SKColors.Black;
 
 }

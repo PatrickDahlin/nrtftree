@@ -12,8 +12,4 @@
       <ProjectReference Include="..\nrtftree-library\nrtftree-library.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="System.Drawing.Common" Version="9.0.6" />
-    </ItemGroup>
-
 </Project>

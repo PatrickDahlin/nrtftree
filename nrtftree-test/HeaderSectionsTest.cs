@@ -28,15 +28,15 @@
 
 using Net.Sgoliver.NRtfTree.Core;
 using Net.Sgoliver.NRtfTree.Util;
-using System.Drawing;
 using System.Globalization;
 using System.Text;
+using SkiaSharp;
 
 namespace Net.Sgoliver.NRtfTree.Test;
 
 public class HeaderSectionsTest
 {
-    RtfTree tree = null;
+    RtfTree? tree;
     
     [SetUp]
     public void InitTest()
@@ -70,13 +70,13 @@ public class HeaderSectionsTest
         var colorTable = tree.GetColorTable();
 
         Assert.That(colorTable.Count, Is.EqualTo(3));
-        Assert.That(colorTable[0], Is.EqualTo(Color.FromArgb(0,0,0)));
-        Assert.That(colorTable[1], Is.EqualTo(Color.FromArgb(0, 0, 128)));
-        Assert.That(colorTable[2], Is.EqualTo(Color.FromArgb(255, 0, 0)));
+        Assert.That(colorTable[0], Is.EqualTo(new SKColor(0,0,0)));
+        Assert.That(colorTable[1], Is.EqualTo(new SKColor(0, 0, 128)));
+        Assert.That(colorTable[2], Is.EqualTo(new SKColor(255, 0, 0)));
 
-        Assert.That(colorTable.IndexOf(Color.FromArgb(0, 0, 0)), Is.EqualTo(0));
-        Assert.That(colorTable.IndexOf(Color.FromArgb(0, 0, 128)), Is.EqualTo(1));
-        Assert.That(colorTable.IndexOf(Color.FromArgb(255, 0, 0)), Is.EqualTo(2));
+        Assert.That(colorTable.IndexOf(new SKColor(0, 0, 0)), Is.EqualTo(0));
+        Assert.That(colorTable.IndexOf(new SKColor(0, 0, 128)), Is.EqualTo(1));
+        Assert.That(colorTable.IndexOf(new SKColor(255, 0, 0)), Is.EqualTo(2));
     }
 
     [Test]
@@ -148,10 +148,6 @@ public class HeaderSectionsTest
         Assert.That(infoGroup.LastPrintTime, Is.EqualTo(DateTime.MinValue));
         Assert.That(infoGroup.BackupTime, Is.EqualTo(DateTime.MinValue));
 
-        //StreamWriter sw = new StreamWriter("testdocs\\infogroup.txt");
-        //sw.Write(infoGroup.ToString());
-        //sw.Flush();
-        //sw.Close();
 
         var sr = new StreamReader(@"..\..\..\testdocs\infogroup.txt");
         var infoString = sr.ReadToEnd();

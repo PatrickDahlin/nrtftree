@@ -29,7 +29,7 @@
 using System.Text;
 using Net.Sgoliver.NRtfTree.Core;
 using System.Globalization;
-using System.Drawing;
+using SkiaSharp;
 
 namespace Net.Sgoliver.NRtfTree.Util;
 
@@ -210,15 +210,9 @@ public class ImageNode : Net.Sgoliver.NRtfTree.Core.RtfTreeNode
     /// <summary>
     /// Returns the image in a bitmap object.
     /// </summary>
-    public Bitmap Bitmap
-    {
-        get
-        {
-            if (data == null) return new Bitmap(0, 0);
-            var stream = new MemoryStream(GetByteData(), 0, data.Length);
-            return new Bitmap(stream);
-        }
-    }
+    public SKBitmap Bitmap => data == null
+        ? new SKBitmap()
+        : SKBitmap.Decode(data);
 
     #endregion
 
@@ -240,23 +234,22 @@ public class ImageNode : Net.Sgoliver.NRtfTree.Core.RtfTreeNode
     public void SaveImage(string filePath)
     {
         if (data == null) return;
-        var d = GetByteData();
-        if (d == null) return;
-        var stream = new MemoryStream(d, 0, data.Length);
+        
+        var stream = File.OpenWrite(filePath);
 
         // Write any type of image to a file
-        var bitmap = new Bitmap(stream);
-        System.Drawing.Imaging.ImageFormat imageFormat;
         switch (ImageFormat)
         {
-            case ImageFormat.Jpeg: imageFormat = System.Drawing.Imaging.ImageFormat.Jpeg; break;
-            case ImageFormat.Png: imageFormat = System.Drawing.Imaging.ImageFormat.Png; break;
-            case ImageFormat.Emf: imageFormat = System.Drawing.Imaging.ImageFormat.Emf; break;
-            case ImageFormat.Wmf: imageFormat = System.Drawing.Imaging.ImageFormat.Wmf; break;
-            case ImageFormat.Bmp: imageFormat = System.Drawing.Imaging.ImageFormat.Bmp; break;
-            default: imageFormat = System.Drawing.Imaging.ImageFormat.Png; break;
+            case ImageFormat.Jpeg: Bitmap.Encode(SKEncodedImageFormat.Jpeg, 90).SaveTo(stream); break;
+            case ImageFormat.Emf: /* unsupported */ break;
+            case ImageFormat.Wmf: /* unsupported */ break;
+            case ImageFormat.Bmp: Bitmap.Encode(SKEncodedImageFormat.Bmp, 90).SaveTo(stream); break;
+            default:
+            case ImageFormat.Png: Bitmap.Encode(SKEncodedImageFormat.Png, 90).SaveTo(stream); break;
         }
-        bitmap.Save(filePath, imageFormat);
+
+        stream.Flush();
+        stream.Close();
     }
 
     /// <summary>
@@ -267,23 +260,21 @@ public class ImageNode : Net.Sgoliver.NRtfTree.Core.RtfTreeNode
     public void SaveImage(string filePath, ImageFormat ImageFormat)
     {
         if (data == null) return;
-        
-        var stream = new MemoryStream(data, 0, data.Length);
-        
-        System.Drawing.Imaging.ImageFormat format;
-        switch (ImageFormat)
-        {
-            case ImageFormat.Jpeg: format = System.Drawing.Imaging.ImageFormat.Jpeg; break;
-            case ImageFormat.Png: format = System.Drawing.Imaging.ImageFormat.Png; break;
-            case ImageFormat.Emf: format = System.Drawing.Imaging.ImageFormat.Emf; break;
-            case ImageFormat.Wmf: format = System.Drawing.Imaging.ImageFormat.Wmf; break;
-            case ImageFormat.Bmp: format = System.Drawing.Imaging.ImageFormat.Bmp; break;
-            default: format = System.Drawing.Imaging.ImageFormat.Png; break;
-        }
+        var stream = File.OpenWrite(filePath);
 
         // Write any type of image to a file
-        var bitmap = new Bitmap(stream);
-        bitmap.Save(filePath, format);
+        switch (ImageFormat)
+        {
+            case ImageFormat.Jpeg: Bitmap.Encode(SKEncodedImageFormat.Jpeg, 90).SaveTo(stream); break;
+            case ImageFormat.Emf: /* unsupported */ break;
+            case ImageFormat.Wmf: /* unsupported */ break;
+            case ImageFormat.Bmp: Bitmap.Encode(SKEncodedImageFormat.Bmp, 90).SaveTo(stream); break;
+            default:
+            case ImageFormat.Png: Bitmap.Encode(SKEncodedImageFormat.Png, 90).SaveTo(stream); break;
+        }
+
+        stream.Flush();
+        stream.Close();
     }
 
     #endregion

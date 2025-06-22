@@ -27,15 +27,11 @@
  * Notes:       Contribución de Francisco Javier Marín (http://www.xuletas.es/).
  ********************************************************************************/
 
-using System;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using Net.Sgoliver.NRtfTree.Core;
 using Net.Sgoliver.NRtfTree.Util;
-using ImageFormat = System.Drawing.Imaging.ImageFormat;
+using SkiaSharp;
 
 namespace Net.Sgoliver.NRtfTree
 {
@@ -44,7 +40,7 @@ namespace Net.Sgoliver.NRtfTree
         /// <summary>
         /// Conversor de documentos RTF a formato HTML.
         /// </summary>
-        public class Rtf2Html
+        public partial class Rtf2Html
         {
             #region Atributos Privados
 
@@ -88,7 +84,7 @@ namespace Net.Sgoliver.NRtfTree
                 DefaultFontName = "Times New Roman";
 
                 ImageFormat = ImageFormat.Jpeg;
-                IncrustImages = true;
+                EmbedImages = true;
                 ImagePath = "";
             }
 
@@ -126,11 +122,11 @@ namespace Net.Sgoliver.NRtfTree
             public int DefaultFontSize { get; set; }
 
             /// <summary>
-            /// Obtiene o establece un valor que indica si se incrustarán las imágenes en base64
-            /// dentro del código HTML  (true), o se guardarán en un archivo (false)
+            /// Gets or sets a value indicating whether to embed base64 images.
+            /// within the HTML code (true), or they will be saved to a file (false)
             /// </summary>
             /// <see cref="http://www.sweeting.org/mark/blog/2005/07/12/base64-encoded-images-embedded-in-html"/>
-            public bool IncrustImages { get; set; }
+            public bool EmbedImages { get; set; }
 
             /// <summary>
             /// Obtiene o establece la ruta donde se guardarán las imágenes contenidas en el
@@ -191,9 +187,7 @@ namespace Net.Sgoliver.NRtfTree
                 //Arreglar HTML
 
                 //Arreglar listas
-                var repairList = new Regex("<span [^>]*>·</span><span style=\"([^\"]*)\">(.*?)<br\\s+/><" + "/span>",
-                                             RegexOptions.IgnoreCase | RegexOptions.Singleline |
-                                             RegexOptions.CultureInvariant);
+                var repairList = MyRegex1();
 
                 foreach (Match match in repairList.Matches(_builder.ToString()))
                 {
@@ -207,7 +201,7 @@ namespace Net.Sgoliver.NRtfTree
                     _builder.Insert(match.Index, "<ul>");
                 }
 
-                repairUl = new Regex("/li>(?!<li)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                repairUl = MyRegex();
 
                 foreach (Match match in repairUl.Matches(_builder.ToString()))
                 {
@@ -217,7 +211,7 @@ namespace Net.Sgoliver.NRtfTree
                 //Generar párrafos (cada 2 <br /><br /> se cambiará por un <p>)
                 if (AutoParagraph)
                 {
-                    string[] partes = _builder.ToString().Split(new[] { "<br /><br />" }, StringSplitOptions.RemoveEmptyEntries);
+                    var partes = _builder.ToString().Split(["<br /><br />"], StringSplitOptions.RemoveEmptyEntries);
                     _builder = new StringBuilder(_builder.Length + 7 * partes.Length);
 
                     foreach (var parte in partes)
@@ -243,51 +237,51 @@ namespace Net.Sgoliver.NRtfTree
             {
                 for (var i = inicio; i < nodos.Count; i++)
                 {
-                    var nodo = nodos[i];
+                    var node = nodos[i];
 
-                    switch (nodo.NodeType)
+                    switch (node?.NodeType)
                     {
                         case RtfNodeType.Control:
 
-                            if (nodo.NodeKey == "'") //Símbolos especiales, como tildes y "ñ"
+                            if (node.NodeKey == "'") //Símbolos especiales, como tildes y "ñ"
                             {
-                                WriteText(Encoding.Default.GetString(new[] { (byte)nodo.Parameter }));
+                                WriteText(Encoding.Default.GetString(new[] { (byte)node.Parameter }));
                             }
                             break;
 
                         case RtfNodeType.Keyword:
 
-                            switch (nodo.NodeKey)
+                            switch (node.NodeKey)
                             {
                                 case "pard": //Reinicio de formato
                                     _currentFormat.Reset();
                                     break;
 
                                 case "f": //Tipo de fuente                                
-                                    if (nodo.Parameter < _fontTable.Count)
-                                        _currentFormat.FontName = _fontTable[nodo.Parameter];
+                                    if (node.Parameter < _fontTable.Count)
+                                        _currentFormat.FontName = _fontTable[node.Parameter];
                                     break;
 
                                 case "cf": //Color de fuente
-                                    if (nodo.Parameter < _colorTable.Count)
-                                        _currentFormat.ForeColor = _colorTable[nodo.Parameter];
+                                    if (node.Parameter < _colorTable.Count)
+                                        _currentFormat.ForeColor = _colorTable[node.Parameter];
                                     break;
 
                                 case "highlight": //Color de fondo
-                                    if (nodo.Parameter < _colorTable.Count)
-                                        _currentFormat.BackColor = _colorTable[nodo.Parameter];
+                                    if (node.Parameter < _colorTable.Count)
+                                        _currentFormat.BackColor = _colorTable[node.Parameter];
                                     break;
 
                                 case "fs": //Tamaño de fuente
-                                    _currentFormat.FontSize = nodo.Parameter;
+                                    _currentFormat.FontSize = node.Parameter;
                                     break;
 
                                 case "b": //Negrita
-                                    _currentFormat.Bold = !nodo.HasParameter || nodo.Parameter == 1;
+                                    _currentFormat.Bold = !node.HasParameter || node.Parameter == 1;
                                     break;
 
                                 case "i": //Cursiva
-                                    _currentFormat.Italic = !nodo.HasParameter || nodo.Parameter == 1;
+                                    _currentFormat.Italic = !node.HasParameter || node.Parameter == 1;
                                     break;
 
                                 case "ul": //Subrayado ON
@@ -321,7 +315,7 @@ namespace Net.Sgoliver.NRtfTree
                                     break;
 
                                 case "li": //tabulacion
-                                    _currentFormat.Margin = nodo.Parameter;
+                                    _currentFormat.Margin = node.Parameter;
                                     break;
 
                                 case "line":
@@ -335,23 +329,23 @@ namespace Net.Sgoliver.NRtfTree
                         case RtfNodeType.Group:
 
                             //Procesar nodos hijo, si los tiene
-                            if (nodo.HasChildNodes())
+                            if (node.HasChildNodes())
                             {
-                                if (nodo["pict"] != null) //El grupo es una imagen
+                                if (node["pict"] != null) //El grupo es una imagen
                                 {
-                                    var imageNode = new ImageNode(nodo);
+                                    var imageNode = new ImageNode(node);
                                     WriteImage(imageNode);
                                 }
                                 else
                                 {
-                                    ProcessChildNodes(nodo.ChildNodes, 0);
+                                    ProcessChildNodes(node.ChildNodes, 0);
                                 }
                             }
                             break;
 
                         case RtfNodeType.Text:
 
-                            WriteText(nodo.NodeKey);
+                            WriteText(node.NodeKey);
                             break;
 
                         default:
@@ -361,14 +355,10 @@ namespace Net.Sgoliver.NRtfTree
                 }
             }
 
-            /// <summary>
-            /// Función encargada de añadir texto con el formato actual al código html resultado
-            /// </summary>
             private void WriteText(string text)
             {
                 if (_builder.Length > 0)
                 {
-                    //Cerrar etiquetas
                     if (_currentFormat.Bold == false && _htmlFormat.Bold)
                     {
                         _builder.Append("</strong>");
@@ -406,22 +396,22 @@ namespace Net.Sgoliver.NRtfTree
                 //Abrir etiquetas necesarias para representar el formato actual
                 if (_currentFormat.CompareFontFormat(_htmlFormat) == false) //El formato de fuente ha cambiado
                 {
-                    var estilo = string.Empty;
+                    var format = string.Empty;
 
                     if (!IgnoreFontNames && !string.IsNullOrEmpty(_currentFormat.FontName) &&
-                        string.Compare(_currentFormat.FontName, DefaultFontName, true) != 0)
-                        estilo += string.Format("font-family:{0};", _currentFormat.FontName);
+                        string.Compare(_currentFormat.FontName, DefaultFontName, StringComparison.OrdinalIgnoreCase) != 0)
+                        format += $"font-family:{_currentFormat.FontName};";
                     if (_currentFormat.FontSize > 0 && _currentFormat.FontSize / 2 != DefaultFontSize)
-                        estilo += string.Format("font-size:{0}pt;", _currentFormat.FontSize / 2);
+                        format += $"font-size:{_currentFormat.FontSize / 2}pt;";
                     if (_currentFormat.Margin != _htmlFormat.Margin)
-                        estilo += string.Format("margin-left:{0}px;", _currentFormat.Margin / 15);
+                        format += $"margin-left:{_currentFormat.Margin / 15}px;";
                     if (_currentFormat.Alignment != _htmlFormat.Alignment)
-                        estilo += string.Format("text-align:{0};", _currentFormat.Alignment.ToString().ToLower());
+                        format += $"text-align:{_currentFormat.Alignment.ToString().ToLower()};";
                     if (CompareColor(_currentFormat.ForeColor, _htmlFormat.ForeColor) == false)
-                        estilo += string.Format("color:{0};", ColorTranslator.ToHtml(_currentFormat.ForeColor));
+                        format += $"color:{_currentFormat.ForeColor};";
                     if (CompareColor(_currentFormat.BackColor, _htmlFormat.BackColor) == false)
-                        estilo += string.Format("background-color:{0};", ColorTranslator.ToHtml(_currentFormat.BackColor));
-
+                        format += $"background-color:{_currentFormat.BackColor};";
+                    
                     _htmlFormat.FontName = _currentFormat.FontName;
                     _htmlFormat.FontSize = _currentFormat.FontSize;
                     _htmlFormat.ForeColor = _currentFormat.ForeColor;
@@ -429,8 +419,8 @@ namespace Net.Sgoliver.NRtfTree
                     _htmlFormat.Margin = _currentFormat.Margin;
                     _htmlFormat.Alignment = _currentFormat.Alignment;
 
-                    if (!string.IsNullOrEmpty(estilo))
-                        _builder.AppendFormat("<span style=\"{0}\">", estilo);
+                    if (!string.IsNullOrEmpty(format))
+                        _builder.Append($"<span style=\"{format}\">");
                 }
                 if (_currentFormat.Superscript && _htmlFormat.Superscript == false)
                 {
@@ -468,76 +458,78 @@ namespace Net.Sgoliver.NRtfTree
             private void WriteImage(ImageNode imageNode)
             {
                 var b = imageNode.Bitmap;
-                Size imageSize;
 
-                if (imageNode.DesiredHeight > 0 && imageNode.DesiredWidth > 0)//Aproximar twips a px dividiendo entre 15
-                    imageSize = new Size(imageNode.DesiredWidth / 15, imageNode.DesiredHeight / 15);
-                else
-                    imageSize = b.Size;
+                var imageSize = imageNode is { DesiredHeight: > 0, DesiredWidth: > 0 } 
+                    ? new SKSize(imageNode.DesiredWidth / 15, imageNode.DesiredHeight / 15) 
+                    : b.Info.Size;
 
-                //Buscar codec
-                ImageCodecInfo imageCodec = null;
-                foreach (var codec in ImageCodecInfo.GetImageDecoders())
+                // Reduce image if final size is smaller than current size
+                if (b.Info.Size.Height > imageSize.Height || b.Info.Size.Width > imageSize.Width)
                 {
-                    if (imageCodec == null || codec.FormatID == ImageFormat.Guid)
-                        imageCodec = codec;
-                }
-
-                //Reducir imagen si el tamaño final es menor que el actual
-                if (b.Size.Height > imageSize.Height || b.Size.Width > imageSize.Width)
-                {
-                    var bmpResized = new Bitmap(imageSize.Width, imageSize.Height);
-                    var g = Graphics.FromImage(bmpResized);
-                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                    g.DrawImage(b, 0, 0, imageSize.Width, imageSize.Height);
+                    // Original was bicubic, but skia doesnt seem to support bicubic out of the box
+                    var bmpResized = b.Resize(imageSize.ToSizeI(), new SKSamplingOptions(SKFilterMode.Nearest, SKMipmapMode.Nearest));
                     b.Dispose();
                     b = bmpResized;
                 }
 
-                //Generar imagen en el formato adecuado
                 string imageSrc;
-                if (IncrustImages)
+                if (EmbedImages)
                 {
-                    using (var buffer = new MemoryStream())
+                    SKEncodedImageFormat format;
+                    string mimeType;
+                    switch (ImageFormat)
                     {
-                        b.Save(buffer, ImageFormat);
-
-                        imageSrc = string.Format("data:{0};base64,{1}", imageCodec.MimeType,
-                                                 System.Convert.ToBase64String(buffer.GetBuffer(), 0, (int)buffer.Length));
+                        case ImageFormat.Png: format = SKEncodedImageFormat.Png; mimeType = "image/png"; break;
+                        case ImageFormat.Jpeg: format = SKEncodedImageFormat.Jpeg; mimeType = "image/jpeg"; break;
+                        case ImageFormat.Bmp: format = SKEncodedImageFormat.Bmp; mimeType = "image/bmp"; break;
+                        default:
+                        case ImageFormat.Unknown: format = SKEncodedImageFormat.Png; mimeType = "image/png"; break;
                     }
+                    var data = b.Encode(format, 90);
+
+                    imageSrc = $"data:{mimeType};base64,{System.Convert.ToBase64String(data.Span)}";
                 }
                 else
                 {
-                    var index = 1;
-                    var ext = imageCodec.FilenameExtension.Split(';')[0].Substring(2).ToLower();
+                    SKEncodedImageFormat format;
+                    string ext;
+                    switch (ImageFormat)
+                    {
+                        case ImageFormat.Png: format = SKEncodedImageFormat.Png;
+                            ext = "png"; break;
+                        case ImageFormat.Jpeg: format = SKEncodedImageFormat.Jpeg;
+                            ext = "jpeg"; break;
+                        case ImageFormat.Bmp: format = SKEncodedImageFormat.Bmp;
+                            ext = "bmp"; break;
+                        default:
+                        case ImageFormat.Unknown: format = SKEncodedImageFormat.Png;
+                            ext = "png"; break;
+                    }
                     string path;
-
+                    var index = 1;
                     do
                     {
-                        path = Path.Combine(ImagePath, string.Format("Imagen{0}.{1}", index, ext));
+                        path = Path.Combine(ImagePath, $"Imagen{index}.{ext}");
                         index++;
                     } while (File.Exists(path));
 
-                    b.Save(path, ImageFormat);
+                    var data = b.Encode(format, 90);
+                    File.WriteAllBytes(path, data.ToArray());
 
-                    //imageSrc = "file://" + path;
                     imageSrc = path;
                 }
 
-                //Añadir imagen al resultado HTML
-                _builder.Append(string.Format("<img src=\"{0}\" style=\"width:{1}px;height:{2}px;\" />"
-                                              , imageSrc, imageSize.Width, imageSize.Height));
+                _builder.Append($"<img src=\"{imageSrc}\" style=\"width:{imageSize.Width}px;height:{imageSize.Height}px;\" />");
 
-                //Limpiar memoria
                 b.Dispose();
             }
 
             /// <summary>
             /// Compara dos colores sin tener en cuenta el canal alfa
             /// </summary>
-            private static bool CompareColor(Color a, Color b)
+            private static bool CompareColor(SKColor a, SKColor b)
             {
-                return a.R == b.R && a.G == b.G && a.B == b.B;
+                return a.Red == b.Red && a.Green == b.Green && a.Blue == b.Blue;
             }
 
             #endregion
@@ -557,8 +549,8 @@ namespace Net.Sgoliver.NRtfTree
 
                 public string FontName;
                 public int FontSize;
-                public Color ForeColor;
-                public Color BackColor;
+                public SKColor ForeColor;
+                public SKColor BackColor;
                 public int Margin;
                 public HorizontalAlignment Alignment;
 
@@ -573,7 +565,7 @@ namespace Net.Sgoliver.NRtfTree
                 /// </summary>
                 public bool CompareFontFormat(Format format)
                 {
-                    return string.Compare(FontName, format.FontName, true) == 0 &&
+                    return string.Compare(FontName, format.FontName, StringComparison.OrdinalIgnoreCase) == 0 &&
                            FontSize == format.FontSize &&
                            ForeColor == format.ForeColor &&
                            BackColor == format.BackColor &&
@@ -585,8 +577,8 @@ namespace Net.Sgoliver.NRtfTree
                 {
                     FontName = string.Empty;
                     FontSize = 0;
-                    ForeColor = Color.Black;
-                    BackColor = Color.White;
+                    ForeColor = SKColors.Black;
+                    BackColor = SKColors.White;
                     Margin = 0;
                     Alignment = HorizontalAlignment.Left;
                 }
@@ -598,6 +590,11 @@ namespace Net.Sgoliver.NRtfTree
                 Right,
                 Center
             }
+
+            [GeneratedRegex("/li>(?!<li)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+            private static partial Regex MyRegex();
+            [GeneratedRegex("<span [^>]*>·</span><span style=\"([^\"]*)\">(.*?)<br\\s+/></span>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant)]
+            private static partial Regex MyRegex1();
 
             #endregion
         }

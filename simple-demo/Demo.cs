@@ -427,7 +427,7 @@ public class Demo
         var rtfToHtml = new Rtf2Html();
 
         Console.WriteLine("Processing...");
-        rtfToHtml.IncrustImages = false;
+        rtfToHtml.EmbedImages = false;
         var html = rtfToHtml.Convert(tree.Rtf);
 
         var sw = new StreamWriter(@"..\..\..\testdocs\test.html", false);

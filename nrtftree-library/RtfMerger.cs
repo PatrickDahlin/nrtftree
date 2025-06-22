@@ -28,7 +28,7 @@
  * ******************************************************************************/
 
 using Net.Sgoliver.NRtfTree.Util;
-using System.Drawing;
+using SkiaSharp;
 
 namespace Net.Sgoliver.NRtfTree.Core;
 
@@ -301,7 +301,7 @@ public class RtfMerger
     /// <param name="colorDestTbl">Table of resulting colors.</param>
     /// <param name="iColorName">Color name.</param>
     /// <returns></returns>
-    private int getColorID(RtfColorTable colorDestTbl, Color iColorName)
+    private int getColorID(RtfColorTable colorDestTbl, SKColor iColorName)
     {
         int iExistingColorID;
 
@@ -312,9 +312,9 @@ public class RtfMerger
 
         var nodeListToInsert = Template?.RootNode.SelectNodes("colortbl");
 
-        nodeListToInsert?[0]?.ParentNode?.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "red", true, iColorName.R));
-        nodeListToInsert?[0]?.ParentNode?.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "green", true, iColorName.G));
-        nodeListToInsert?[0]?.ParentNode?.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "blue", true, iColorName.B));
+        nodeListToInsert?[0]?.ParentNode?.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "red", true, iColorName.Red));
+        nodeListToInsert?[0]?.ParentNode?.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "green", true, iColorName.Green));
+        nodeListToInsert?[0]?.ParentNode?.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "blue", true, iColorName.Blue));
         nodeListToInsert?[0]?.ParentNode?.AppendChild(new RtfTreeNode(RtfNodeType.Text, ";", false, 0));
 
         return iExistingColorID;

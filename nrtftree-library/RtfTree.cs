@@ -27,8 +27,8 @@
  * ******************************************************************************/
 
 using System.Text;
-using System.Drawing;
 using Net.Sgoliver.NRtfTree.Util;
+using SkiaSharp;
 
 namespace Net.Sgoliver.NRtfTree.Core;
 
@@ -260,8 +260,8 @@ public class RtfTree
 
         while (!enc && nprin is { ChildNodes: not null } && i < nprin.ChildNodes.Count)
         {
-            if (nprin.ChildNodes[i].NodeType == RtfNodeType.Group &&
-                nprin.ChildNodes[i].FirstChild?.NodeKey == "colortbl")
+            if (nprin.ChildNodes[i]?.NodeType == RtfNodeType.Group &&
+                nprin.ChildNodes[i]?.FirstChild?.NodeKey == "colortbl")
             {
                 enc = true;
                 ntc = nprin.ChildNodes[i];
@@ -278,32 +278,33 @@ public class RtfTree
         //We add the default color, in this case the black.
         //tabla.Add(Color.FromArgb(rojo,verde,azul));
 
-        if (ntc.ChildNodes == null) return tableOfColors;
+        if (ntc?.ChildNodes == null) return tableOfColors;
         
         for (var j = 1; j < ntc.ChildNodes.Count; j++)
         {
-            var nodo = ntc.ChildNodes[j];
-
-            if (nodo.NodeType == RtfNodeType.Text && nodo.NodeKey.Trim() == ";")
+            var node = ntc.ChildNodes[j];
+            if (node == null) continue;
+            
+            if (node.NodeType == RtfNodeType.Text && node.NodeKey.Trim() == ";")
             {
-                tableOfColors.AddColor(Color.FromArgb(red, green, blue));
+                tableOfColors.AddColor(new SKColor((byte)red, (byte)green, (byte)blue));
 
                 red = 0;
                 green = 0;
                 blue = 0;
             }
-            else if (nodo.NodeType == RtfNodeType.Keyword)
+            else if (node.NodeType == RtfNodeType.Keyword)
             {
-                switch (nodo.NodeKey)
+                switch (node.NodeKey)
                 {
                     case "red":
-                        red = nodo.Parameter;
+                        red = node.Parameter;
                         break;
                     case "green":
-                        green = nodo.Parameter;
+                        green = node.Parameter;
                         break;
                     case "blue":
-                        blue = nodo.Parameter;
+                        blue = node.Parameter;
                         break;
                 }
             }

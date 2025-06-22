@@ -27,9 +27,9 @@
  * ******************************************************************************/
 
 using System.Text;
-using System.Drawing;
 using System.Globalization;
 using Net.Sgoliver.NRtfTree.Core;
+using SkiaSharp;
 
 namespace Net.Sgoliver.NRtfTree.Util;
 
@@ -91,7 +91,7 @@ public class RtfDocument
         fontTable.AddFont("Arial");  //Default font
 
         colorTable = new RtfColorTable();
-        colorTable.AddColor(Color.Black);  //Default color
+        colorTable.AddColor(SKColors.Black);  //Default color
 
         currentFormat = null;
         currentParFormat = new RtfParFormat();
@@ -103,7 +103,7 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Constructor de la clase RtfDocument. Se utilizar� la codificaci�n por defecto del sistema.
+    /// Constructor for the RtfDocument class. The default system encoding will be used.
     /// </summary>
     public RtfDocument() : this(Encoding.Default)
     {
@@ -111,12 +111,12 @@ public class RtfDocument
 
     #endregion
 
-    #region Metodos Publicos
+    #region Public Methods
 
     /// <summary>
-    /// Guarda el documento como fichero RTF en la ruta indicada.
+    /// Save the document as an RTF file in the specified path.
     /// </summary>
-    /// <param name="path">Ruta del fichero a crear.</param>
+    /// <param name="path">Path of the file to be created.</param>
     public void Save(string path)
     {
         var tree = GetTree();
@@ -124,10 +124,10 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Inserta un fragmento de texto en el documento con un formato de texto determinado.
+    /// Inserts a piece of text into the document with a specific text format.
     /// </summary>
-    /// <param name="text">Texto a insertar.</param>
-    /// <param name="format">Formato del texto a insertar.</param>
+    /// <param name="text">Text to insert.</param>
+    /// <param name="format">Format of the text to insert.</param>
     public void AddText(string text, RtfCharFormat format)
     {
         UpdateFontTable(format);
@@ -139,18 +139,18 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Inserta un fragmento de texto en el documento con el formato de texto actual.
+    /// Inserts a piece of text into the document using the current text formatting.
     /// </summary>
-    /// <param name="text">Texto a insertar.</param>
+    /// <param name="text">Text to insert.</param>
     public void AddText(string text)
     {
         InsertText(text);
     }
 
     /// <summary>
-    /// Inserta un n�mero determinado de saltos de l�nea en el documento.
+    /// Inserts a specified number of line breaks into the document.
     /// </summary>
-    /// <param name="n">N�mero de saltos de l�nea a insertar.</param>
+    /// <param name="n">Number of line breaks to insert.</param>
     public void AddNewLine(int n)
     {
         for(var i=0; i<n; i++)
@@ -158,7 +158,7 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Inserta un salto de l�nea en el documento.
+    /// Inserts a line break in the document.
     /// </summary>
     public void AddNewLine()
     {
@@ -166,7 +166,7 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Inicia un nuevo p�rrafo.
+    /// Start a new paragraph.
     /// </summary>
     public void AddNewParagraph()
     {
@@ -174,9 +174,9 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Inserta un n�mero determinado de saltos de p�rrafo en el documento.
+    /// Inserts a specified number of paragraph breaks into the document.
     /// </summary>
-    /// <param name="n">N�mero de saltos de p�rrafo a insertar.</param>
+    /// <param name="n">Number of paragraph breaks to insert.</param>
     public void AddNewParagraph(int n)
     {
         for (var i = 0; i < n; i++)
@@ -184,7 +184,7 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Inicia un nuevo p�rrafo con el formato especificado.
+    /// Starts a new paragraph with the specified formatting.
     /// </summary>
     public void AddNewParagraph(RtfParFormat format)
     {
@@ -194,11 +194,11 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Inserta una imagen en el documento.
+    /// Insert an image into the document.
     /// </summary>
-    /// <param name="path">Ruta de la imagen a insertar.</param>
-    /// <param name="width">Ancho deseado de la imagen en el documento.</param>
-    /// <param name="height">Alto deseado de la imagen en el documento.</param>
+    /// <param name="path">Path of the image to insert.</param>
+    /// <param name="width">Desired width of the image in the document.</param>
+    /// <param name="height">Desired height of the image in the document.</param>
     public void AddImage(string path, int width, int height)
     {
         FileStream fStream = null;
@@ -220,10 +220,11 @@ public class RtfDocument
 
             for (var i = 0; i < data.Length; i++)
             {
-                hexdata.Append(GetHexa(data[i]));
+                hexdata.Append(Util.Text.GetHex(data[i]));
             }
 
-            var img = Image.FromFile(path);
+            var imgdata = File.ReadAllBytes(path);
+            var img = SKImage.FromEncodedData(imgdata);
 
             var imgGroup = new RtfTreeNode(RtfNodeType.Group);
             imgGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "pict", false, 0));
@@ -247,13 +248,13 @@ public class RtfDocument
         }
         finally
         {
-            if (br != null) br.Close();
-            if (fStream != null) fStream.Close();
+            br?.Close();
+            fStream?.Close();
         }
     }
 
     /// <summary>
-    /// Establece el formato de caracter por defecto.
+    /// Sets the default character format.
     /// </summary>
     public void ResetCharFormat()
     {
@@ -261,7 +262,7 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Establece el formato de p�rrafo por defecto.
+    /// Sets the default paragraph format.
     /// </summary>
     public void ResetParFormat()
     {
@@ -269,7 +270,7 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Establece el formato de caracter y p�rrafo por defecto.
+    /// Sets the default character and paragraph formatting.
     /// </summary>
     public void ResetFormat()
     {
@@ -278,9 +279,9 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Actualiza los valores de las propiedades de formato de documento.
+    /// Updates the values of document format properties.
     /// </summary>
-    /// <param name="format">Formato de documento.</param>
+    /// <param name="format">Document format.</param>
     public void UpdateDocFormat(RtfDocumentFormat format)
     {
         docFormat.MarginL = format.MarginL;
@@ -290,9 +291,9 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Actualiza los valores de las propiedades de formato de texto y p�rrafo.
+    /// Updates the values of text and paragraph formatting properties.
     /// </summary>
-    /// <param name="format">Formato de texto a insertar.</param>
+    /// <param name="format">Format of text to be inserted.</param>
     public void UpdateCharFormat(RtfCharFormat format)
     {
         if (currentFormat != null)
@@ -347,9 +348,9 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Establece el formato de p�rrafo pasado como par�metro.
+    /// Sets the paragraph format passed as a parameter.
     /// </summary>
-    /// <param name="format">Formato de p�rrafo a utilizar.</param>
+    /// <param name="format">Paragraph format to use.</param>
     public void UpdateParFormat(RtfParFormat format)
     {
         SetAlignment(format.Alignment);
@@ -358,183 +359,171 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Estable la alineaci�n del texto dentro del p�rrafo.
+    /// Set the alignment of the text within the paragraph.
     /// </summary>
-    /// <param name="align">Tipo de alineaci�n.</param>
+    /// <param name="align">Alignment type.</param>
     public void SetAlignment(TextAlignment align)
     {
-        if (currentParFormat.Alignment != align)
-        {
-            var keyword = "";
+        if (currentParFormat.Alignment == align) return;
+        
+        var keyword = "";
 
-            switch (align)
-            { 
-                case TextAlignment.Left:
-                    keyword = "ql";
-                    break;
-                case TextAlignment.Right:
-                    keyword = "qr";
-                    break;
-                case TextAlignment.Centered:
-                    keyword = "qc";
-                    break;
-                case TextAlignment.Justified:
-                    keyword = "qj";
-                    break;
-            }
-
-            currentParFormat.Alignment = align;
-            mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, keyword, false, 0));
+        switch (align)
+        { 
+            case TextAlignment.Left:
+                keyword = "ql";
+                break;
+            case TextAlignment.Right:
+                keyword = "qr";
+                break;
+            case TextAlignment.Centered:
+                keyword = "qc";
+                break;
+            case TextAlignment.Justified:
+                keyword = "qj";
+                break;
         }
+
+        currentParFormat.Alignment = align;
+        mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, keyword, false, 0));
     }
 
     /// <summary>
-    /// Establece la sangr�a izquierda del p�rrafo.
+    /// Sets the left indentation of the paragraph.
     /// </summary>
-    /// <param name="val">Sangr�a izquierda en cent�metros.</param>
+    /// <param name="val">Left indentation in centimeters.</param>
     public void SetLeftIndentation(float val)
     {
-        if (currentParFormat.LeftIndentation != val)
-        {
-            currentParFormat.LeftIndentation = val;
-            mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "li", true, calcTwips(val)));
-        }
+        if (Math.Abs(currentParFormat.LeftIndentation - val) < float.Epsilon) return;
+        
+        currentParFormat.LeftIndentation = val;
+        mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "li", true, calcTwips(val)));
     }
 
     /// <summary>
-    /// Establece la sangr�a derecha del p�rrafo.
+    /// Sets the right indentation of the paragraph.
     /// </summary>
-    /// <param name="val">Sangr�a derecha en cent�metros.</param>
+    /// <param name="val">Right indentation in centimeters.</param>
     public void SetRightIndentation(float val)
     {
-        if (currentParFormat.RightIndentation != val)
-        {
-            currentParFormat.RightIndentation = val;
-            mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "ri", true, calcTwips(val)));
-        }
+        if (Math.Abs(currentParFormat.RightIndentation - val) < float.Epsilon) return;
+        
+        currentParFormat.RightIndentation = val;
+        mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "ri", true, calcTwips(val)));
     }
 
     /// <summary>
-    /// Establece el indicativo de fuente negrita.
+    /// Sets the bold font indicator.
     /// </summary>
-    /// <param name="val">Indicativo de fuente negrita.</param>
+    /// <param name="val">Bold font value</param>
     public void SetFormatBold(bool val)
     {
-        if (currentFormat.Bold != val)
-        {
-            currentFormat.Bold = val;
-            mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "b", val ? false : true, 0));
-        }
+        if (currentFormat == null || currentFormat.Bold == val) return;
+        currentFormat.Bold = val;
+        mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "b", !val, 0));
     }
 
     /// <summary>
-    /// Establece el indicativo de fuente cursiva.
+    /// Set the italic/cursive font value.
     /// </summary>
-    /// <param name="val">Indicativo de fuente cursiva.</param>
+    /// <param name="val">Cursive font value</param>
     public void SetFormatItalic(bool val)
     {
-        if (currentFormat.Italic != val)
-        {
-            currentFormat.Italic = val;
-            mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "i", val ? false : true, 0));
-        }
+        if (currentFormat == null || currentFormat.Italic == val) return;
+        currentFormat.Italic = val;
+        mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "i", !val, 0));
     }
 
     /// <summary>
-    /// Establece el indicativo de fuente subrayada.
+    /// Set the underline font value
     /// </summary>
-    /// <param name="val">Indicativo de fuente subrayada.</param>
+    /// <param name="val">Underline font value.</param>
     public void SetFormatUnderline(bool val)
     {
-        if (currentFormat.Underline != val)
-        {
-            currentFormat.Underline = val;
-            mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "ul", val ? false : true, 0));
-        }
+        if (currentFormat == null || currentFormat?.Underline == val) return;
+        
+        currentFormat!.Underline = val;
+        mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "ul", !val, 0));
     }
 
     /// <summary>
-    /// Establece el color de fuente actual.
+    /// Set the font color value
     /// </summary>
-    /// <param name="val">Color de la fuente.</param>
-    public void SetFormatColor(Color val)
+    /// <param name="val">Color of the font.</param>
+    public void SetFormatColor(SKColor val)
     {
-        if (currentFormat.Color.ToArgb() != val.ToArgb())
+        if (currentFormat == null || currentFormat?.Color == val) return;
+        
+        var indColor = colorTable.IndexOf(val);
+
+        if (indColor == -1)
         {
-            var indColor = colorTable.IndexOf(val);
-
-            if (indColor == -1)
-            {
-                colorTable.AddColor(val);
-                indColor = colorTable.IndexOf(val);
-            }
-
-            currentFormat.Color = val;
-            mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "cf", true, indColor));
+            colorTable.AddColor(val);
+            indColor = colorTable.IndexOf(val);
         }
+
+        currentFormat!.Color = val;
+        mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "cf", true, indColor));
     }
 
     /// <summary>
-    /// Establece el tama�o de fuente actual.
+    /// Set the font size
     /// </summary>
-    /// <param name="val">Tama�o de la fuente.</param>
+    /// <param name="val">Size of the font.</param>
     public void SetFormatSize(int val)
     {
-        if (currentFormat.Size != val)
-        {
-            currentFormat.Size = val;
+        if (currentFormat == null || currentFormat?.Size == val) return;
+        
+        currentFormat!.Size = val;
 
-            mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "fs", true, val * 2));
-        }
+        mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "fs", true, val * 2));
     }
 
     /// <summary>
-    /// Establece el tipo de letra actual.
+    /// Sets the current font.
     /// </summary>
-    /// <param name="val">Tipo de letra.</param>
+    /// <param name="val">Name of the font.</param>
     public void SetFormatFont(string val)
     {
-        if (currentFormat.Font != val)
+        if (currentFormat == null || currentFormat.Font == val) return;
+        var indFont = fontTable.IndexOf(val);
+
+        if (indFont == -1)
         {
-            var indFont = fontTable.IndexOf(val);
-
-            if (indFont == -1)
-            {
-                fontTable.AddFont(val);
-                indFont = fontTable.IndexOf(val);
-            }
-
-            currentFormat.Font = val;
-            mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "f", true, indFont));
+            fontTable.AddFont(val);
+            indFont = fontTable.IndexOf(val);
         }
+
+        currentFormat.Font = val;
+        mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "f", true, indFont));
     }
 
     #endregion
 
-    #region Propiedades
+    #region Properties
 
     /// <summary>
-    /// Obtiene el texto plano contenido en el documento RTF
+    /// Gets the plain text contained in the RTF document
     /// </summary>
     public string Text => GetTree().Text;
 
     /// <summary>
-    /// Obtiene el c�digo RTF del documento RTF
+    /// Gets the RTF code of the RTF document
     /// </summary>
     public string Rtf => GetTree().Rtf;
 
     /// <summary>
-    /// Obtiene el �rbol RTF del documento actual
+    /// Gets the RTF tree of the current document
     /// </summary>
     public RtfTree Tree => GetTree();
 
     #endregion
 
-    #region Metodos Privados
+    #region Private Methods
 
     /// <summary>
-    /// Obtiene el �rbol RTF equivalente al documento actual.
-    /// <returns>�rbol RTF equivalente al documento en el estado actual.</returns>
+    /// Gets the RTF tree equivalent to the current document.
+    /// <returns>RTF tree equivalent to the document in the current state.</returns>
     /// </summary>
     private RtfTree GetTree()
     {
@@ -546,33 +535,17 @@ public class RtfDocument
         InsertGenerator(tree);
         InsertDocSettings(tree);
 
-        tree.MainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "par", false, 0));
+        tree.MainGroup?.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "par", false, 0));
 
         return tree;
     }
-
+    
     /// <summary>
-    /// Obtiene el c�digo hexadecimal de un entero.
-    /// </summary>
-    /// <param name="code">N�mero entero.</param>
-    /// <returns>C�digo hexadecimal del entero pasado como par�metro.</returns>
-    private string GetHexa(byte code)
-    {
-        var hexa = Convert.ToString(code, 16);
-
-        if (hexa.Length == 1)
-        {
-            hexa = "0" + hexa;
-        }
-
-        return hexa;
-    }
-
-    /// <summary>
-    /// Inserta el c�digo RTF de la tabla de fuentes en el documento.
+    /// Inserts the RTF code from the font table into the document.
     /// </summary>
     private void InsertFontTable(RtfTree tree)
     {
+        if (tree.MainGroup == null) return;
         var ftGroup = new RtfTreeNode(RtfNodeType.Group);
         
         ftGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "fonttbl", false, 0));
@@ -591,19 +564,20 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Inserta el c�digo RTF de la tabla de colores en el documento.
+    /// Insert the RTF code of the color table into the document.
     /// </summary>
     private void InsertColorTable(RtfTree tree)
     {
+        if (tree.MainGroup == null) return;
         var ctGroup = new RtfTreeNode(RtfNodeType.Group);
 
         ctGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "colortbl", false, 0));
 
         for (var i = 0; i < colorTable.Count; i++)
         {
-            ctGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "red", true, colorTable[i].R));
-            ctGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "green", true, colorTable[i].G));
-            ctGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "blue", true, colorTable[i].B));
+            ctGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "red", true, colorTable[i].Red));
+            ctGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "green", true, colorTable[i].Green));
+            ctGroup.AppendChild(new RtfTreeNode(RtfNodeType.Keyword, "blue", true, colorTable[i].Blue));
             ctGroup.AppendChild(new RtfTreeNode(RtfNodeType.Text, ";", false, 0));
         }
 
@@ -611,10 +585,11 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Inserta el c�digo RTF de la aplicaci�n generadora del documento.
+    /// Insert the RTF code from the document generating application.
     /// </summary>
     private void InsertGenerator(RtfTree tree)
     {
+        if (tree.MainGroup == null) return;
         var genGroup = new RtfTreeNode(RtfNodeType.Group);
 
         genGroup.AppendChild(new RtfTreeNode(RtfNodeType.Control, "*", false, 0));
@@ -625,9 +600,9 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Inserta todos los nodos de texto y control necesarios para representar un texto determinado.
+    /// Inserts all the text and control nodes needed to represent a given text.
     /// </summary>
-    /// <param name="text">Texto a insertar.</param>
+    /// <param name="text">Text to insert.</param>
     private void InsertText(string text)
     {
         var i = 0;
@@ -635,7 +610,7 @@ public class RtfDocument
 
         while(i < text.Length)
         {
-            code = Char.ConvertToUtf32(text, i);
+            code = char.ConvertToUtf32(text, i);
 
             if(code >= 32 && code < 128)
             {
@@ -648,7 +623,7 @@ public class RtfDocument
                     i++;
 
                     if(i < text.Length)
-                        code = Char.ConvertToUtf32(text, i);
+                        code = char.ConvertToUtf32(text, i);
                 }
 
                 mainGroup.AppendChild(new RtfTreeNode(RtfNodeType.Text, s.ToString(), false, 0));
@@ -684,7 +659,7 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Actualiza la tabla de fuentes con una nueva fuente si es necesario.
+    /// Update the font table with a new font if necessary.
     /// </summary>
     /// <param name="format"></param>
     private void UpdateFontTable(RtfCharFormat format)
@@ -696,7 +671,7 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Actualiza la tabla de colores con un nuevo color si es necesario.
+    /// Update the color table with a new color if necessary.
     /// </summary>
     /// <param name="format"></param>
     private void UpdateColorTable(RtfCharFormat format)
@@ -708,7 +683,7 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Inicializa el arbol RTF con todas las claves de la cabecera del documento.
+    /// Initializes the RTF tree with all the keys from the document header.
     /// </summary>
     private void InitializeTree()
     {
@@ -722,10 +697,11 @@ public class RtfDocument
     }
 
     /// <summary>
-    /// Inserta las propiedades de formato del documento
+    /// Inserts the document formatting properties
     /// </summary>
     private void InsertDocSettings(RtfTree tree)
     {
+        if (tree.MainGroup == null || tree.MainGroup.ChildNodes == null) return;
         var indInicioTexto = tree.MainGroup.ChildNodes.IndexOf("pard");
 
         //Generic Properties
@@ -738,21 +714,22 @@ public class RtfDocument
         tree.MainGroup.InsertChild(indInicioTexto++, new RtfTreeNode(RtfNodeType.Keyword, "margl", true, calcTwips(docFormat.MarginL)));
         tree.MainGroup.InsertChild(indInicioTexto++, new RtfTreeNode(RtfNodeType.Keyword, "margr", true, calcTwips(docFormat.MarginR)));
         tree.MainGroup.InsertChild(indInicioTexto++, new RtfTreeNode(RtfNodeType.Keyword, "margt", true, calcTwips(docFormat.MarginT)));
-        tree.MainGroup.InsertChild(indInicioTexto++, new RtfTreeNode(RtfNodeType.Keyword, "margb", true, calcTwips(docFormat.MarginB)));
+        tree.MainGroup.InsertChild(indInicioTexto  , new RtfTreeNode(RtfNodeType.Keyword, "margb", true, calcTwips(docFormat.MarginB)));
     }
 
     /// <summary>
-    /// Convierte entre cent�metros y twips.
+    /// Convert between centimeters and twips.
     /// </summary>
-    /// <param name="centimeters">Valor en cent�metros.</param>
-    /// <returns>Valor en twips.</returns>
+    /// <param name="centimeters">Value in centimeters.</param>
+    /// <returns>Value in twips.</returns>
     private int calcTwips(float centimeters)
     {
+        // DPI dependant?
         //1 inches = 2.54 centimeters
         //1 inches = 1440 twips
         //20 twip = 1 pixel
 
-        //X centimetros --> (X*1440)/2.54 twips
+        //X centimeters --> (X*1440)/2.54 twips
 
         return (int)((centimeters * 1440F) / 2.54F);
     }

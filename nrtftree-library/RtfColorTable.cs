@@ -26,7 +26,7 @@
  * Description:	Table of colors in a RTF document.
  * ******************************************************************************/
 
-using System.Drawing;
+using SkiaSharp;
 
 namespace Net.Sgoliver.NRtfTree.Util;
 
@@ -52,9 +52,9 @@ public class RtfColorTable
     /// Insert new color to the list.
     /// </summary>
     /// <param name="color">New color to insert.</param>
-    public void AddColor(Color color)
+    public void AddColor(SKColor color)
     {
-        colors.Add(color.ToArgb());
+        colors.Add((int)(uint)color);
     }
 
     /// <summary>
@@ -62,7 +62,9 @@ public class RtfColorTable
     /// </summary>
     /// <param name="index">Index of the color.</param>
     /// <returns>Color at the index in the table.</returns>
-    public Color this[int index] => Color.FromArgb(colors[index]);
+    public SKColor this[int index] =>
+        new ((uint)colors[index]);
+    ///SKColor.FromArgb(colors[index]);
 
     /// <summary>
     /// Number of colors in the table
@@ -74,8 +76,8 @@ public class RtfColorTable
     /// </summary>
     /// <param name="color">Color to get the index of.</param>
     /// <returns>Index of the color.</returns>
-    public int IndexOf(Color color)
+    public int IndexOf(SKColor color)
     {
-        return colors.IndexOf(color.ToArgb());
+        return colors.IndexOf((int)(uint)color);
     }
 }

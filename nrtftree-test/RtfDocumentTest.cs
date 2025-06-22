@@ -27,9 +27,9 @@
  * ******************************************************************************/
 
 using Net.Sgoliver.NRtfTree.Util;
-using System.Drawing;
 using System.Globalization;
 using System.Text;
+using SkiaSharp;
 
 namespace Net.Sgoliver.NRtfTree.Test;
 
@@ -51,7 +51,7 @@ public class RtfDocumentTest
         var doc = new RtfDocument(Encoding.GetEncoding(1252)); // Encoding.Default has changed to UTF8 in newer .NETs
 
         var charFormat = new RtfCharFormat();
-        charFormat.Color = Color.DarkBlue;
+        charFormat.Color = SKColors.DarkBlue;
         charFormat.Underline = true;
         charFormat.Bold = true;
         doc.UpdateCharFormat(charFormat);
@@ -65,7 +65,7 @@ public class RtfDocumentTest
 
         doc.SetFormatBold(false);
         doc.SetFormatUnderline(false);
-        doc.SetFormatColor(Color.Red);
+        doc.SetFormatColor(SKColors.Red);
 
         doc.AddText("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer quis eros at tortor pharetra laoreet. Donec tortor diam, imperdiet ut porta quis, congue eu justo.");
         doc.AddText("Quisque viverra tellus id mauris tincidunt luctus. Fusce in interdum ipsum. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
@@ -82,7 +82,7 @@ public class RtfDocumentTest
         doc.AddNewParagraph(2);
 
         charFormat.Font = "Courier New";
-        charFormat.Color = Color.Green;
+        charFormat.Color = SKColors.Green;
         charFormat.Bold = false;
         charFormat.Underline = false;
         doc.UpdateCharFormat(charFormat);
@@ -100,7 +100,7 @@ public class RtfDocumentTest
         doc.UpdateCharFormat(charFormat);
         doc.SetFormatUnderline(false);
         doc.SetFormatItalic(true);
-        doc.SetFormatColor(Color.DarkBlue);
+        doc.SetFormatColor(SKColors.DarkBlue);
 
         doc.SetLeftIndentation(0);
 

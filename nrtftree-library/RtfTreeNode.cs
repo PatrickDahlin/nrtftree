@@ -875,7 +875,7 @@ public class RtfTreeNode
     /// <returns>Text in RTF format of the node.</returns>
     private string getRtfInm(RtfTreeNode curNode, RtfTreeNode? prevNode, Encoding? enc)
     {
-        var res = new StringBuilder("");
+        var res = new StringBuilder(1024);
 
         switch (curNode.NodeType)
         {
